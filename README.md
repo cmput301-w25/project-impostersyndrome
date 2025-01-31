@@ -6,7 +6,7 @@
 | ----------- | ------ | --------------- |
 | Roshan Banisetti | banisett | Roshan1299     |
 | Garrick Tse | gtse1 | garrrrrrrr     |
-| [Full Name] | [CCID] | [@username]     |
+| Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | [Full Name] | [CCID] | [@username]     |
 | [Full Name] | [CCID] | [@username]     |
 | [Full Name] | [CCID] | [@username]     |
