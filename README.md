@@ -5,7 +5,7 @@
 | Name        | CCID   | GitHub Username |
 | ----------- | ------ | --------------- |
 | Roshan Banisetti | banisett | Roshan1299     |
-| [Full Name] | [CCID] | [@username]     |
+| Garrick Tse | gtse1 | garrrrrrrr     |
 | [Full Name] | [CCID] | [@username]     |
 | [Full Name] | [CCID] | [@username]     |
 | [Full Name] | [CCID] | [@username]     |
