@@ -9,7 +9,7 @@
 | Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | Eric Mo | emo2 | cire005     |
 | Ali Zain Malik | alizain | alizainmalik |
-| [Full Name] | [CCID] | [@username]     |
+| Rayan Zhi | rzhi | rayanzhi9     |
 
 ## Project Description
 
