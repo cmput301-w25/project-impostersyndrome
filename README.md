@@ -8,7 +8,7 @@
 | Garrick Tse | gtse1 | garrrrrrrr     |
 | Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | Eric Mo | emo2 | cire005     |
-| [Full Name] | [CCID] | [@username]     |
+| Ali Zain Malik | alizain | alizainmalik |
 | [Full Name] | [CCID] | [@username]     |
 
 ## Project Description
