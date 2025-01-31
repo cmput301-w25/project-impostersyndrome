@@ -5,7 +5,7 @@
 | Name        | CCID   | GitHub Username |
 | ----------- | ------ | --------------- |
 | Roshan Banisetti | banisett | Roshan1299     |
-| Garrick Tse | gtse1 | garrrrrrrr     |
+| Garrick Tse | gtse1 | garrrrrrrrrr     |
 | Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | Eric Mo | emo2 | cire005     |
 | Ali Zain Malik | alizain | alizainmalik |
