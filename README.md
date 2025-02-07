@@ -30,6 +30,6 @@
 ## Documentation
 
 - [Wiki Link](https://github.com/cmput301-w25/project-impostersyndrome.wiki.git)
-- [Scrum Board]
+- [Scrum Board](https://github.com/orgs/cmput301-w25/projects/45)
 - [UI Mockups]
 - [UML]
