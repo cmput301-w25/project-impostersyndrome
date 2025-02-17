@@ -20,8 +20,8 @@
         android:id="@+id/addMoodButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
         android:text="Add Mood"
-        />
+        tools:layout_editor_absoluteX="148dp"
+        tools:layout_editor_absoluteY="497dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
