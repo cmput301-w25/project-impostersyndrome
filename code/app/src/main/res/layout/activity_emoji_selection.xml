@@ -4,6 +4,25 @@
     android:layout_height="match_parent">
 
     <!-- Circular Layout for Emojis -->
+
+    <TextView
+        android:layout_width="175dp"
+        android:layout_height="24dp"
+        android:layout_above="@+id/circleLayout"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="118dp"
+        android:layout_marginTop="93dp"
+        android:layout_marginEnd="118dp"
+        android:layout_marginBottom="99dp"
+        android:gravity="center"
+        android:text="How are u feeling ?"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        />
+
     <RelativeLayout
         android:id="@+id/circleLayout"
         android:layout_width="300dp"

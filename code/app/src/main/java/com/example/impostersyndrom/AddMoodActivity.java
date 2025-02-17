@@ -35,7 +35,7 @@ public class AddMoodActivity extends AppCompatActivity {
         emojiDescription.setText(emojiDesc);
 
         // Set the current time
-        String currentTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
+        String currentTime = new SimpleDateFormat("dd-MM-YYYY | HH:mm", Locale.getDefault()).format(new Date());
         timeView.setText(currentTime);
 
         // Set the background color, rounded corners, and border for the rectangle
