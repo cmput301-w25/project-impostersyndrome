@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Circular Layout for Emojis -->
+    <RelativeLayout
+        android:id="@+id/circleLayout"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true">
+
+        <!-- Emoji 1 (Top) -->
+        <TextView
+            android:id="@+id/emoji1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="😁"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <!-- Emoji 2 (Top-Right) -->
+
+        <!-- Emoji 3 (Right) -->
+
+        <TextView
+            android:id="@+id/emoji2"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="47dp"
+            android:layout_marginEnd="41dp"
+            android:gravity="center"
+            android:text="🤔"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/emoji3"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="🤢"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true" />
+
+        <!-- Emoji 4 (Bottom-Right) -->
+
+        <!-- Emoji 5 (Bottom) -->
+        <TextView
+            android:id="@+id/emoji4"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="41dp"
+            android:layout_marginBottom="47dp"
+            android:gravity="center"
+            android:text="😡"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/emoji5"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="😔"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+
+        <!-- Emoji 6 (Bottom-Left) -->
+
+        <!-- Emoji 7 (Left) -->
+        <TextView
+            android:id="@+id/emoji6"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="41dp"
+            android:layout_marginBottom="47dp"
+            android:gravity="center"
+            android:text="😨"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/emoji7"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="😅"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true" />
+
+        <!-- Emoji 8 (Top-Left) -->
+        <TextView
+            android:id="@+id/emoji8"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="47dp"
+            android:gravity="center"
+            android:text="😲"
+            android:textSize="32sp" />
+    </RelativeLayout>
+</RelativeLayout>

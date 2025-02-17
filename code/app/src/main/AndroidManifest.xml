@@ -12,15 +12,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ImposterSyndrom"
         tools:targetApi="31">
+
+        <!-- MainActivity (Launcher Activity) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- EmojiSelectionActivity -->
+        <activity
+            android:name=".EmojiSelectionActivity"
+            android:exported="false" /> <!-- Not exported since it's only used internally -->
+
+        <!-- AddMoodActivity -->
+        <activity
+            android:name=".AddMoodActivity"
+            android:exported="false" /> <!-- Not exported since it's only used internally -->
+
     </application>
 
 </manifest>
