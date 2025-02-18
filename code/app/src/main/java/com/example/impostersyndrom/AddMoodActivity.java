@@ -87,13 +87,9 @@ public class AddMoodActivity extends AppCompatActivity {
             Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
             finish();
         });
-
-
-
     }
-
     public void addMood(Mood mood) {
-        DocumentReference docRef = moodsRef.document(mood.getEmojiDescription());
+        DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
 
