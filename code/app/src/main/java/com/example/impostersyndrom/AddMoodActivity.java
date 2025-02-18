@@ -8,7 +8,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 public class AddMoodActivity extends AppCompatActivity {
@@ -24,45 +23,21 @@ public class AddMoodActivity extends AppCompatActivity {
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
 
-        // Retrieve the selected emoji and color from the intent
+        // Retrieve the Mood object from the intent
         Intent intent = getIntent();
-        String emoji = intent.getStringExtra("emoji");
-        int color = intent.getIntExtra("color", Color.BLACK);
-        String emojiDesc = getEmojiDescription(emoji); // Get the emoji description
+        Mood mood = (Mood) intent.getSerializableExtra("mood");
 
-        // Display the emoji and description
-        emojiView.setText(emoji);
-        emojiDescription.setText(emojiDesc);
+        if (mood != null) {
+            // Display the emoji and description
+            emojiView.setText(mood.getEmotionalState());
+            emojiDescription.setText(mood.getEmojiDescription());
 
-        // Set the current time
-        String currentTime = new SimpleDateFormat("dd-MM-YYYY | HH:mm", Locale.getDefault()).format(new Date());
-        timeView.setText(currentTime);
+            // Set the current time
+            String currentTime = new SimpleDateFormat("dd-MM-YYYY | HH:mm", Locale.getDefault()).format(mood.getTimestamp());
+            timeView.setText(currentTime);
 
-        // Set the background color, rounded corners, and border for the rectangle
-        setRoundedBackground(emojiRectangle, color);
-    }
-
-    // Helper method to get the emoji description
-    private String getEmojiDescription(String emoji) {
-        switch (emoji) {
-            case "\uD83D\uDE01": // Happy
-                return "Happy";
-            case "\uD83E\uDD14": // Confused
-                return "Confused";
-            case "\uD83E\uDD22": // Disgust
-                return "Disgust";
-            case "\uD83D\uDE21": // Angry
-                return "Angry";
-            case "\uD83D\uDE14": // Sad
-                return "Sad";
-            case "\uD83D\uDE28": // Fear
-                return "Fear";
-            case "\uD83D\uDE05": // Shame
-                return "Shame";
-            case "\uD83D\uDE32": // Surprise
-                return "Surprise";
-            default:
-                return "Mood";
+            // Set the background color, rounded corners, and border for the rectangle
+            setRoundedBackground(emojiRectangle, mood.getColor());
         }
     }
 

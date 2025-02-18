@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class EmojiSelectionActivity extends AppCompatActivity {
 
@@ -27,33 +27,44 @@ public class EmojiSelectionActivity extends AppCompatActivity {
         TextView emoji7 = findViewById(R.id.emoji7);
         TextView emoji8 = findViewById(R.id.emoji8);
 
-        // List of emojis and their colors
-        Map<String, Integer> emojiColorMap = new HashMap<>();
-        emojiColorMap.put("\uD83D\uDE01", Color.parseColor("#FFCC00")); // Happy
-        emojiColorMap.put("\uD83E\uDD14", Color.parseColor("#8B7355")); // confused
-        emojiColorMap.put("\uD83E\uDD22", Color.parseColor("#808000")); // Disgust
-        emojiColorMap.put("\uD83D\uDE21", Color.parseColor("#FF4D00")); // Angry
-        emojiColorMap.put("\uD83D\uDE14", Color.parseColor("#2980B9")); // Sad
-        emojiColorMap.put("\uD83D\uDE28", Color.parseColor("#9B59B6")); // Fear
-        emojiColorMap.put("\uD83D\uDE05", Color.parseColor("#FFC0CB")); // Shame (pink)
-        emojiColorMap.put("\uD83D\uDE32", Color.parseColor("#1ABC9C")); // Surprise
+        // List of emojis, their descriptions, and colors
+        Map<String, Pair<String, Integer>> emojiMap = new HashMap<>();
+        emojiMap.put("\uD83D\uDE01", new Pair<>("Happy", Color.parseColor("#FFCC00"))); // Happy
+        emojiMap.put("\uD83E\uDD14", new Pair<>("Confused", Color.parseColor("#8B7355"))); // Confused
+        emojiMap.put("\uD83E\uDD22", new Pair<>("Disgust", Color.parseColor("#808000"))); // Disgust
+        emojiMap.put("\uD83D\uDE21", new Pair<>("Angry", Color.parseColor("#FF4D00"))); // Angry
+        emojiMap.put("\uD83D\uDE14", new Pair<>("Sad", Color.parseColor("#2980B9"))); // Sad
+        emojiMap.put("\uD83D\uDE28", new Pair<>("Fear", Color.parseColor("#9B59B6"))); // Fear
+        emojiMap.put("\uD83D\uDE05", new Pair<>("Shame", Color.parseColor("#FFC0CB"))); // Shame
+        emojiMap.put("\uD83D\uDE32", new Pair<>("Surprise", Color.parseColor("#1ABC9C"))); // Surprise
 
         // Set click listeners for each emoji
-        emoji1.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE01", emojiColorMap.get("\uD83D\uDE01")));
-        emoji2.setOnClickListener(v -> navigateToViewMood("\uD83E\uDD14", emojiColorMap.get("\uD83E\uDD14")));
-        emoji3.setOnClickListener(v -> navigateToViewMood("\uD83E\uDD22", emojiColorMap.get("\uD83E\uDD22")));
-        emoji4.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE21", emojiColorMap.get("\uD83D\uDE21")));
-        emoji5.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE14", emojiColorMap.get("\uD83D\uDE14")));
-        emoji6.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE28", emojiColorMap.get("\uD83D\uDE28")));
-        emoji7.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE05", emojiColorMap.get("\uD83D\uDE05")));
-        emoji8.setOnClickListener(v -> navigateToViewMood("\uD83D\uDE32", emojiColorMap.get("\uD83D\uDE32")));
+        emoji1.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE01", emojiMap.get("\uD83D\uDE01").first, new Date(), emojiMap.get("\uD83D\uDE01").second)));
+        emoji2.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD14", emojiMap.get("\uD83E\uDD14").first, new Date(), emojiMap.get("\uD83E\uDD14").second)));
+        emoji3.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD22", emojiMap.get("\uD83E\uDD22").first, new Date(), emojiMap.get("\uD83E\uDD22").second)));
+        emoji4.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE21", emojiMap.get("\uD83D\uDE21").first, new Date(), emojiMap.get("\uD83D\uDE21").second)));
+        emoji5.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE14", emojiMap.get("\uD83D\uDE14").first, new Date(), emojiMap.get("\uD83D\uDE14").second)));
+        emoji6.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE28", emojiMap.get("\uD83D\uDE28").first, new Date(), emojiMap.get("\uD83D\uDE28").second)));
+        emoji7.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE05", emojiMap.get("\uD83D\uDE05").first, new Date(), emojiMap.get("\uD83D\uDE05").second)));
+        emoji8.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE32", emojiMap.get("\uD83D\uDE32").first, new Date(), emojiMap.get("\uD83D\uDE32").second)));
     }
 
     // Helper method to navigate to View Mood Screen
-    private void navigateToViewMood(String emoji, int color) {
+    private void navigateToViewMood(Mood mood) {
         Intent intent = new Intent(EmojiSelectionActivity.this, AddMoodActivity.class);
-        intent.putExtra("emoji", emoji);
-        intent.putExtra("color", color);
+        intent.putExtra("mood", mood);
         startActivity(intent);
+    }
+
+    // Pair class to hold emoji description and color
+    private static class Pair<F, S> {
+        public final F first; //DEsc
+        public final S second; //Color
+
+        public Pair(F first, S second) {
+            this.first = first;
+            this.second = second;
+
+        }
     }
 }
