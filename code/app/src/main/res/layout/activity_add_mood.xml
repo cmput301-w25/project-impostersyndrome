@@ -39,5 +39,51 @@
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
+    <!-- EditText  -->
+    <LinearLayout
+        android:id="@+id/addReasonLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="10dp">
+        <TextView
+            android:id="@+id/addReasonText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/addReasonText"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"></TextView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <EditText
+        android:id="@+id/addReasonEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="@string/addReasonHint"
+        android:inputType=""
+        android:maxLength="20"
+        android:minHeight="48dp"
+        android:paddingTop="10dp"
+        android:textColorHint="#546E7A"
+        android:singleLine="true"></EditText>
+
+        <ImageButton
+            android:id="@+id/submitButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="false"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/right_arrow"
+            android:visibility="invisible"/>
+    </LinearLayout>
+    </LinearLayout>
+
+
 
 </LinearLayout>

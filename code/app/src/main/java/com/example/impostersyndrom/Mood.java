@@ -4,16 +4,19 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class Mood implements Serializable {
+
     private String emotionalState;
     private String emojiDescription;
     private Date timestamp;
     private int color;
+    private String reason;
 
-    public Mood(String emotionalState, String emojiDescription, Date timestamp, int color) {
+    public Mood(String emotionalState, String emojiDescription, Date timestamp, int color, String reason) {
         this.emotionalState = emotionalState;
         this.emojiDescription = emojiDescription;
         this.timestamp = timestamp;
         this.color = color;
+        this.reason = reason;
     }
 
     // Getters and Setters
@@ -48,5 +51,8 @@ public class Mood implements Serializable {
     public void setColor(int color) {
         this.color = color;
     }
+    public String getReason() {return reason;}
+
+    public void setReason(String reason) {this.reason = reason;}
 }
 
