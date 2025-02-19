@@ -1,0 +1,69 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@color/black"
+    android:padding="16dp"
+    android:gravity="center_horizontal">
+
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    <!-- Rectangle with Emoji -->
+    <LinearLayout
+        android:id="@+id/emojiRectangle"
+        android:layout_width="359dp"
+        android:layout_height="346dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_marginTop="65sp">
+
+        <TextView
+            android:id="@+id/emojiView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="100sp" />
+
+        <TextView
+            android:id="@+id/emojiDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:textSize="35sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/dateTimeView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/addReasonEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:hint="@string/addReasonHint"
+            android:maxLength="20"
+            android:singleLine="true"
+            android:textColorHint="#546E7A"></EditText>
+
+    </LinearLayout>
+        <ImageButton
+            android:id="@+id/submitButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:src="@drawable/white_checkmark"
+            android:layout_gravity="top|end" />
+    </FrameLayout>
+</LinearLayout>
