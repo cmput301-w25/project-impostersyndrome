@@ -62,7 +62,7 @@ public class AddMoodActivity extends AppCompatActivity {
             mood.setReason(addReasonEdit.getText().toString().trim());
             addMood(mood);
             Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-            Intent new_intent = new Intent(AddMoodActivity.this, EmojiSelectionActivity.class);
+            Intent new_intent = new Intent(AddMoodActivity.this, MainActivity.class);
             new_intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(new_intent);
             finish();
