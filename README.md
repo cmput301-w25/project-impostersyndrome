@@ -8,7 +8,7 @@
 | Garrick Tse | gtse1 | garrrrrrrrrr     |
 | Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | Eric Mo | emo2 | cire005     |
-| Ali Zain Malik | alizain | alizainmalik |
+| Ali Zain Malik | alizain | IFDES |
 | Rayan Zhi | rzhi | rayanzhi9     |
 
 ## Project Description
