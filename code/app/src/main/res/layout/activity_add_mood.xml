@@ -1,10 +1,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="16dp"
     android:gravity="center_horizontal">
 
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
     <!-- Rectangle with Emoji -->
     <LinearLayout
         android:id="@+id/emojiRectangle"
@@ -38,52 +42,27 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
-    </LinearLayout>
-    <!-- EditText  -->
-    <LinearLayout
-        android:id="@+id/addReasonLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="10dp">
-        <TextView
-            android:id="@+id/addReasonText"
+
+        <EditText
+            android:id="@+id/addReasonEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/addReasonText"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-black"></TextView>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <EditText
-        android:id="@+id/addReasonEdit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="@string/addReasonHint"
-        android:inputType=""
-        android:maxLength="20"
-        android:minHeight="48dp"
-        android:paddingTop="10dp"
-        android:textColorHint="#546E7A"
-        android:singleLine="true"></EditText>
+            android:gravity="center_horizontal"
+            android:hint="@string/addReasonHint"
+            android:maxLength="20"
+            android:singleLine="true"
+            android:textColorHint="#546E7A"></EditText>
 
+    </LinearLayout>
         <ImageButton
             android:id="@+id/submitButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="false"
+            android:clickable="true"
             android:focusable="true"
-            android:padding="8dp"
-            android:src="@drawable/right_arrow"
-            android:visibility="invisible"/>
-    </LinearLayout>
-    </LinearLayout>
-
-
-
+            android:padding="16dp"
+            android:src="@drawable/checkmark"
+            android:layout_gravity="top|end" />
+    </FrameLayout>
 </LinearLayout>

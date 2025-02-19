@@ -38,7 +38,6 @@ public class AddMoodActivity extends AppCompatActivity {
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
-        TextView addReasonText = findViewById(R.id.addReasonText);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
         ImageButton submitButton = findViewById(R.id.submitButton);
 
@@ -58,28 +57,6 @@ public class AddMoodActivity extends AppCompatActivity {
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
         }
-        addReasonEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (!addReasonEdit.getText().toString().trim().isEmpty()) {
-                    submitButton.setClickable(true);
-                    submitButton.setVisibility(View.VISIBLE);
-                } else {
-                    submitButton.setClickable(false);
-                    submitButton.setVisibility(View.INVISIBLE);
-                }
-
-            }
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-        });
 
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
