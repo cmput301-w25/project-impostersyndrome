@@ -39,14 +39,14 @@ public class EmojiSelectionActivity extends AppCompatActivity {
         emojiMap.put("\uD83D\uDE32", new Pair<>("Surprise", Color.parseColor("#1ABC9C"))); // Surprise
 
         // Set click listeners for each emoji
-        emoji1.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE01", emojiMap.get("\uD83D\uDE01").first, new Date(), emojiMap.get("\uD83D\uDE01").second)));
-        emoji2.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD14", emojiMap.get("\uD83E\uDD14").first, new Date(), emojiMap.get("\uD83E\uDD14").second)));
-        emoji3.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD22", emojiMap.get("\uD83E\uDD22").first, new Date(), emojiMap.get("\uD83E\uDD22").second)));
-        emoji4.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE21", emojiMap.get("\uD83D\uDE21").first, new Date(), emojiMap.get("\uD83D\uDE21").second)));
-        emoji5.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE14", emojiMap.get("\uD83D\uDE14").first, new Date(), emojiMap.get("\uD83D\uDE14").second)));
-        emoji6.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE28", emojiMap.get("\uD83D\uDE28").first, new Date(), emojiMap.get("\uD83D\uDE28").second)));
-        emoji7.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE05", emojiMap.get("\uD83D\uDE05").first, new Date(), emojiMap.get("\uD83D\uDE05").second)));
-        emoji8.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE32", emojiMap.get("\uD83D\uDE32").first, new Date(), emojiMap.get("\uD83D\uDE32").second)));
+        emoji1.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE01", emojiMap.get("\uD83D\uDE01").first, new Date(), emojiMap.get("\uD83D\uDE01").second, null)));
+        emoji2.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD14", emojiMap.get("\uD83E\uDD14").first, new Date(), emojiMap.get("\uD83E\uDD14").second, null)));
+        emoji3.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD22", emojiMap.get("\uD83E\uDD22").first, new Date(), emojiMap.get("\uD83E\uDD22").second, null)));
+        emoji4.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE21", emojiMap.get("\uD83D\uDE21").first, new Date(), emojiMap.get("\uD83D\uDE21").second, null)));
+        emoji5.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE14", emojiMap.get("\uD83D\uDE14").first, new Date(), emojiMap.get("\uD83D\uDE14").second, null)));
+        emoji6.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE28", emojiMap.get("\uD83D\uDE28").first, new Date(), emojiMap.get("\uD83D\uDE28").second, null)));
+        emoji7.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE05", emojiMap.get("\uD83D\uDE05").first, new Date(), emojiMap.get("\uD83D\uDE05").second, null)));
+        emoji8.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE32", emojiMap.get("\uD83D\uDE32").first, new Date(), emojiMap.get("\uD83D\uDE32").second, null)));
     }
 
     // Helper method to navigate to View Mood Screen

@@ -1,10 +1,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
+    android:background="@color/black"
     android:padding="16dp"
     android:gravity="center_horizontal">
 
+
+    <FrameLayout
+        android:paddingTop="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
     <!-- Rectangle with Emoji -->
     <LinearLayout
         android:id="@+id/emojiRectangle"
@@ -38,6 +44,27 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
-    </LinearLayout>
 
+        <EditText
+            android:id="@+id/addReasonEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:hint="@string/addReasonHint"
+            android:maxLength="20"
+            android:singleLine="true"
+            android:textColorHint="#546E7A"></EditText>
+
+    </LinearLayout>
+        <ImageButton
+            android:id="@+id/submitButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:src="@drawable/white_checkmark"
+            android:layout_gravity="top|end" />
+    </FrameLayout>
 </LinearLayout>
