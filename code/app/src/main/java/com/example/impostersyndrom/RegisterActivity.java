@@ -14,10 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -51,9 +51,29 @@ public class RegisterActivity extends AppCompatActivity {
         String firstNameText = firstName.getText().toString().trim();
         String lastNameText = lastName.getText().toString().trim();
 
-        // Ensure no field is empty
-        if (TextUtils.isEmpty(emailText) || TextUtils.isEmpty(passwordText) || TextUtils.isEmpty(usernameText)) {
-            showToast("Registration failed: All fields are required!");
+        // Check for empty fields and provide specific error messages
+        if (TextUtils.isEmpty(emailText)) {
+            showToast("Registration failed: Email is required!");
+            return;
+        }
+
+        if (TextUtils.isEmpty(passwordText)) {
+            showToast("Registration failed: Password is required!");
+            return;
+        }
+
+        if (TextUtils.isEmpty(usernameText)) {
+            showToast("Registration failed: Username is required!");
+            return;
+        }
+
+        if (TextUtils.isEmpty(firstNameText)) {
+            showToast("Registration failed: First name is required!");
+            return;
+        }
+
+        if (TextUtils.isEmpty(lastNameText)) {
+            showToast("Registration failed: Last name is required!");
             return;
         }
 
@@ -69,8 +89,19 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // Validate username format
+        if (!isUsernameValid(usernameText)) {
+            showToast("Registration failed: Username must be 5-20 alphanumeric characters!");
+            return;
+        }
+
         // Ensure username is unique
         checkUsernameUnique(emailText, passwordText, usernameText, firstNameText, lastNameText);
+    }
+
+    private boolean isUsernameValid(String username) {
+        // Regex: Only alphanumeric, length 5-20
+        return Pattern.matches("^[a-zA-Z0-9]{5,20}$", username);
     }
 
     private void checkUsernameUnique(String email, String password, String username, String firstName, String lastName) {
@@ -91,7 +122,6 @@ public class RegisterActivity extends AppCompatActivity {
                 String userId = auth.getCurrentUser().getUid();
                 saveUserToFirestore(userId, email, username, firstName, lastName);
             } else {
-                // Handle Firebase authentication errors
                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                     showToast("Registration failed: Email is already registered!");
                 } else {
