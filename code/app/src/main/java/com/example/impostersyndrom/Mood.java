@@ -12,6 +12,7 @@ public class Mood implements Serializable {
     private String reason;
     private Date timestamp;
     private int color;
+    private String imageUrl;
 
 
 
@@ -23,6 +24,7 @@ public class Mood implements Serializable {
         this.timestamp = timestamp;
         this.color = color;
         this.reason = reason;
+        this.imageUrl = imageUrl;
     }
 
     // Getters and Setters
@@ -61,5 +63,8 @@ public class Mood implements Serializable {
 
     public void setReason(String reason) {this.reason = reason;}
     public String getId() {return id;}
-}
 
+    public String getImageUrl() {return imageUrl;}
+
+    public void setImageUrl(String imageUrl) {this.imageUrl = imageUrl;}
+}
