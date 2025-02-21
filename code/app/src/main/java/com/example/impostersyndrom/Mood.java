@@ -2,18 +2,29 @@ package com.example.impostersyndrom;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 public class Mood implements Serializable {
+
     private String emotionalState;
     private String emojiDescription;
+    private String id;
+    private String reason;
     private Date timestamp;
     private int color;
+    private String imageUrl;
 
-    public Mood(String emotionalState, String emojiDescription, Date timestamp, int color) {
+
+
+
+    public Mood(String emotionalState, String emojiDescription, Date timestamp, int color, String reason) {
+        this.id = UUID.randomUUID().toString();
         this.emotionalState = emotionalState;
         this.emojiDescription = emojiDescription;
         this.timestamp = timestamp;
         this.color = color;
+        this.reason = reason;
+        this.imageUrl = imageUrl;
     }
 
     // Getters and Setters
@@ -48,5 +59,12 @@ public class Mood implements Serializable {
     public void setColor(int color) {
         this.color = color;
     }
-}
+    public String getReason() {return reason;}
 
+    public void setReason(String reason) {this.reason = reason;}
+    public String getId() {return id;}
+
+    public String getImageUrl() {return imageUrl;}
+
+    public void setImageUrl(String imageUrl) {this.imageUrl = imageUrl;}
+}

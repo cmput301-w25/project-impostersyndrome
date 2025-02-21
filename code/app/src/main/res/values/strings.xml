@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ImposterSyndrom</string>
+    <string name="addReasonHint">Enter a reason...</string>
+    <string name="addReasonText">Why are you feeling this way?</string>
 </resources>
