@@ -13,8 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 
-public class LoginActivity extends AppCompatActivity {
+import java.util.Objects;
 
+public class LoginActivity extends AppCompatActivity {
     private EditText loginEmail, loginPassword;
     private Button loginBtn;
     private TextView forgotPassword, newUserSignUp;
@@ -57,6 +58,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(emailText, passwordText).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                User.getInstance().setUserId(Objects.requireNonNull(auth.getCurrentUser()).getUid());
                 showToast("Login Successful!");
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears backstack

@@ -13,6 +13,7 @@ public class Mood implements Serializable {
     private Date timestamp;
     private int color;
     private String imageUrl;
+    private String userId;
 
 
 
@@ -67,4 +68,8 @@ public class Mood implements Serializable {
     public String getImageUrl() {return imageUrl;}
 
     public void setImageUrl(String imageUrl) {this.imageUrl = imageUrl;}
+
+    public String getUserId() {return userId;}
+
+    public void setUserId(String userId) {this.userId = userId;}
 }

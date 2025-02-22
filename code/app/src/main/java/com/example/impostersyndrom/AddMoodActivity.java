@@ -83,6 +83,7 @@ public class AddMoodActivity extends AppCompatActivity {
 
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
+            mood.setUserId(User.getInstance().getUserId());
 
             if (imageHandler.hasImage()) {
                 imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
@@ -126,10 +127,8 @@ public class AddMoodActivity extends AppCompatActivity {
         docRef.set(mood);
     }
 
-
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
-        // Create a GradientDrawable for the background color, rounded corners, and border
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
         gradientDrawable.setCornerRadius(50); // Rounded corners (50dp radius)
