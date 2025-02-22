@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         Button addButton = findViewById(R.id.addMoodButton);
         addButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
+            intent.putExtra("userId", getIntent().getStringExtra("userId"));
             startActivity(intent);
         });
 
