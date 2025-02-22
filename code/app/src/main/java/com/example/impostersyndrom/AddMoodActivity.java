@@ -84,24 +84,34 @@ public class AddMoodActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
 
-            imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                @Override
-                public void onImageUploadSuccess(String url) {
-                    imageUrl = url; // Store the image URL
-                    mood.setImageUrl(imageUrl); // Link the image URL to the mood
-                    addMood(mood);
-                    Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-                    Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
-                    newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(newIntent);
-                    finish();
-                }
+            if (imageHandler.hasImage()) {
+                imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                    @Override
+                    public void onImageUploadSuccess(String url) {
+                        imageUrl = url; // Store the image URL
+                        mood.setImageUrl(imageUrl); // Link the image URL to the mood
+                        addMood(mood);
+                        Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
+                        Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                        newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(newIntent);
+                        finish();
+                    }
 
-                @Override
-                public void onImageUploadFailure(Exception e) {
-                    Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                    @Override
+                    public void onImageUploadFailure(Exception e) {
+                        Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                mood.setImageUrl(null);
+                addMood(mood);
+                Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
+                Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(newIntent);
+                finish();
+            }
         });
 
         Button openGalleryButton = findViewById(R.id.uploadButton);

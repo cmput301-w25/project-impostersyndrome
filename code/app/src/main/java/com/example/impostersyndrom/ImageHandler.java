@@ -77,6 +77,10 @@ public class ImageHandler {
         }
     }
 
+    public boolean hasImage() {
+        return selectedImageBitmap != null;
+    }
+
     public void uploadImageToFirebase(OnImageUploadListener listener) {
         if (selectedImageBitmap == null) {
             listener.onImageUploadFailure(new Exception("No image selected"));
@@ -85,22 +89,33 @@ public class ImageHandler {
 
         // Compress the image
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        byte[] imageData = stream.toByteArray();
+        int quality = 100;
+        selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
 
-        // Upload the image to Firebase Storage
+        // Reduce quality until the image size is below MAX_IMAGE_SIZE
+        while (stream.toByteArray().length > MAX_IMAGE_SIZE && quality > 10) {
+            stream.reset();
+            quality -= 5;
+            selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+        }
+
+        // Check if the image is still too large
+        if (stream.toByteArray().length > MAX_IMAGE_SIZE) {
+            listener.onImageUploadFailure(new Exception("Image is too large even after compression"));
+            return;
+        }
+
+        // Upload the compressed image to Firebase Storage
         String imageName = UUID.randomUUID().toString() + ".jpg";
         StorageReference imageRef = storageRef.child("images/" + imageName);
 
-        UploadTask uploadTask = imageRef.putBytes(imageData);
+        UploadTask uploadTask = imageRef.putBytes(stream.toByteArray());
         uploadTask.addOnSuccessListener(taskSnapshot -> {
             imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                 String imageUrl = uri.toString();
                 listener.onImageUploadSuccess(imageUrl);
-                showToast("Image uploaded successfully!");
             });
         }).addOnFailureListener(e -> {
-            showToast("Failed to upload image: " + e.getMessage());
             listener.onImageUploadFailure(e);
         });
     }
