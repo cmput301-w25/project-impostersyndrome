@@ -6,10 +6,12 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,11 +22,14 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class AddMoodActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private CollectionReference moodsRef;
+    String selectedGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +45,7 @@ public class AddMoodActivity extends AppCompatActivity {
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
         ImageButton submitButton = findViewById(R.id.submitButton);
+        ImageButton groupButton = findViewById(R.id.groupButton);
 
         // Retrieve the Mood object from the intent
         Intent intent = getIntent();
@@ -56,7 +62,10 @@ public class AddMoodActivity extends AppCompatActivity {
 
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
+            selectedGroup = mood.getGroup();
+
         }
+        groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
@@ -68,6 +77,7 @@ public class AddMoodActivity extends AppCompatActivity {
             finish();
         });
     }
+
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
@@ -85,5 +95,28 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Set the GradientDrawable as the background
         layout.setBackground(gradientDrawable);
+    }
+
+
+    private void showGroupsMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.group_menu, popup.getMenu());
+        Map<Integer, String> menuMap = new HashMap<>(); // Hashmap maps each menu id to each respose
+        menuMap.put(R.id.alone, "Alone");
+        menuMap.put(R.id.with_another, "With another person");
+        menuMap.put(R.id.with_several, "With several people");
+        menuMap.put(R.id.with_crowd, "With a crowd");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (menuMap.containsKey(item.getItemId())) {
+                selectedGroup = menuMap.get(item.getItemId());
+                Toast.makeText(AddMoodActivity.this, "Group Status Saved!", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
     }
 }
