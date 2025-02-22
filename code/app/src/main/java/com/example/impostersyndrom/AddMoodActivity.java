@@ -5,6 +5,9 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.widget.Button;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -34,8 +37,7 @@ public class AddMoodActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_mood);
-
+        setContentView(R.layout.activity_add_mood); // Set the layout for this activity
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
 
@@ -79,7 +81,6 @@ public class AddMoodActivity extends AppCompatActivity {
             setRoundedBackground(emojiRectangle, mood.getColor());
         }
 
-        // Handle submit button click
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
 
@@ -115,13 +116,17 @@ public class AddMoodActivity extends AppCompatActivity {
         docRef.set(mood);
     }
 
+
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
+        // Create a GradientDrawable for the background color, rounded corners, and border
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50);
-        gradientDrawable.setColor(color);
-        gradientDrawable.setStroke(2, Color.BLACK);
+        gradientDrawable.setCornerRadius(50); // Rounded corners (50dp radius)
+        gradientDrawable.setColor(color); // Set the background color
+        gradientDrawable.setStroke(2, Color.BLACK); // Set the border (2dp width, black color)
+
+        // Set the GradientDrawable as the background
         layout.setBackground(gradientDrawable);
     }
 }
