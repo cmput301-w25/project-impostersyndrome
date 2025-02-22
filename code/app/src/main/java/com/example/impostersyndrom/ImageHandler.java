@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -31,6 +30,7 @@ public class ImageHandler {
     private final ImageView imagePreview;
     private final FirebaseStorage storage;
     private final StorageReference storageRef;
+    private Bitmap selectedImageBitmap = null;
 
     public ImageHandler(Activity activity, ImageView imagePreview) {
         this.activity = activity;
@@ -57,51 +57,38 @@ public class ImageHandler {
         }
     }
 
-    public void handleActivityResult(int resultCode, Intent data, OnImageUploadListener listener) {
+    public void handleActivityResult(int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK && data != null) {
-            Bitmap imageBitmap = null;
-
-            if (data.getData() != null) {
+            if (data.getData() != null) { // Gallery
                 Uri imageUri = data.getData();
                 try {
-                    imageBitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), imageUri);
+                    selectedImageBitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), imageUri);
                 } catch (IOException e) {
                     showToast("Failed to load image");
                     return;
                 }
-            } else if (data.getExtras() != null) { // Camera result
-                imageBitmap = (Bitmap) data.getExtras().get("data");
+            } else if (data.getExtras() != null) { // Camera
+                selectedImageBitmap = (Bitmap) data.getExtras().get("data");
             }
 
-            if (imageBitmap != null) {
-                if (compressAndStoreImage(imageBitmap, listener)) {
-                    imagePreview.setImageBitmap(imageBitmap);
-                }
+            if (selectedImageBitmap != null) {
+                imagePreview.setImageBitmap(selectedImageBitmap);
             }
         }
     }
 
-    private boolean compressAndStoreImage(Bitmap bitmap, OnImageUploadListener listener) {
-        int quality = 100;
+    public void uploadImageToFirebase(OnImageUploadListener listener) {
+        if (selectedImageBitmap == null) {
+            listener.onImageUploadFailure(new Exception("No image selected"));
+            return;
+        }
+
+        // Compress the image
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+        selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] imageData = stream.toByteArray();
 
-        while (stream.toByteArray().length > MAX_IMAGE_SIZE && quality > 10) {
-            stream.reset();
-            quality -= 5;
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-        }
-
-        if (stream.toByteArray().length > MAX_IMAGE_SIZE) {
-            showToast("Image is too large even after compression. Please choose a smaller image.");
-            return false;
-        } else {
-            uploadImageToFirebase(stream.toByteArray(), listener);
-            return true;
-        }
-    }
-
-    private void uploadImageToFirebase(byte[] imageData, OnImageUploadListener listener) {
+        // Upload the image to Firebase Storage
         String imageName = UUID.randomUUID().toString() + ".jpg";
         StorageReference imageRef = storageRef.child("images/" + imageName);
 

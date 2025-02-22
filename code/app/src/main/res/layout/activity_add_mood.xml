@@ -11,6 +11,7 @@
         android:paddingTop="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+
         <!-- Rectangle with Emoji -->
         <LinearLayout
             android:id="@+id/emojiRectangle"
@@ -53,10 +54,10 @@
                 android:hint="@string/addReasonHint"
                 android:maxLength="20"
                 android:singleLine="true"
-                android:textColorHint="#546E7A">
-            </EditText>
-
+                android:textColorHint="#546E7A" />
         </LinearLayout>
+
+        <!-- Submit Button -->
         <ImageButton
             android:id="@+id/submitButton"
             android:layout_width="40dp"
@@ -82,14 +83,14 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Take a Photo"/>
+            android:text="Take a Photo" />
 
         <Button
             android:id="@+id/uploadButton"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Choose from Gallery"/>
+            android:text="Choose from Gallery" />
     </LinearLayout>
 
     <!-- Image Preview Frame -->
@@ -103,7 +104,7 @@
             android:id="@+id/imagePreview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true" />
     </FrameLayout>
-
 </LinearLayout>

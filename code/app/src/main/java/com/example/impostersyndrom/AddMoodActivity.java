@@ -34,7 +34,8 @@ public class AddMoodActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_mood); // Set the layout for this activity
+        setContentView(R.layout.activity_add_mood);
+
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
 
@@ -45,40 +46,20 @@ public class AddMoodActivity extends AppCompatActivity {
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
         ImageButton submitButton = findViewById(R.id.submitButton);
-
         ImageView imagePreview = findViewById(R.id.imagePreview);
+
         imageHandler = new ImageHandler(this, imagePreview);
 
         // Start ActivityResultLauncher for gallery
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData(), new ImageHandler.OnImageUploadListener() {
-                    @Override
-                    public void onImageUploadSuccess(String url) {
-                        imageUrl = url;
-                    }
-
-                    @Override
-                    public void onImageUploadFailure(Exception e) {
-                        imageUrl = null;
-                    }
-                })
+                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
         );
 
         // Start ActivityResultLauncher for camera
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData(), new ImageHandler.OnImageUploadListener() {
-                    @Override
-                    public void onImageUploadSuccess(String url) {
-                        imageUrl = url;
-                    }
-
-                    @Override
-                    public void onImageUploadFailure(Exception e) {
-                        imageUrl = null;
-                    }
-                })
+                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
         );
 
         // Retrieve the Mood object from the intent
@@ -98,15 +79,28 @@ public class AddMoodActivity extends AppCompatActivity {
             setRoundedBackground(emojiRectangle, mood.getColor());
         }
 
+        // Handle submit button click
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
-            mood.setImageUrl(imageUrl);
-            addMood(mood);
-            Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-            Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
-            newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(newIntent);
-            finish();
+
+            imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                @Override
+                public void onImageUploadSuccess(String url) {
+                    imageUrl = url; // Store the image URL
+                    mood.setImageUrl(imageUrl); // Link the image URL to the mood
+                    addMood(mood);
+                    Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
+                    Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                    newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(newIntent);
+                    finish();
+                }
+
+                @Override
+                public void onImageUploadFailure(Exception e) {
+                    Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         Button openGalleryButton = findViewById(R.id.uploadButton);
@@ -123,14 +117,11 @@ public class AddMoodActivity extends AppCompatActivity {
 
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
-        // Create a GradientDrawable for the background color, rounded corners, and border
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50); // Rounded corners (50dp radius)
-        gradientDrawable.setColor(color); // Set the background color
-        gradientDrawable.setStroke(2, Color.BLACK); // Set the border (2dp width, black color)
-
-        // Set the GradientDrawable as the background
+        gradientDrawable.setCornerRadius(50);
+        gradientDrawable.setColor(color);
+        gradientDrawable.setStroke(2, Color.BLACK);
         layout.setBackground(gradientDrawable);
     }
 }
