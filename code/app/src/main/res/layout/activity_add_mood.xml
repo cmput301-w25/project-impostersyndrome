@@ -37,6 +37,19 @@
                 android:textSize="35sp"
                 android:textStyle="bold" />
 
+
+        <ImageButton
+            android:id="@+id/groupButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:src="@drawable/person" />
+
+
+    </LinearLayout>
             <TextView
                 android:id="@+id/dateTimeView"
                 android:layout_width="wrap_content"
@@ -58,6 +71,7 @@
         </LinearLayout>
 
         <!-- Submit Button -->
+
         <ImageButton
             android:id="@+id/submitButton"
             android:layout_width="40dp"
