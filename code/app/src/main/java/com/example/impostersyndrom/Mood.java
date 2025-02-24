@@ -12,6 +12,8 @@ public class Mood implements Serializable {
     private String reason;
     private Date timestamp;
     private int color;
+    private String imageUrl;
+    private String userId;
 
     private String group;
 
@@ -26,6 +28,7 @@ public class Mood implements Serializable {
         this.color = color;
         this.reason = reason;
         this.group = "alone"; // Default to alone
+        this.imageUrl = imageUrl;
     }
 
     // Getters and Setters
@@ -77,4 +80,11 @@ public class Mood implements Serializable {
         this.id = id;
     }
 }
+    public String getImageUrl() {return imageUrl;}
 
+    public void setImageUrl(String imageUrl) {this.imageUrl = imageUrl;}
+
+    public String getUserId() {return userId;}
+
+    public void setUserId(String userId) {this.userId = userId;}
+}
