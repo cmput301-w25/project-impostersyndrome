@@ -79,7 +79,7 @@ public class Mood implements Serializable {
     public void setId(String id) {
         this.id = id;
     }
-}
+
     public String getImageUrl() {return imageUrl;}
 
     public void setImageUrl(String imageUrl) {this.imageUrl = imageUrl;}

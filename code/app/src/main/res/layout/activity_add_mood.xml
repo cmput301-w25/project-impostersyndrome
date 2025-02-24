@@ -37,7 +37,6 @@
                 android:textSize="35sp"
                 android:textStyle="bold" />
 
-
         <ImageButton
             android:id="@+id/groupButton"
             android:layout_width="40dp"
@@ -49,7 +48,10 @@
             android:src="@drawable/person" />
 
 
-    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
             <TextView
                 android:id="@+id/dateTimeView"
                 android:layout_width="wrap_content"
@@ -68,6 +70,7 @@
                 android:maxLength="20"
                 android:singleLine="true"
                 android:textColorHint="#546E7A" />
+        </LinearLayout>
         </LinearLayout>
 
         <!-- Submit Button -->
