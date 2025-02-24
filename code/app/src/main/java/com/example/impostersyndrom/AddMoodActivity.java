@@ -69,6 +69,7 @@ public class AddMoodActivity extends AppCompatActivity {
 
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
+            mood.setGroup(selectedGroup);
             addMood(mood);
             Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
             Intent new_intent = new Intent(AddMoodActivity.this, MainActivity.class);
