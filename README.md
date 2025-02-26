@@ -13,13 +13,18 @@
 
 ## Project Description
 
-[Brief description of the project in your own words]
+_ is an Android application designed to help users track, manage, and share their mood events. The app allows users to record their emotional states along with optional details such as triggers, photos, social situations, and location data. Users can view their mood history, apply various filters, and connect with other users by following their mood events.
 
 ## Key Features
 
-- [Feature 1]: Brief description
-- [Feature 2]: Brief description
-- [Feature 3]: Brief description
+- **Mood Tracking**: Record mood events with date/time, emotional state, optional triggers, and social situations
+- **Customizable Mood Events**: Support for 8+ emotional states (anger, confusion, disgust, fear, happiness, sadness, shame, surprise) with consistent emoticons and colors
+- **Rich Content**: Add brief text explanations and photographs to describe mood triggers
+- **Social Sharing**: Follow other users and share your mood events with permission controls
+- **Comprehensive Filtering**: Filter mood history and following lists by date range, emotional state, and keyword
+- **Geolocation Integration**: Attach location to mood events and view mood maps within proximity
+- **Offline Support**: Add, edit, and delete mood events without internet connectivity with automatic synchronization
+- **User Profiles**: Create and manage your unique user profile
 
 ## Setup Instructions
 
