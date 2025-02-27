@@ -13,7 +13,7 @@
 
 ## Project Description
 
-_ is an Android application designed to help users track, manage, and share their mood events. The app allows users to record their emotional states along with optional details such as triggers, photos, social situations, and location data. Users can view their mood history, apply various filters, and connect with other users by following their mood events.
+ImposterSyndrome is an Android application designed to help users track, manage, and share their mood events. The app allows users to record their emotional states along with optional details such as triggers, photos, social situations, and location data. Users can view their mood history, apply various filters, and connect with other users by following their mood events.
 
 ## Key Features
 
