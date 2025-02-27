@@ -74,6 +74,7 @@ public class AddMoodActivity extends AppCompatActivity {
         // Retrieve the Mood object from the intent
         Intent intent = getIntent();
         Mood mood = (Mood) intent.getSerializableExtra("mood");
+        intent.putExtra("userId", getIntent().getStringExtra("userId"));
 
         if (mood != null) {
             // Display the emoji and description
@@ -98,6 +99,7 @@ public class AddMoodActivity extends AppCompatActivity {
             addMood(mood);
             Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
             Intent new_intent = new Intent(AddMoodActivity.this, MainActivity.class);
+            intent.putExtra("userId", getIntent().getStringExtra("userId"));
             new_intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(new_intent);
             finish();
@@ -113,6 +115,7 @@ public class AddMoodActivity extends AppCompatActivity {
                         addMood(mood);
                         Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                         Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                        intent.putExtra("userId", getIntent().getStringExtra("userId"));
                         newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(newIntent);
                         finish();
@@ -128,6 +131,7 @@ public class AddMoodActivity extends AppCompatActivity {
                 addMood(mood);
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                 Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                intent.putExtra("userId", getIntent().getStringExtra("userId"));
                 newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(newIntent);
                 finish();

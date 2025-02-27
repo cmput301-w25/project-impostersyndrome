@@ -53,6 +53,7 @@ public class EmojiSelectionActivity extends AppCompatActivity {
     private void navigateToViewMood(Mood mood) {
         Intent intent = new Intent(EmojiSelectionActivity.this, AddMoodActivity.class);
         intent.putExtra("mood", mood);
+        intent.putExtra("userId", getIntent().getStringExtra("userId")); // Pass userId
         startActivity(intent);
     }
 

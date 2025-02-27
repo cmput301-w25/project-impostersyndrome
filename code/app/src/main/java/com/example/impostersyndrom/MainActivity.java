@@ -2,6 +2,7 @@ package com.example.impostersyndrom;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -25,12 +26,31 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        String userId = getIntent().getStringExtra("userId");
+        if (userId == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();}
+        if (userId == null) {
+            Toast.makeText(this, "User ID is missing!", Toast.LENGTH_SHORT).show();
+            // Redirect to LoginActivity if userId is missing
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
+        getIntent().putExtra("userId", userId);
         Button addButton = findViewById(R.id.addMoodButton);
         addButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
             intent.putExtra("userId", getIntent().getStringExtra("userId"));
             startActivity(intent);
+        });
+        Button viewMoodsButton = findViewById(R.id.viewMoodsButton);
+        viewMoodsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ViewMoodActivity.class);
+            intent.putExtra("userId", getIntent().getStringExtra("userId"));
+            startActivity(intent);
+            Log.d("MainActivity", "userId passed to ViewMoodActivity: " + getIntent().getStringExtra("userId"));
         });
 
         // Logout Button Implementation

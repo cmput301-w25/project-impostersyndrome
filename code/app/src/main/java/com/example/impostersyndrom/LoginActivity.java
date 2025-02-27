@@ -58,9 +58,11 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(emailText, passwordText).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
                 User.getInstance().setUserId(Objects.requireNonNull(auth.getCurrentUser()).getUid());
                 showToast("Login Successful!");
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("userId", userId);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears backstack
                 startActivity(intent);
                 finish();
