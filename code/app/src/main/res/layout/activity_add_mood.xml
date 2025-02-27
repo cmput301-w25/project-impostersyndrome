@@ -37,15 +37,7 @@
                 android:textSize="35sp"
                 android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/groupButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:src="@drawable/person" />
+
 
 
     <LinearLayout
@@ -70,6 +62,17 @@
                 android:maxLength="20"
                 android:singleLine="true"
                 android:textColorHint="#546E7A" />
+
+        <ImageButton
+            android:id="@+id/groupButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:src="@drawable/person" />
         </LinearLayout>
         </LinearLayout>
 
