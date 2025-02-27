@@ -1,127 +1,131 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/black"
-    android:padding="16dp"
-    android:gravity="center_horizontal">
+    android:fillViewport="true">
 
-    <!-- FrameLayout for Emoji Section -->
-    <FrameLayout
-        android:paddingTop="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/black"
+        android:padding="16dp"
+        android:gravity="center_horizontal">
 
-        <!-- Rectangle with Emoji -->
-        <LinearLayout
-            android:id="@+id/emojiRectangle"
-            android:layout_width="359dp"
-            android:layout_height="346dp"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:layout_marginTop="65sp">
+        <!-- FrameLayout for Emoji Section -->
+        <FrameLayout
+            android:paddingTop="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/emojiView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="100sp" />
-
-            <TextView
-                android:id="@+id/emojiDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textColor="@color/white"
+            <!-- Rectangle with Emoji -->
+            <LinearLayout
+                android:id="@+id/emojiRectangle"
+                android:layout_width="359dp"
+                android:layout_height="346dp"
                 android:gravity="center"
-                android:textSize="35sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:layout_marginTop="65sp">
 
-        <ImageButton
-            android:id="@+id/groupButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:src="@drawable/person" />
+                <TextView
+                    android:id="@+id/emojiView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="100sp" />
 
+                <TextView
+                    android:id="@+id/emojiDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:textSize="35sp"
+                    android:textStyle="bold" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-            <TextView
-                android:id="@+id/dateTimeView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                <ImageButton
+                    android:id="@+id/groupButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp"
+                    android:src="@drawable/person" />
 
-            <EditText
-                android:id="@+id/addReasonEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:hint="@string/addReasonHint"
-                android:maxLength="20"
-                android:singleLine="true"
-                android:textColorHint="#546E7A" />
-        </LinearLayout>
-        </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/dateTimeView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-        <!-- Submit Button -->
+                    <EditText
+                        android:id="@+id/addReasonEdit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:hint="@string/addReasonHint"
+                        android:maxLength="20"
+                        android:singleLine="true"
+                        android:textColorHint="#546E7A" />
+                </LinearLayout>
+            </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/submitButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:src="@drawable/white_checkmark"
-            android:layout_gravity="top|end" />
-    </FrameLayout>
+            <!-- Submit Button -->
+            <ImageButton
+                android:id="@+id/submitButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/white_checkmark"
+                android:layout_gravity="top|end" />
+        </FrameLayout>
 
-    <!-- Camera and Gallery Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="20dp"
-        android:gravity="center">
-
-        <Button
-            android:id="@+id/cameraButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Take a Photo" />
-
-        <Button
-            android:id="@+id/uploadButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Choose from Gallery" />
-    </LinearLayout>
-
-    <!-- Image Preview Frame -->
-    <FrameLayout
-        android:id="@+id/imageContainer"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginTop="20dp">
-
-        <ImageView
-            android:id="@+id/imagePreview"
+        <!-- Camera and Gallery Buttons -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:adjustViewBounds="true" />
-    </FrameLayout>
-</LinearLayout>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="20dp"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/cameraButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Take a Photo" />
+
+            <Button
+                android:id="@+id/uploadButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Choose from Gallery" />
+        </LinearLayout>
+
+        <!-- Image Preview Frame -->
+        <FrameLayout
+            android:id="@+id/imageContainer"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp">
+
+            <ImageView
+                android:id="@+id/imagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true" />
+        </FrameLayout>
+    </LinearLayout>
+</ScrollView>
