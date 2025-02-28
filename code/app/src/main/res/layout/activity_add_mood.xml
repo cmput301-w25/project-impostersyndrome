@@ -21,11 +21,12 @@
             android:orientation="vertical"
             android:layout_marginTop="65sp">
 
-            <TextView
+            <ImageView
                 android:id="@+id/emojiView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="100sp" />
+                android:layout_width="100sp"
+                android:layout_height="100sp"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"/>
 
             <TextView
                 android:id="@+id/emojiDescription"
