@@ -3,9 +3,9 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <LinearLayout
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/black"
         android:padding="16dp"
@@ -26,11 +26,12 @@
                 android:orientation="vertical"
                 android:layout_marginTop="65sp">
 
-                <TextView
+                <ImageView
                     android:id="@+id/emojiView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="100sp" />
+                    android:layout_width="100sp"
+                    android:layout_height="100sp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"/>
 
                 <TextView
                     android:id="@+id/emojiDescription"
@@ -42,15 +43,8 @@
                     android:textSize="35sp"
                     android:textStyle="bold" />
 
-                <ImageButton
-                    android:id="@+id/groupButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="16dp"
-                    android:src="@drawable/person" />
+
+
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -74,10 +68,22 @@
                         android:maxLength="20"
                         android:singleLine="true"
                         android:textColorHint="#546E7A" />
+
+                    <ImageButton
+                        android:id="@+id/groupButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_gravity="center"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="16dp"
+                        android:src="@drawable/person" />
                 </LinearLayout>
             </LinearLayout>
 
             <!-- Submit Button -->
+
             <ImageButton
                 android:id="@+id/submitButton"
                 android:layout_width="40dp"
