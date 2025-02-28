@@ -69,8 +69,9 @@
                 android:hint="@string/addReasonHint"
                 android:maxLength="20"
                 android:singleLine="true"
-                android:textColorHint="#546E7A" />
-        </LinearLayout>
+                android:textColor="@color/white"
+                android:textColorHint="#FFFFFF"/>
+    </LinearLayout>
         </LinearLayout>
 
         <!-- Submit Button -->
