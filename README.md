@@ -8,7 +8,7 @@
 | Garrick Tse | gtse1 | garrrrrrrrrr     |
 | Bhuvan Veeravalli | bhuvanac | bhuvanchandar7     |
 | Eric Mo | emo2 | cire005     |
-| Ali Zain Malik | alizain | alizainmalik |
+| Ali Zain Malik | alizain | IFDES |
 | Rayan Zhi | rzhi | rayanzhi9     |
 
 ## Project Description
@@ -31,5 +31,8 @@
 
 - [Wiki Link](https://github.com/cmput301-w25/project-impostersyndrome.wiki.git)
 - [Scrum Board](https://github.com/orgs/cmput301-w25/projects/45)
-- [UI Mockups]
+- [UI Mockups](https://github.com/cmput301-w25/project-impostersyndrome/wiki/Ui-Mockups)
 - [UML]
+
+## Resources Used:
+Icons from [Icons8](https://icons8.com), used and credited as per [universal multimedia license agreement.](https://intercom.help/icons8-7fb7577e8170/en/articles/5534926-universal-multimedia-license-agreement-for-icons8)
