@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,38 +15,77 @@ public class EmojiSelectionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_emoji_selection); // Set the layout for this activity
+        setContentView(R.layout.activity_emoji_selection);
 
-        // Initialize the TextViews for emojis
-        TextView emoji1 = findViewById(R.id.emoji1);
-        TextView emoji2 = findViewById(R.id.emoji2);
-        TextView emoji3 = findViewById(R.id.emoji3);
-        TextView emoji4 = findViewById(R.id.emoji4);
-        TextView emoji5 = findViewById(R.id.emoji5);
-        TextView emoji6 = findViewById(R.id.emoji6);
-        TextView emoji7 = findViewById(R.id.emoji7);
-        TextView emoji8 = findViewById(R.id.emoji8);
+        // Initialize the ImageViews for emojis
+        ImageView emoji1 = findViewById(R.id.emoji1);
+        ImageView emoji2 = findViewById(R.id.emoji2);
+        ImageView emoji3 = findViewById(R.id.emoji3);
+        ImageView emoji4 = findViewById(R.id.emoji4);
+        ImageView emoji5 = findViewById(R.id.emoji5);
+        ImageView emoji6 = findViewById(R.id.emoji6);
+        ImageView emoji7 = findViewById(R.id.emoji7);
+        ImageView emoji8 = findViewById(R.id.emoji8);
 
-        // List of emojis, their descriptions, and colors
+        // List of emoji descriptions and colors
         Map<String, Pair<String, Integer>> emojiMap = new HashMap<>();
-        emojiMap.put("\uD83D\uDE01", new Pair<>("Happy", Color.parseColor("#FFCC00"))); // Happy
-        emojiMap.put("\uD83E\uDD14", new Pair<>("Confused", Color.parseColor("#8B7355"))); // Confused
-        emojiMap.put("\uD83E\uDD22", new Pair<>("Disgust", Color.parseColor("#808000"))); // Disgust
-        emojiMap.put("\uD83D\uDE21", new Pair<>("Angry", Color.parseColor("#FF4D00"))); // Angry
-        emojiMap.put("\uD83D\uDE14", new Pair<>("Sad", Color.parseColor("#2980B9"))); // Sad
-        emojiMap.put("\uD83D\uDE28", new Pair<>("Fear", Color.parseColor("#9B59B6"))); // Fear
-        emojiMap.put("\uD83D\uDE05", new Pair<>("Shame", Color.parseColor("#FFC0CB"))); // Shame
-        emojiMap.put("\uD83D\uDE32", new Pair<>("Surprise", Color.parseColor("#1ABC9C"))); // Surprise
+        emojiMap.put("emoji_happy", new Pair<>("Happy", Color.parseColor("#FFCC00"))); // Happy
+        emojiMap.put("emoji_confused", new Pair<>("Confused", Color.parseColor("#8B7355"))); // Confused
+        emojiMap.put("emoji_disgust", new Pair<>("Disgust", Color.parseColor("#808000"))); // Disgust
+        emojiMap.put("emoji_angry", new Pair<>("Angry", Color.parseColor("#FF4D00"))); // Angry
+        emojiMap.put("emoji_sad", new Pair<>("Sad", Color.parseColor("#2980B9"))); // Sad
+        emojiMap.put("emoji_fear", new Pair<>("Fear", Color.parseColor("#9B59B6"))); // Fear
+        emojiMap.put("emoji_shame", new Pair<>("Shame", Color.parseColor("#FFC0CB"))); // Shame
+        emojiMap.put("emoji_surprise", new Pair<>("Surprise", Color.parseColor("#1ABC9C"))); // Surprise
 
         // Set click listeners for each emoji
-        emoji1.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE01", emojiMap.get("\uD83D\uDE01").first, new Date(), emojiMap.get("\uD83D\uDE01").second, null)));
-        emoji2.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD14", emojiMap.get("\uD83E\uDD14").first, new Date(), emojiMap.get("\uD83E\uDD14").second, null)));
-        emoji3.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83E\uDD22", emojiMap.get("\uD83E\uDD22").first, new Date(), emojiMap.get("\uD83E\uDD22").second, null)));
-        emoji4.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE21", emojiMap.get("\uD83D\uDE21").first, new Date(), emojiMap.get("\uD83D\uDE21").second, null)));
-        emoji5.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE14", emojiMap.get("\uD83D\uDE14").first, new Date(), emojiMap.get("\uD83D\uDE14").second, null)));
-        emoji6.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE28", emojiMap.get("\uD83D\uDE28").first, new Date(), emojiMap.get("\uD83D\uDE28").second, null)));
-        emoji7.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE05", emojiMap.get("\uD83D\uDE05").first, new Date(), emojiMap.get("\uD83D\uDE05").second, null)));
-        emoji8.setOnClickListener(v -> navigateToViewMood(new Mood("\uD83D\uDE32", emojiMap.get("\uD83D\uDE32").first, new Date(), emojiMap.get("\uD83D\uDE32").second, null)));
+        emoji1.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_happy", emojiMap.get("emoji_happy").first, new Date(), emojiMap.get("emoji_happy").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_happy); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji2.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_confused", emojiMap.get("emoji_confused").first, new Date(), emojiMap.get("emoji_confused").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_confused); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji3.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_disgust", emojiMap.get("emoji_disgust").first, new Date(), emojiMap.get("emoji_disgust").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_disgust); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji4.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_angry", emojiMap.get("emoji_angry").first, new Date(), emojiMap.get("emoji_angry").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_angry); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji5.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_sad", emojiMap.get("emoji_sad").first, new Date(), emojiMap.get("emoji_sad").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_sad); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji6.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_fear", emojiMap.get("emoji_fear").first, new Date(), emojiMap.get("emoji_fear").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_fear); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji7.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_shame", emojiMap.get("emoji_shame").first, new Date(), emojiMap.get("emoji_shame").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_shame); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
+
+        emoji8.setOnClickListener(v -> {
+            Mood mood = new Mood("emoji_surprise", emojiMap.get("emoji_surprise").first, new Date(), emojiMap.get("emoji_surprise").second, null);
+            mood.setEmojiDrawableId(R.drawable.emoji_surprised); // Pass the drawable resource ID
+            navigateToViewMood(mood);
+        });
     }
 
     // Helper method to navigate to View Mood Screen
@@ -58,13 +97,12 @@ public class EmojiSelectionActivity extends AppCompatActivity {
 
     // Pair class to hold emoji description and color
     private static class Pair<F, S> {
-        public final F first; //DEsc
-        public final S second; //Color
+        public final F first; // Description
+        public final S second; // Color
 
         public Pair(F first, S second) {
             this.first = first;
             this.second = second;
-
         }
     }
 }
