@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.view.MenuInflater;
 import android.view.View;
@@ -36,6 +39,7 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
+    private TextView triggerCharCount; // Character count for trigger field
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +50,38 @@ public class AddMoodActivity extends AppCompatActivity {
         moodsRef = db.collection("moods");
 
         // Initialize views
-        ImageView emojiView = findViewById(R.id.emojiView); // Using ImageView as in second code
+        ImageView emojiView = findViewById(R.id.emojiView);
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
+        EditText addTriggerEdit = findViewById(R.id.addTriggerEdit); // New EditText for trigger
+        triggerCharCount = findViewById(R.id.triggerCharCount); // New TextView for character count
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
+
+        // Set max length for trigger field
+        addTriggerEdit.setFilters(new InputFilter[] {new InputFilter.LengthFilter(100)});
+
+        // Add text change listener to update character count
+        addTriggerEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Not needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Not needed
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                int chars = s.length();
+                triggerCharCount.setText(chars + "/100");
+            }
+        });
 
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
@@ -75,7 +103,7 @@ public class AddMoodActivity extends AppCompatActivity {
         Mood mood = (Mood) intent.getSerializableExtra("mood");
 
         if (mood != null) {
-            // Display the emoji using drawable resource ID as in second code
+            // Display the emoji using drawable resource ID
             emojiView.setImageResource(mood.getEmojiDrawableId());
             emojiDescription.setText(mood.getEmojiDescription());
 
@@ -86,9 +114,17 @@ public class AddMoodActivity extends AppCompatActivity {
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
             selectedGroup = mood.getGroup();
+
+            // Set trigger text if available
+            if (mood.getTrigger() != null && !mood.getTrigger().isEmpty()) {
+                addTriggerEdit.setText(mood.getTrigger());
+                triggerCharCount.setText(mood.getTrigger().length() + "/100");
+            } else {
+                triggerCharCount.setText("0/100");
+            }
         }
 
-        // Add group button functionality from first code
+        // Add group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
         // Setup image handling buttons
@@ -101,6 +137,7 @@ public class AddMoodActivity extends AppCompatActivity {
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
+            mood.setTrigger(addTriggerEdit.getText().toString().trim()); // Save trigger text
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
 
@@ -154,7 +191,7 @@ public class AddMoodActivity extends AppCompatActivity {
         layout.setBackground(gradientDrawable);
     }
 
-    // Group menu method from first code
+    // Group menu method
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
