@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -13,8 +14,17 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private FirebaseFirestore db;
+    private ListView moodListView;
+    private MoodAdapter moodAdapter;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,9 +36,16 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        String userId = getIntent().getStringExtra("userId");
+
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
+        moodListView = findViewById(R.id.moodListView);
+
+        // Get userId
+        userId = getIntent().getStringExtra("userId");
         if (userId == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();}
+            userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); // Get userId from FirebaseAuth
+        }
         if (userId == null) {
             Toast.makeText(this, "User ID is missing!", Toast.LENGTH_SHORT).show();
             // Redirect to LoginActivity if userId is missing
@@ -38,22 +55,21 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        getIntent().putExtra("userId", userId);
+        // Debug: Log userId
+        Log.d("MainActivity", "userId: " + userId);
+
+        // Fetch and display moods
+        fetchMoods(userId);
+
+        // Add Mood Button
         Button addButton = findViewById(R.id.addMoodButton);
         addButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
-            intent.putExtra("userId", getIntent().getStringExtra("userId"));
+            intent.putExtra("userId", userId); // Ensure userId is not null here
             startActivity(intent);
-        });
-        Button viewMoodsButton = findViewById(R.id.viewMoodsButton);
-        viewMoodsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ViewMoodActivity.class);
-            intent.putExtra("userId", getIntent().getStringExtra("userId"));
-            startActivity(intent);
-            Log.d("MainActivity", "userId passed to ViewMoodActivity: " + getIntent().getStringExtra("userId"));
         });
 
-        // Logout Button Implementation
+        // Logout Button
         Button logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut(); // Logs out the user
@@ -63,6 +79,27 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    private void fetchMoods(String userId) {
+        db.collection("moods")
+                .whereEqualTo("userId", userId)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot snapshot = task.getResult();
+                        if (snapshot != null && !snapshot.isEmpty()) {
+                            List moodDocs = snapshot.getDocuments();
+                            moodAdapter = new MoodAdapter(this, moodDocs);
+                            moodListView.setAdapter(moodAdapter);
+                        } else {
+                            Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Failed to fetch moods!", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void showToast(String message) {

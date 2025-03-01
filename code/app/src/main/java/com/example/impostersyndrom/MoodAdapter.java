@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,11 +22,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class MoodAdapter extends ArrayAdapter<DocumentSnapshot> {
+public class MoodAdapter extends ArrayAdapter {
     private Context context;
-    private List<DocumentSnapshot> moodDocs;
+    private List moodDocs;
 
-    public MoodAdapter(Context context, List<DocumentSnapshot> moodDocs) {
+    public MoodAdapter(Context context, List moodDocs) {
         super(context, R.layout.item_mood, moodDocs);
         this.context = context;
         this.moodDocs = moodDocs;
@@ -39,47 +40,56 @@ public class MoodAdapter extends ArrayAdapter<DocumentSnapshot> {
             convertView = inflater.inflate(R.layout.item_mood, parent, false);
         }
 
-        DocumentSnapshot moodDoc = moodDocs.get(position);
-        Map<String, Object> data = moodDoc.getData();
+        DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
+        Map data = moodDoc.getData();
         if (data != null) {
             String emoji = (String) data.get("emotionalState");
-            String description = (String) data.get("emojiDescription");
-            Timestamp timestamp = (Timestamp) data.get("timestamp"); // using timestamp instead of Date
+            Timestamp timestamp = (Timestamp) data.get("timestamp");
             String reason = (String) data.get("reason");
-            int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE; // Retrieve color
+            String group = (String) data.get("group"); // Retrieve group from Firestore
+            int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE;
 
-            TextView emojiView = convertView.findViewById(R.id.emojiView);
-            TextView emojiDescription = convertView.findViewById(R.id.emojiDescription);
+            // Initialize views
+            ImageView emojiView = convertView.findViewById(R.id.emojiView);
             TextView timeView = convertView.findViewById(R.id.timeView);
             TextView reasonView = convertView.findViewById(R.id.reasonView);
+            TextView groupView = convertView.findViewById(R.id.groupView); // Group TextView
             View rootLayout = convertView.findViewById(R.id.rootLayout);
 
-            emojiView.setText(emoji != null ? emoji : "❓");
-            emojiDescription.setText(description != null ? description : "No description");
+            // Set the custom emoji image
+            if (emoji != null) {
+                int emojiResId = context.getResources().getIdentifier(emoji, "drawable", context.getPackageName());
+                emojiView.setImageResource(emojiResId);
+            }
 
-            // timestamp to date
+            // Set the time
             Date date = timestamp != null ? timestamp.toDate() : null;
             timeView.setText(date != null ?
                     new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(date) :
                     "Unknown time");
 
+            // Set the reason
             reasonView.setText(reason != null ? reason : "No reason provided");
 
-            // apply round background color
+            // Set the group
+            groupView.setText(group != null ? group : "No group provided");
+
+            // Apply rounded background color
             setRoundedBackground(rootLayout, color);
         }
 
         return convertView;
     }
 
-    // method to set rounded background with dynamic color
+    // Method to set rounded background with dynamic color
     private void setRoundedBackground(View view, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50);
-        gradientDrawable.setColor(color);
-        gradientDrawable.setStroke(2, Color.BLACK);
+        gradientDrawable.setCornerRadius(50); // Rounded corners (50dp radius)
+        gradientDrawable.setColor(color); // Set the background color
+        gradientDrawable.setStroke(2, Color.BLACK); // Set the border (2dp width, black color)
 
+        // Set the GradientDrawable as the background
         view.setBackground(gradientDrawable);
     }
 }
