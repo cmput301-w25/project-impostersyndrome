@@ -1,50 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
     <!-- Circular Layout for Emojis -->
 
     <TextView
-        android:layout_width="175dp"
-        android:layout_height="24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
         android:layout_above="@+id/circleLayout"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginStart="118dp"
-        android:layout_marginTop="93dp"
-        android:layout_marginEnd="118dp"
-        android:layout_marginBottom="99dp"
+        android:layout_marginStart="89dp"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="76dp"
+        android:layout_marginBottom="67dp"
+        android:fontFamily="sans-serif-black"
         android:gravity="center"
         android:text="How are u feeling ?"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        />
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        android:textStyle="bold" />
 
     <RelativeLayout
         android:id="@+id/circleLayout"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="356dp"
+        android:layout_height="349dp"
         android:layout_centerInParent="true">
 
         <!-- Emoji 1 (Top) -->
-        <TextView
+        <ImageView
             android:id="@+id/emoji1"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:text="😁"
-            android:textSize="32sp"
-            android:gravity="center"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:contentDescription="Happy"
+            android:src="@drawable/emoji_happy" />
 
         <!-- Emoji 2 (Top-Right) -->
-
-        <!-- Emoji 3 (Right) -->
-
-        <TextView
+        <ImageView
             android:id="@+id/emoji2"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -52,24 +49,21 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="47dp"
             android:layout_marginEnd="41dp"
-            android:gravity="center"
-            android:text="🤔"
-            android:textSize="32sp" />
+            android:contentDescription="Confused"
+            android:src="@drawable/emoji_confused" />
 
-        <TextView
+        <!-- Emoji 3 (Right) -->
+        <ImageView
             android:id="@+id/emoji3"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:text="🤢"
-            android:textSize="32sp"
-            android:gravity="center"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true" />
+            android:contentDescription="Disgust"
+            android:src="@drawable/emoji_disgust" />
 
         <!-- Emoji 4 (Bottom-Right) -->
-
-        <!-- Emoji 5 (Bottom) -->
-        <TextView
+        <ImageView
             android:id="@+id/emoji4"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -77,24 +71,21 @@
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="41dp"
             android:layout_marginBottom="47dp"
-            android:gravity="center"
-            android:text="😡"
-            android:textSize="32sp" />
+            android:contentDescription="Angry"
+            android:src="@drawable/emoji_angry" />
 
-        <TextView
+        <!-- Emoji 5 (Bottom) -->
+        <ImageView
             android:id="@+id/emoji5"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:text="😔"
-            android:textSize="32sp"
-            android:gravity="center"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:contentDescription="Sad"
+            android:src="@drawable/emoji_sad" />
 
         <!-- Emoji 6 (Bottom-Left) -->
-
-        <!-- Emoji 7 (Left) -->
-        <TextView
+        <ImageView
             android:id="@+id/emoji6"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -102,22 +93,21 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="41dp"
             android:layout_marginBottom="47dp"
-            android:gravity="center"
-            android:text="😨"
-            android:textSize="32sp" />
+            android:contentDescription="Fear"
+            android:src="@drawable/emoji_fear" />
 
-        <TextView
+        <!-- Emoji 7 (Left) -->
+        <ImageView
             android:id="@+id/emoji7"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:text="😅"
-            android:textSize="32sp"
-            android:gravity="center"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_alignParentStart="true" />
+            android:contentDescription="Shame"
+            android:src="@drawable/emoji_shame" />
 
         <!-- Emoji 8 (Top-Left) -->
-        <TextView
+        <ImageView
             android:id="@+id/emoji8"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -125,8 +115,7 @@
             android:layout_alignParentTop="true"
             android:layout_marginStart="41dp"
             android:layout_marginTop="47dp"
-            android:gravity="center"
-            android:text="😲"
-            android:textSize="32sp" />
+            android:contentDescription="Surprise"
+            android:src="@drawable/emoji_surprised" />
     </RelativeLayout>
 </RelativeLayout>
