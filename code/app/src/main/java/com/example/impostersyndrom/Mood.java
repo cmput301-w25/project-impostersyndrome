@@ -10,12 +10,13 @@ public class Mood implements Serializable {
     private String emojiDescription;
     private String id;
     private String reason;
+    private String trigger; // New field for trigger description
     private Date timestamp;
     private int color;
     private String imageUrl;
     private String userId;
     private String group;
-    private int emojiDrawableId; // New field for drawable resource ID
+    private int emojiDrawableId;
 
     // Constructor
     public Mood(String emotionalState, String emojiDescription, Date timestamp, int color, String reason) {
@@ -25,11 +26,21 @@ public class Mood implements Serializable {
         this.timestamp = timestamp;
         this.color = color;
         this.reason = reason;
+        this.trigger = ""; // Initialize trigger to empty string
         this.group = "alone"; // Default to alone
         this.imageUrl = null; // Initialize imageUrl to null
     }
 
-    // Getters and Setters
+    // Add getter and setter for trigger
+    public String getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(String trigger) {
+        this.trigger = trigger;
+    }
+
+    // Existing getters and setters...
     public String getEmotionalState() {
         return emotionalState;
     }
@@ -102,7 +113,6 @@ public class Mood implements Serializable {
         this.userId = userId;
     }
 
-    // New getter and setter for emojiDrawableId
     public int getEmojiDrawableId() {
         return emojiDrawableId;
     }
