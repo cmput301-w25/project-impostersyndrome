@@ -4,11 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.widget.Button;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -33,22 +31,22 @@ import java.util.Map;
 public class AddMoodActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private CollectionReference moodsRef;
-    String selectedGroup;
+    private String selectedGroup;
     private ImageHandler imageHandler;
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_mood); // Set the layout for this activity
+        setContentView(R.layout.activity_add_mood);
+
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
 
         // Initialize views
-        TextView emojiView = findViewById(R.id.emojiView);
+        ImageView emojiView = findViewById(R.id.emojiView); // Using ImageView for custom emoji
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
@@ -57,6 +55,7 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
+        // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
 
         // Start ActivityResultLauncher for gallery
@@ -77,8 +76,8 @@ public class AddMoodActivity extends AppCompatActivity {
         intent.putExtra("userId", getIntent().getStringExtra("userId"));
 
         if (mood != null) {
-            // Display the emoji and description
-            emojiView.setText(mood.getEmotionalState());
+            // Display the custom emoji using drawable resource ID
+            emojiView.setImageResource(mood.getEmojiDrawableId());
             emojiDescription.setText(mood.getEmojiDescription());
 
             // Set the current time
@@ -88,37 +87,26 @@ public class AddMoodActivity extends AppCompatActivity {
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
             selectedGroup = mood.getGroup();
-
         }
+
+        // Group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
+        // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
-
             mood.setGroup(selectedGroup);
-            addMood(mood);
-            Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-            Intent new_intent = new Intent(AddMoodActivity.this, MainActivity.class);
-            intent.putExtra("userId", getIntent().getStringExtra("userId"));
-            new_intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(new_intent);
-            finish();
-
             mood.setUserId(User.getInstance().getUserId());
 
             if (imageHandler.hasImage()) {
                 imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                     @Override
                     public void onImageUploadSuccess(String url) {
-                        imageUrl = url; // Store the image URL
-                        mood.setImageUrl(imageUrl); // Link the image URL to the mood
+                        imageUrl = url;
+                        mood.setImageUrl(imageUrl);
                         addMood(mood);
                         Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-                        Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
-                        intent.putExtra("userId", getIntent().getStringExtra("userId"));
-                        newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(newIntent);
-                        finish();
+                        navigateToMainActivity();
                     }
 
                     @Override
@@ -130,15 +118,11 @@ public class AddMoodActivity extends AppCompatActivity {
                 mood.setImageUrl(null);
                 addMood(mood);
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-                Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
-                intent.putExtra("userId", getIntent().getStringExtra("userId"));
-                newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(newIntent);
-                finish();
+                navigateToMainActivity();
             }
-
         });
 
+        // Image handling buttons
         Button openGalleryButton = findViewById(R.id.uploadButton);
         openGalleryButton.setOnClickListener(v -> imageHandler.openGallery(galleryLauncher));
 
@@ -146,6 +130,15 @@ public class AddMoodActivity extends AppCompatActivity {
         openCameraButton.setOnClickListener(v -> imageHandler.openCamera(cameraLauncher));
     }
 
+    // Helper method to navigate to main activity
+    private void navigateToMainActivity() {
+        Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+        newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(newIntent);
+        finish();
+    }
+
+    // Add mood to Firestore
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
@@ -163,12 +156,12 @@ public class AddMoodActivity extends AppCompatActivity {
         layout.setBackground(gradientDrawable);
     }
 
-
+    // Group menu method
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.group_menu, popup.getMenu());
-        Map<Integer, String> menuMap = new HashMap<>(); // Hashmap maps each menu id to each respose
+        Map<Integer, String> menuMap = new HashMap<>(); // Hashmap maps each menu id to each response
         menuMap.put(R.id.alone, "Alone");
         menuMap.put(R.id.with_another, "With another person");
         menuMap.put(R.id.with_several, "With several people");
