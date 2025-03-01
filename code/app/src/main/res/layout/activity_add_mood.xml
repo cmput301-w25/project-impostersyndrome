@@ -27,10 +27,16 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
+                android:layout_height="346dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginTop="65sp">
+
                 <ImageView
                     android:id="@+id/emojiView"
                     android:layout_width="100sp"
                     android:layout_height="100sp"
+
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"
                     android:layout_marginTop="25dp" />
@@ -40,6 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+
                     android:gravity="center"
                     android:textColor="@color/white"
                     android:textSize="35sp"
@@ -51,7 +58,6 @@
                     android:layout_marginTop="10dp"
                     android:orientation="vertical"
                     android:gravity="center">
-
                     <TextView
                         android:id="@+id/dateTimeView"
                         android:layout_width="wrap_content"
