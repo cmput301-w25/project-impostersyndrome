@@ -94,7 +94,8 @@
                             android:layout_gravity="end"
                             android:layout_marginTop="2dp"
                             android:text="0/20"
-                            android:textColor="#546E7A"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
                             android:textSize="12sp" />
                     </LinearLayout>
 
