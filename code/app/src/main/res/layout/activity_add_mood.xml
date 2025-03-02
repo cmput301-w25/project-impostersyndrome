@@ -111,7 +111,16 @@
                         android:src="@drawable/person" />
                 </LinearLayout>
             </LinearLayout>
-
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/left_arrow"
+                android:layout_gravity="top|start"/>
             <!-- Submit Button -->
             <ImageButton
                 android:id="@+id/submitButton"

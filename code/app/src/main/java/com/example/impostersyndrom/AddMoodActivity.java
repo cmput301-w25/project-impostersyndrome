@@ -58,6 +58,7 @@ public class AddMoodActivity extends AppCompatActivity {
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
         reasonCharCount = findViewById(R.id.reasonCharCount);
         ImageButton submitButton = findViewById(R.id.submitButton);
+        ImageButton backButton = findViewById(R.id.backButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
@@ -160,7 +161,12 @@ public class AddMoodActivity extends AppCompatActivity {
                 navigateToMainActivity();
             }
         });
+
+        backButton.setOnClickListener(v -> finish());
+
     }
+
+
 
     // Helper method to navigate to main activity
     private void navigateToMainActivity() {

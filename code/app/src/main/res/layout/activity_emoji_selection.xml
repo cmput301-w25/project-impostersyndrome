@@ -6,6 +6,7 @@
 
     <!-- Circular Layout for Emojis -->
 
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="56dp"
@@ -118,4 +119,18 @@
             android:contentDescription="Surprise"
             android:src="@drawable/emoji_surprised" />
     </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="16dp"
+        android:src="@drawable/left_arrow" />
 </RelativeLayout>
