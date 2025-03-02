@@ -41,6 +41,10 @@ public class AddMoodActivity extends AppCompatActivity {
     private String imageUrl = null;
     private TextView triggerCharCount; // Character count for trigger field
 
+    private TextView reasonCharCount;
+
+    private TextView reasonWordCount; // Word count for reason field
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,12 +61,11 @@ public class AddMoodActivity extends AppCompatActivity {
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
         EditText addTriggerEdit = findViewById(R.id.addTriggerEdit); // New EditText for trigger
         triggerCharCount = findViewById(R.id.triggerCharCount); // New TextView for character count
+        reasonCharCount = findViewById(R.id.reasonCharCount);
+        reasonWordCount = findViewById(R.id.reasonWordCount);
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
-
-        // Set max length for trigger field
-        addTriggerEdit.setFilters(new InputFilter[] {new InputFilter.LengthFilter(100)});
 
         // Add text change listener to update character count
         addTriggerEdit.addTextChangedListener(new TextWatcher() {
@@ -80,6 +83,32 @@ public class AddMoodActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 int chars = s.length();
                 triggerCharCount.setText(chars + "/100");
+            }
+        });
+
+        addReasonEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Not needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Not needed
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                int chars = s.length();
+                String text = s.toString().trim();
+                String[] words = text.split("\\s+"); // Splits based on number of whitespaces
+                int wordCount = words.length;
+
+                if (wordCount > 3) {
+                    s.delete(s.length() - 1, s.length());
+                }
+                reasonWordCount.setText(wordCount + "/3 Words");
+                reasonCharCount.setText(chars + "/20");
             }
         });
 
@@ -114,14 +143,6 @@ public class AddMoodActivity extends AppCompatActivity {
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
             selectedGroup = mood.getGroup();
-
-            // Set trigger text if available
-            if (mood.getTrigger() != null && !mood.getTrigger().isEmpty()) {
-                addTriggerEdit.setText(mood.getTrigger());
-                triggerCharCount.setText(mood.getTrigger().length() + "/100");
-            } else {
-                triggerCharCount.setText("0/100");
-            }
         }
 
         // Add group button functionality
@@ -173,12 +194,10 @@ public class AddMoodActivity extends AppCompatActivity {
         startActivity(newIntent);
         finish();
     }
-
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
-
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();

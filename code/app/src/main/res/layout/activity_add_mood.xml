@@ -96,6 +96,14 @@
                             android:text="0/20"
                             android:textColor="#546E7A"
                             android:textSize="12sp" />
+                        <TextView
+                            android:id="@+id/reasonWordCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:text="0/3 Words"
+                            android:textColor="#546E7A"
+                            android:textSize="12sp"/>
                     </LinearLayout>
 
                     <!-- Trigger field with character count - MODIFIED: narrower and centered -->
