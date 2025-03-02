@@ -40,10 +40,7 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
     private TextView triggerCharCount; // Character count for trigger field
-
     private TextView reasonCharCount;
-
-    private TextView reasonWordCount; // Word count for reason field
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,32 +56,13 @@ public class AddMoodActivity extends AppCompatActivity {
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
-        EditText addTriggerEdit = findViewById(R.id.addTriggerEdit); // New EditText for trigger
-        triggerCharCount = findViewById(R.id.triggerCharCount); // New TextView for character count
         reasonCharCount = findViewById(R.id.reasonCharCount);
-        reasonWordCount = findViewById(R.id.reasonWordCount);
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
         // Add text change listener to update character count
-        addTriggerEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not needed
-            }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Not needed
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                int chars = s.length();
-                triggerCharCount.setText(chars + "/100");
-            }
-        });
 
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -107,7 +85,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 if (wordCount > 3) {
                     s.delete(s.length() - 1, s.length());
                 }
-                reasonWordCount.setText(wordCount + "/3 Words");
                 reasonCharCount.setText(chars + "/20");
             }
         });
@@ -158,7 +135,6 @@ public class AddMoodActivity extends AppCompatActivity {
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
-            mood.setTrigger(addTriggerEdit.getText().toString().trim()); // Save trigger text
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
 

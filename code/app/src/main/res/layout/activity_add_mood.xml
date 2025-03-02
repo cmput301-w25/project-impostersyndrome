@@ -96,52 +96,6 @@
                             android:text="0/20"
                             android:textColor="#546E7A"
                             android:textSize="12sp" />
-                        <TextView
-                            android:id="@+id/reasonWordCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:text="0/3 Words"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp"/>
-                    </LinearLayout>
-
-                    <!-- Trigger field with character count - MODIFIED: narrower and centered -->
-                    <LinearLayout
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="vertical">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
-
-                            <EditText
-                                android:id="@+id/addTriggerEdit"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:gravity="top|start"
-                                android:hint="Describe what triggered this mood"
-                                android:maxLength="100"
-                                android:minLines="2"
-                                android:padding="8dp"
-                                android:textColorHint="#546E7A"
-                                android:backgroundTint="#E0E0E0" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/triggerCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/100"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <ImageButton
