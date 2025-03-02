@@ -3,24 +3,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/black">
+    android:background="@color/black"
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        >
 
-        <!-- FrameLayout for Emoji Section -->
         <FrameLayout
             android:paddingTop="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <!-- Rectangle with Emoji -->
             <LinearLayout
-                android:id="@+id/emojiRectangle"
+                android:id="@+id/EditEmojiRectangle"
                 android:layout_width="359dp"
                 android:layout_height="450dp"
                 android:layout_marginTop="65sp"
@@ -28,16 +28,15 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/emojiView"
                     android:layout_width="100sp"
                     android:layout_height="100sp"
 
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"
-                    android:layout_marginTop="25dp" />
+                    android:layout_marginTop="25dp"/>
 
                 <TextView
-                    android:id="@+id/emojiDescription"
+                    android:id="@+id/EditEmojiDescription"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -53,16 +52,16 @@
                     android:layout_marginTop="10dp"
                     android:orientation="vertical"
                     android:gravity="center">
+
                     <TextView
-                        android:id="@+id/dateTimeView"
+                        android:id="@+id/EditDateTimeView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:textColor="@color/black"
                         android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"/>
 
-                    <!-- Reason field with character count - MODIFIED: narrower and centered -->
                     <LinearLayout
                         android:layout_width="280dp"
                         android:layout_height="wrap_content"
@@ -76,29 +75,21 @@
                             android:background="@drawable/edit_text_background">
 
                             <EditText
-                                android:id="@+id/addReasonEdit"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:background="@null"
-                                android:hint="@string/addReasonHint"
+                                android:hint="Enter new reason..."
                                 android:maxLength="20"
                                 android:padding="8dp"
                                 android:singleLine="true"
-                                android:textColorHint="#546E7A" />
+                                android:textColorHint="#546E7A"/>
+
                         </FrameLayout>
 
-                        <TextView
-                            android:id="@+id/reasonCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/20"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
+                        <!-- Did not add reasonCharCount -->
+
                     </LinearLayout>
 
-                    <!-- Trigger field with character count - MODIFIED: narrower and centered -->
                     <LinearLayout
                         android:layout_width="280dp"
                         android:layout_height="wrap_content"
@@ -112,12 +103,12 @@
                             android:background="@drawable/edit_text_background">
 
                             <EditText
-                                android:id="@+id/addTriggerEdit"
+                                android:id="@+id/editTrigger"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:background="@null"
                                 android:gravity="top|start"
-                                android:hint="Describe what triggered this mood"
+                                android:hint="Describe new reason that triggered this mood"
                                 android:maxLength="100"
                                 android:minLines="2"
                                 android:padding="8dp"
@@ -125,19 +116,11 @@
                                 android:backgroundTint="#E0E0E0" />
                         </FrameLayout>
 
-                        <TextView
-                            android:id="@+id/triggerCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/100"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
+                        <!-- Did not add trigger char count -->
                     </LinearLayout>
 
                     <ImageButton
-                        android:id="@+id/groupButton"
+                        android:id="@+id/EditGroupButton"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_gravity="center"
@@ -147,23 +130,24 @@
                         android:focusable="true"
                         android:padding="16dp"
                         android:src="@drawable/person" />
+
                 </LinearLayout>
+
             </LinearLayout>
 
-            <!-- Submit Button -->
             <ImageButton
-                android:id="@+id/submitButton"
+                android:id="@+id/EditSubmitButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="16dp"
-                android:src="@drawable/white_checkmark"
+                android:src="@drawable/checkmark"
                 android:layout_gravity="top|end" />
+
         </FrameLayout>
 
-        <!-- Camera and Gallery Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -172,33 +156,72 @@
             android:gravity="center">
 
             <Button
-                android:id="@+id/cameraButton"
+                android:id="@+id/EditCameraButton"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Take a Photo" />
+                android:layout_weight="1"
+                android:text="Take a new photo" />
 
             <Button
-                android:id="@+id/uploadButton"
+                android:id="@+id/EditUploadButton"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Choose from Gallery" />
+                android:layout_weight="1"
+                android:text="Choose new photo from gallery" />
+
         </LinearLayout>
 
-        <!-- Image Preview Frame -->
         <FrameLayout
-            android:id="@+id/imageContainer"
+            android:id="@+id/EditImageContainer"
             android:layout_width="match_parent"
             android:layout_height="300dp"
             android:layout_marginTop="20dp">
 
             <ImageView
-                android:id="@+id/imagePreview"
+                android:id="@+id/EditImagePreview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true" />
+                android:layout_marginTop="20dp"/>
+
+
         </FrameLayout>
+
+
     </LinearLayout>
+
 </ScrollView>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
