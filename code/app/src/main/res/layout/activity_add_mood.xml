@@ -22,7 +22,7 @@
             <LinearLayout
                 android:id="@+id/emojiRectangle"
                 android:layout_width="359dp"
-                android:layout_height="450dp"
+                android:layout_height="346dp"
                 android:layout_marginTop="65sp"
                 android:gravity="center"
                 android:orientation="vertical">

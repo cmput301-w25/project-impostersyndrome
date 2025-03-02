@@ -148,7 +148,6 @@ public class AddMoodActivity extends AppCompatActivity {
                         Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                         navigateToMainActivity();
                     }
-
                     @Override
                     public void onImageUploadFailure(Exception e) {
                         Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
