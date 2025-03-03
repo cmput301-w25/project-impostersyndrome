@@ -9,6 +9,7 @@ import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -49,7 +50,7 @@ public class AddMoodActivity extends AppCompatActivity {
         moodsRef = db.collection("moods");
 
         // Initialize views
-        ImageView emojiView = findViewById(R.id.emojiView);
+        ImageView emojiView = findViewById(R.id.emojiView); // Using ImageView for custom emoji
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
@@ -100,9 +101,11 @@ public class AddMoodActivity extends AppCompatActivity {
         // Retrieve the Mood object from the intent
         Intent intent = getIntent();
         Mood mood = (Mood) intent.getSerializableExtra("mood");
+        intent.putExtra("userId", getIntent().getStringExtra("userId"));
 
         if (mood != null) {
-            // Display the emoji using drawable resource ID
+
+            // Display the custom emoji using drawable resource ID
             emojiView.setImageResource(mood.getEmojiDrawableId());
             emojiDescription.setText(mood.getEmojiDescription());
 
@@ -123,13 +126,12 @@ public class AddMoodActivity extends AppCompatActivity {
             }
         }
 
-        // Add group button functionality
+        // Group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
         // Setup image handling dropdown menu
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
         cameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
@@ -160,6 +162,13 @@ public class AddMoodActivity extends AppCompatActivity {
                 navigateToMainActivity();
             }
         });
+
+        // Image handling buttons
+        Button openGalleryButton = findViewById(R.id.uploadButton);
+        openGalleryButton.setOnClickListener(v -> imageHandler.openGallery(galleryLauncher));
+
+        Button openCameraButton = findViewById(R.id.cameraButton);
+        openCameraButton.setOnClickListener(v -> imageHandler.openCamera(cameraLauncher));
     }
 
     // Helper method to navigate to main activity
@@ -170,6 +179,7 @@ public class AddMoodActivity extends AppCompatActivity {
         finish();
     }
 
+    // Add mood to Firestore
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
