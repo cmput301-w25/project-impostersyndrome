@@ -1,0 +1,110 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/black">
+
+    <LinearLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal"
+        android:background="@color/black">
+
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="563dp"
+            android:paddingTop="20dp">
+
+
+            <!-- Rectangle with Emoji -->
+            <LinearLayout
+                android:id="@+id/emojiRectangle"
+                android:layout_width="359dp"
+                android:layout_height="531dp"
+                android:layout_marginTop="65sp"
+                android:background="@drawable/edit_text_background"
+                android:gravity="center"
+                android:orientation="vertical">
+
+
+                <ImageView
+                    android:id="@+id/emojiView"
+                    android:layout_width="100sp"
+                    android:layout_height="100sp"
+                    android:layout_marginTop="25dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
+
+                <!-- Emoji Description -->
+                <TextView
+                    android:id="@+id/emojiDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:text="Emoji Description"
+                    android:textColor="@color/white"
+                    android:textSize="35sp"
+                    android:textStyle="bold" />
+
+                <!-- Time TextView -->
+                <TextView
+                    android:id="@+id/timeView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <!-- Reason TextView -->
+                <TextView
+                    android:id="@+id/reasonView"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/edit_text_background"
+                    android:padding="8dp"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <!-- Group/Context TextView -->
+                <TextView
+                    android:id="@+id/groupView"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/edit_text_background"
+                    android:padding="8dp"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <!-- Image from URL -->
+                <ImageView
+                    android:id="@+id/imageUrlView"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="10dp"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="Mood Image"
+                    android:scaleType="fitCenter" />
+            </LinearLayout>
+
+            <!-- Back Button -->
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/white_checkmark" />
+        </FrameLayout>
+    </LinearLayout>
+    </ScrollView>
