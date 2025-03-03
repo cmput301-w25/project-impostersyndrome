@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.widget.Button;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -127,12 +126,9 @@ public class AddMoodActivity extends AppCompatActivity {
         // Add group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
-        // Setup image handling buttons
-        Button openGalleryButton = findViewById(R.id.uploadButton);
-        openGalleryButton.setOnClickListener(v -> imageHandler.openGallery(galleryLauncher));
-
-        Button openCameraButton = findViewById(R.id.cameraButton);
-        openCameraButton.setOnClickListener(v -> imageHandler.openCamera(cameraLauncher));
+        // Setup image handling dropdown menu
+        ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
+        cameraMenuButton.setOnClickListener(v -> showImageMenu(v));
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
@@ -206,6 +202,26 @@ public class AddMoodActivity extends AppCompatActivity {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
                 Toast.makeText(AddMoodActivity.this, "Group Status Saved!", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    // Image menu method
+    private void showImageMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.getMenu().add("Take a Photo");
+        popup.getMenu().add("Choose from Gallery");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("Take a Photo")) {
+                imageHandler.openCamera(cameraLauncher);
+                return true;
+            } else if (item.getTitle().equals("Choose from Gallery")) {
+                imageHandler.openGallery(galleryLauncher);
                 return true;
             }
             return false;

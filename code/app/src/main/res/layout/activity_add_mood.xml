@@ -1,204 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
+    android:orientation="vertical"
     android:background="@color/black">
 
-    <LinearLayout
+    <!-- ScrollView for the form content -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:gravity="center_horizontal">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-        <!-- FrameLayout for Emoji Section -->
-        <FrameLayout
-            android:paddingTop="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <!-- Rectangle with Emoji -->
-            <LinearLayout
-                android:id="@+id/emojiRectangle"
-                android:layout_width="359dp"
-                android:layout_height="450dp"
-                android:layout_marginTop="65sp"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:id="@+id/emojiView"
-                    android:layout_width="100sp"
-                    android:layout_height="100sp"
-
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:layout_marginTop="25dp" />
-
-                <TextView
-                    android:id="@+id/emojiDescription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="35sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <TextView
-                        android:id="@+id/dateTimeView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:textColor="@color/black"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <!-- Reason field with character count - MODIFIED: narrower and centered -->
-                    <LinearLayout
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="vertical">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
-
-                            <EditText
-                                android:id="@+id/addReasonEdit"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:hint="@string/addReasonHint"
-                                android:maxLength="20"
-                                android:padding="8dp"
-                                android:singleLine="true"
-                                android:textColorHint="#546E7A" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/reasonCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/20"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <!-- Trigger field with character count - MODIFIED: narrower and centered -->
-                    <LinearLayout
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="vertical">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
-
-                            <EditText
-                                android:id="@+id/addTriggerEdit"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:gravity="top|start"
-                                android:hint="Describe what triggered this mood"
-                                android:maxLength="100"
-                                android:minLines="2"
-                                android:padding="8dp"
-                                android:textColorHint="#546E7A"
-                                android:backgroundTint="#E0E0E0" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/triggerCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/100"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <ImageButton
-                        android:id="@+id/groupButton"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="5dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="16dp"
-                        android:src="@drawable/person" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Submit Button -->
-            <ImageButton
-                android:id="@+id/submitButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp"
-                android:src="@drawable/white_checkmark"
-                android:layout_gravity="top|end" />
-        </FrameLayout>
-
-        <!-- Camera and Gallery Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:gravity="center">
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center_horizontal">
 
-            <Button
-                android:id="@+id/cameraButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Take a Photo" />
+            <!-- FrameLayout for Emoji Section -->
+            <FrameLayout
+                android:paddingTop="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-            <Button
-                android:id="@+id/uploadButton"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Choose from Gallery" />
+                <!-- Rectangle with Emoji -->
+                <LinearLayout
+                    android:id="@+id/emojiRectangle"
+                    android:layout_width="359dp"
+                    android:layout_height="450dp"
+                    android:layout_marginTop="65sp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/emojiView"
+                        android:layout_width="100sp"
+                        android:layout_height="100sp"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:layout_marginTop="25dp" />
+
+                    <TextView
+                        android:id="@+id/emojiDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="35sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/dateTimeView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:textColor="@color/black"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <!-- Reason field with character count -->
+                        <LinearLayout
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:background="@drawable/edit_text_background">
+
+                                <EditText
+                                    android:id="@+id/addReasonEdit"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@null"
+                                    android:hint="@string/addReasonHint"
+                                    android:maxLength="20"
+                                    android:padding="8dp"
+                                    android:singleLine="true"
+                                    android:textColorHint="#546E7A" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/reasonCharCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:layout_marginTop="2dp"
+                                android:text="0/20"
+                                android:textColor="#546E7A"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <!-- Trigger field with character count -->
+                        <LinearLayout
+                            android:layout_width="280dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:background="@drawable/edit_text_background">
+
+                                <EditText
+                                    android:id="@+id/addTriggerEdit"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@null"
+                                    android:gravity="top|start"
+                                    android:hint="Describe what triggered this mood"
+                                    android:maxLength="100"
+                                    android:minLines="2"
+                                    android:padding="8dp"
+                                    android:textColorHint="#546E7A"
+                                    android:backgroundTint="#E0E0E0" />
+                            </FrameLayout>
+
+                            <TextView
+                                android:id="@+id/triggerCharCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:layout_marginTop="2dp"
+                                android:text="0/100"
+                                android:textColor="#546E7A"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <!-- Horizontal layout for camera and group buttons -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:layout_marginTop="5dp">
+
+                            <ImageButton
+                                android:id="@+id/cameraMenuButton"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/camera_menu_description"
+                                android:src="@drawable/ic_camera"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true" />
+
+                            <ImageButton
+                                android:id="@+id/groupButton"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:padding="16dp"
+                                android:src="@drawable/person" />
+
+                            <ImageButton
+                                android:id="@+id/locationButton"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/camera_menu_description"
+                                android:src="@drawable/ic_camera"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Submit Button -->
+                <ImageButton
+                    android:id="@+id/submitButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="16dp"
+                    android:src="@drawable/white_checkmark"
+                    android:layout_gravity="top|end" />
+            </FrameLayout>
         </LinearLayout>
+    </ScrollView>
 
-        <!-- Image Preview Frame -->
-        <FrameLayout
-            android:id="@+id/imageContainer"
+    <!-- Image Preview Frame -->
+    <FrameLayout
+        android:id="@+id/imageContainer"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="20dp">
+
+        <ImageView
+            android:id="@+id/imagePreview"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="20dp">
-
-            <ImageView
-                android:id="@+id/imagePreview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true" />
-        </FrameLayout>
-    </LinearLayout>
-</ScrollView>
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true" />
+    </FrameLayout>
+</LinearLayout>
