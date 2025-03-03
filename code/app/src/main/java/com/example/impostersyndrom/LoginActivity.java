@@ -2,10 +2,14 @@ package com.example.impostersyndrom;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -53,11 +57,22 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(emailText, passwordText).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+
+                String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
+                User.getInstance().setUserId(Objects.requireNonNull(auth.getCurrentUser()).getUid());
+                showToast("Login Successful!");
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("userId", userId);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears backstack
+                startActivity(intent);
                 finish();
             } else {
                 layoutEmail.setError("Login failed: " + task.getException().getMessage());
             }
         });
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
