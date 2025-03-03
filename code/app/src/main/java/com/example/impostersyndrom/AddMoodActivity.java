@@ -5,11 +5,9 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -39,8 +37,8 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
-    private TextView triggerCharCount; // Character count for trigger field
     private TextView reasonCharCount;
+    private ImageView imagePreview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +49,7 @@ public class AddMoodActivity extends AppCompatActivity {
         moodsRef = db.collection("moods");
 
         // Initialize views
-        ImageView emojiView = findViewById(R.id.emojiView); // Using ImageView for custom emoji
+        ImageView emojiView = findViewById(R.id.emojiView);
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
@@ -60,11 +58,13 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton backButton = findViewById(R.id.backButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
-        ImageView imagePreview = findViewById(R.id.imagePreview);
+        ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
+        imagePreview = findViewById(R.id.imagePreview);
+
+        // Initially hide the image preview
+        imagePreview.setVisibility(View.GONE);
 
         // Add text change listener to update character count
-
-
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -93,6 +93,19 @@ public class AddMoodActivity extends AppCompatActivity {
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
 
+        // Set up the listener to show/hide image preview
+        imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
+            @Override
+            public void onImageLoaded() {
+                imagePreview.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onImageCleared() {
+                imagePreview.setVisibility(View.GONE);
+            }
+        });
+
         // Start ActivityResultLauncher for gallery
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -111,7 +124,6 @@ public class AddMoodActivity extends AppCompatActivity {
         intent.putExtra("userId", getIntent().getStringExtra("userId"));
 
         if (mood != null) {
-
             // Display the custom emoji using drawable resource ID
             emojiView.setImageResource(mood.getEmojiDrawableId());
             emojiDescription.setText(mood.getEmojiDescription());
@@ -128,9 +140,14 @@ public class AddMoodActivity extends AppCompatActivity {
         // Group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
 
-        // Setup image handling dropdown menu
-        ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
+        // Setup camera menu button to show options
         cameraMenuButton.setOnClickListener(v -> showImageMenu(v));
+
+        // Back button functionality
+        backButton.setOnClickListener(v -> {
+            finish();
+        });
+
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
@@ -160,7 +177,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 navigateToMainActivity();
             }
         });
-
     }
 
     // Helper method to navigate to main activity
@@ -170,11 +186,13 @@ public class AddMoodActivity extends AppCompatActivity {
         startActivity(newIntent);
         finish();
     }
+
     // Add mood to Firestore
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
+
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
@@ -215,6 +233,7 @@ public class AddMoodActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
         popup.getMenu().add("Choose from Gallery");
+        popup.getMenu().add("Remove Photo");  // Add option to remove photo
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getTitle().equals("Take a Photo")) {
@@ -222,6 +241,9 @@ public class AddMoodActivity extends AppCompatActivity {
                 return true;
             } else if (item.getTitle().equals("Choose from Gallery")) {
                 imageHandler.openGallery(galleryLauncher);
+                return true;
+            } else if (item.getTitle().equals("Remove Photo")) {
+                imageHandler.clearImage();  // Added this to clear image
                 return true;
             }
             return false;

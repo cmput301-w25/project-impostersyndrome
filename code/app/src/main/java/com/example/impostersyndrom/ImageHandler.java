@@ -8,13 +8,12 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -31,6 +30,18 @@ public class ImageHandler {
     private final FirebaseStorage storage;
     private final StorageReference storageRef;
     private Bitmap selectedImageBitmap = null;
+
+    // Add listener interface
+    public interface OnImageLoadedListener {
+        void onImageLoaded();
+        void onImageCleared();
+    }
+
+    private OnImageLoadedListener imageLoadedListener;
+
+    public void setOnImageLoadedListener(OnImageLoadedListener listener) {
+        this.imageLoadedListener = listener;
+    }
 
     public ImageHandler(Activity activity, ImageView imagePreview) {
         this.activity = activity;
@@ -65,6 +76,7 @@ public class ImageHandler {
                     selectedImageBitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), imageUri);
                 } catch (IOException e) {
                     showToast("Failed to load image");
+                    clearImage();
                     return;
                 }
             } else if (data.getExtras() != null) { // Camera
@@ -73,7 +85,24 @@ public class ImageHandler {
 
             if (selectedImageBitmap != null) {
                 imagePreview.setImageBitmap(selectedImageBitmap);
+                // Trigger onImageLoaded
+                if (imageLoadedListener != null) {
+                    imageLoadedListener.onImageLoaded();
+                }
+            } else {
+                clearImage();
             }
+        } else {
+            clearImage();
+        }
+    }
+
+    public void clearImage() {
+        selectedImageBitmap = null;
+        imagePreview.setImageBitmap(null);
+        // Trigger onImageCleared
+        if (imageLoadedListener != null) {
+            imageLoadedListener.onImageCleared();
         }
     }
 
