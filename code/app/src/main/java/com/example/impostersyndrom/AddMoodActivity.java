@@ -41,6 +41,7 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
     private TextView triggerCharCount; // Character count for trigger field
+    private TextView reasonCharCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,17 +57,16 @@ public class AddMoodActivity extends AppCompatActivity {
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
-        EditText addTriggerEdit = findViewById(R.id.addTriggerEdit); // New EditText for trigger
-        triggerCharCount = findViewById(R.id.triggerCharCount); // New TextView for character count
+        reasonCharCount = findViewById(R.id.reasonCharCount);
         ImageButton submitButton = findViewById(R.id.submitButton);
+        ImageButton backButton = findViewById(R.id.backButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
-        // Set max length for trigger field
-        addTriggerEdit.setFilters(new InputFilter[] {new InputFilter.LengthFilter(100)});
-
         // Add text change listener to update character count
-        addTriggerEdit.addTextChangedListener(new TextWatcher() {
+
+
+        addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // Not needed
@@ -80,7 +80,14 @@ public class AddMoodActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 int chars = s.length();
-                triggerCharCount.setText(chars + "/100");
+                String text = s.toString().trim();
+                String[] words = text.split("\\s+"); // Splits based on number of whitespaces
+                int wordCount = words.length;
+
+                if (wordCount > 3) {
+                    s.delete(s.length() - 1, s.length());
+                }
+                reasonCharCount.setText(chars + "/20");
             }
         });
 
@@ -117,14 +124,6 @@ public class AddMoodActivity extends AppCompatActivity {
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
             selectedGroup = mood.getGroup();
-
-            // Set trigger text if available
-            if (mood.getTrigger() != null && !mood.getTrigger().isEmpty()) {
-                addTriggerEdit.setText(mood.getTrigger());
-                triggerCharCount.setText(mood.getTrigger().length() + "/100");
-            } else {
-                triggerCharCount.setText("0/100");
-            }
         }
 
         // Group button functionality
@@ -133,7 +132,6 @@ public class AddMoodActivity extends AppCompatActivity {
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
             mood.setReason(addReasonEdit.getText().toString().trim());
-            mood.setTrigger(addTriggerEdit.getText().toString().trim()); // Save trigger text
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
 
@@ -147,7 +145,6 @@ public class AddMoodActivity extends AppCompatActivity {
                         Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                         navigateToMainActivity();
                     }
-
                     @Override
                     public void onImageUploadFailure(Exception e) {
                         Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -161,13 +158,10 @@ public class AddMoodActivity extends AppCompatActivity {
             }
         });
 
-        // Image handling buttons
-        Button openGalleryButton = findViewById(R.id.uploadButton);
-        openGalleryButton.setOnClickListener(v -> imageHandler.openGallery(galleryLauncher));
-
-        Button openCameraButton = findViewById(R.id.cameraButton);
-        openCameraButton.setOnClickListener(v -> imageHandler.openCamera(cameraLauncher));
+        backButton.setOnClickListener(v -> finish());
     }
+
+
 
     // Helper method to navigate to main activity
     private void navigateToMainActivity() {
@@ -176,13 +170,11 @@ public class AddMoodActivity extends AppCompatActivity {
         startActivity(newIntent);
         finish();
     }
-
     // Add mood to Firestore
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
-
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();

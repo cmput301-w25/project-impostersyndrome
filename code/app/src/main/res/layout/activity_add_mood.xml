@@ -22,7 +22,7 @@
             <LinearLayout
                 android:id="@+id/emojiRectangle"
                 android:layout_width="359dp"
-                android:layout_height="450dp"
+                android:layout_height="346dp"
                 android:layout_marginTop="65sp"
                 android:gravity="center"
                 android:orientation="vertical">
@@ -94,45 +94,8 @@
                             android:layout_gravity="end"
                             android:layout_marginTop="2dp"
                             android:text="0/20"
-                            android:textColor="#546E7A"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <!-- Trigger field with character count - MODIFIED: narrower and centered -->
-                    <LinearLayout
-                        android:layout_width="280dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="vertical">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
-
-                            <EditText
-                                android:id="@+id/addTriggerEdit"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:gravity="top|start"
-                                android:hint="Describe what triggered this mood"
-                                android:maxLength="100"
-                                android:minLines="2"
-                                android:padding="8dp"
-                                android:textColorHint="#546E7A"
-                                android:backgroundTint="#E0E0E0" />
-                        </FrameLayout>
-
-                        <TextView
-                            android:id="@+id/triggerCharCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="2dp"
-                            android:text="0/100"
-                            android:textColor="#546E7A"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -149,7 +112,16 @@
                         android:src="@drawable/person" />
                 </LinearLayout>
             </LinearLayout>
-
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/left_arrow"
+                android:layout_gravity="top|start"/>
             <!-- Submit Button -->
             <ImageButton
                 android:id="@+id/submitButton"
