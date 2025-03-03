@@ -162,13 +162,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 navigateToMainActivity();
             }
         });
-
-        // Image handling buttons
-        Button openGalleryButton = findViewById(R.id.uploadButton);
-        openGalleryButton.setOnClickListener(v -> imageHandler.openGallery(galleryLauncher));
-
-        Button openCameraButton = findViewById(R.id.cameraButton);
-        openCameraButton.setOnClickListener(v -> imageHandler.openCamera(cameraLauncher));
     }
 
     // Helper method to navigate to main activity
