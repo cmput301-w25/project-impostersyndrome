@@ -21,6 +21,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.ImageView;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +164,14 @@ public class MainActivity extends AppCompatActivity {
                                     }}
                             });
 
+                            moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
+                                if (moodDocs != null && moodDocs.size() > position) {
+                                    DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
+                                    showBottomSheetDialog(moodDoc);
+                                }
+                                return true; // Return true to indicate that the long press was handled
+                            });
+
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
@@ -170,5 +184,39 @@ public class MainActivity extends AppCompatActivity {
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
+    private void showBottomSheetDialog(DocumentSnapshot moodDoc) {
+        // Create bottom sheet dialog
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
+
+        // Find views inside the bottom sheet
+        TextView editMood = bottomSheetView.findViewById(R.id.editMoodOption);
+        TextView deleteMood = bottomSheetView.findViewById(R.id.deleteMoodOption);
+
+        // Handle Edit option
+        editMood.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, EditMoodActivity.class);
+            intent.putExtra("moodId", moodDoc.getId());
+            startActivity(intent);
+            bottomSheetDialog.dismiss();
+        });
+
+        // Handle Delete option
+        deleteMood.setOnClickListener(v -> {
+            db.collection("moods").document(moodDoc.getId()).delete()
+                    .addOnSuccessListener(aVoid -> {
+                        showToast("Mood deleted!");
+                        fetchMoods(userId); // Refresh list after deletion
+                    })
+                    .addOnFailureListener(e -> showToast("Failed to delete mood"));
+            bottomSheetDialog.dismiss();
+        });
+
+        // Set view and show dialog
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
+    }
+
 }
 
