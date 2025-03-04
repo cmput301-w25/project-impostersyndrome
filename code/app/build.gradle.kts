@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.auth)
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
     implementation("com.google.firebase:firebase-auth:23.2.0")
     testImplementation(libs.junit)
     implementation("com.google.android.material:material:1.9.0")
@@ -48,4 +50,5 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
 }
