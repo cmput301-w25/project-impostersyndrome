@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.Date;
@@ -26,6 +27,7 @@ public class EmojiSelectionActivity extends AppCompatActivity {
         ImageView emoji6 = findViewById(R.id.emoji6);
         ImageView emoji7 = findViewById(R.id.emoji7);
         ImageView emoji8 = findViewById(R.id.emoji8);
+        ImageButton backButton = findViewById(R.id.backButton);
 
         // List of emoji descriptions and colors
         Map<String, Pair<String, Integer>> emojiMap = new HashMap<>();
@@ -86,6 +88,7 @@ public class EmojiSelectionActivity extends AppCompatActivity {
             mood.setEmojiDrawableId(R.drawable.emoji_surprised); // Pass the drawable resource ID
             navigateToViewMood(mood);
         });
+        backButton.setOnClickListener(v -> finish());
     }
 
     // Helper method to navigate to View Mood Screen
