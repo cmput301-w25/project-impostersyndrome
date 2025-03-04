@@ -1,6 +1,7 @@
 package com.example.impostersyndrom;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -39,6 +41,8 @@ public class AddMoodActivity extends AppCompatActivity {
     private String imageUrl = null;
     private TextView reasonCharCount;
     private ImageView imagePreview;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
+    private ActivityResultLauncher<String> galleryPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +51,29 @@ public class AddMoodActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
+
+        // Initialize permission launchers
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        // Permission granted, launch camera intent
+                        imageHandler.openCamera(cameraLauncher);
+                    } else {
+                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        galleryPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        // Permission granted, launch gallery intent
+                        imageHandler.openGallery(galleryLauncher);
+                    } else {
+                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
         // Initialize views
         ImageView emojiView = findViewById(R.id.emojiView);
@@ -233,17 +260,25 @@ public class AddMoodActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
         popup.getMenu().add("Choose from Gallery");
-        popup.getMenu().add("Remove Photo");  // Add option to remove photo
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getTitle().equals("Take a Photo")) {
-                imageHandler.openCamera(cameraLauncher);
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    // Permission already granted, launch camera
+                    imageHandler.openCamera(cameraLauncher);
+                } else {
+                    // Request camera permission
+                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+                }
                 return true;
             } else if (item.getTitle().equals("Choose from Gallery")) {
-                imageHandler.openGallery(galleryLauncher);
-                return true;
-            } else if (item.getTitle().equals("Remove Photo")) {
-                imageHandler.clearImage();  // Added this to clear image
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                    // Permission already granted, launch gallery
+                    imageHandler.openGallery(galleryLauncher);
+                } else {
+                    // Request gallery permission
+                    galleryPermissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES);
+                }
                 return true;
             }
             return false;
