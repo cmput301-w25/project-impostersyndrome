@@ -1,16 +1,14 @@
 package com.example.impostersyndrom;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.widget.Button;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -22,6 +20,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -40,8 +39,10 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private String imageUrl = null;
-    private TextView triggerCharCount; // Character count for trigger field
     private TextView reasonCharCount;
+    private ImageView imagePreview;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
+    private ActivityResultLauncher<String> galleryPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +52,31 @@ public class AddMoodActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
 
+        // Initialize permission launchers
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        // Permission granted, launch camera intent
+                        imageHandler.openCamera(cameraLauncher);
+                    } else {
+                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        galleryPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        // Permission granted, launch gallery intent
+                        imageHandler.openGallery(galleryLauncher);
+                    } else {
+                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
         // Initialize views
-        ImageView emojiView = findViewById(R.id.emojiView); // Using ImageView for custom emoji
+        ImageView emojiView = findViewById(R.id.emojiView);
         TextView emojiDescription = findViewById(R.id.emojiDescription);
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
@@ -61,11 +85,13 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton backButton = findViewById(R.id.backButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
-        ImageView imagePreview = findViewById(R.id.imagePreview);
+        ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
+        imagePreview = findViewById(R.id.imagePreview);
+
+        // Initially hide the image preview
+        imagePreview.setVisibility(View.GONE);
 
         // Add text change listener to update character count
-
-
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -94,6 +120,19 @@ public class AddMoodActivity extends AppCompatActivity {
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
 
+        // Set up the listener to show/hide image preview
+        imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
+            @Override
+            public void onImageLoaded() {
+                imagePreview.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onImageCleared() {
+                imagePreview.setVisibility(View.GONE);
+            }
+        });
+
         // Start ActivityResultLauncher for gallery
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -112,7 +151,6 @@ public class AddMoodActivity extends AppCompatActivity {
         intent.putExtra("userId", getIntent().getStringExtra("userId"));
 
         if (mood != null) {
-
             // Display the custom emoji using drawable resource ID
             emojiView.setImageResource(mood.getEmojiDrawableId());
             emojiDescription.setText(mood.getEmojiDescription());
@@ -128,6 +166,14 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Group button functionality
         groupButton.setOnClickListener(v -> showGroupsMenu(v));
+
+        // Setup camera menu button to show options
+        cameraMenuButton.setOnClickListener(v -> showImageMenu(v));
+
+        // Back button functionality
+        backButton.setOnClickListener(v -> {
+            finish();
+        });
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
@@ -145,6 +191,7 @@ public class AddMoodActivity extends AppCompatActivity {
                         Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                         navigateToMainActivity();
                     }
+
                     @Override
                     public void onImageUploadFailure(Exception e) {
                         Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -157,11 +204,7 @@ public class AddMoodActivity extends AppCompatActivity {
                 navigateToMainActivity();
             }
         });
-
-        backButton.setOnClickListener(v -> finish());
     }
-
-
 
     // Helper method to navigate to main activity
     private void navigateToMainActivity() {
@@ -170,11 +213,13 @@ public class AddMoodActivity extends AppCompatActivity {
         startActivity(newIntent);
         finish();
     }
+
     // Add mood to Firestore
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
+
     // Helper method to set rounded background with dynamic color
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
@@ -202,6 +247,42 @@ public class AddMoodActivity extends AppCompatActivity {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
                 Toast.makeText(AddMoodActivity.this, "Group Status Saved!", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    // Image menu method
+    private void showImageMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.getMenu().add("Take a Photo");
+        popup.getMenu().add("Choose from Gallery");
+        popup.getMenu().add("Remove Photo");  // Add option to remove photo
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("Take a Photo")) {
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    // Permission already granted, launch camera
+                    imageHandler.openCamera(cameraLauncher);
+                } else {
+                    // Request camera permission
+                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+                }
+                return true;
+            } else if (item.getTitle().equals("Choose from Gallery")) {
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                    // Permission already granted, launch gallery
+                    imageHandler.openGallery(galleryLauncher);
+                } else {
+                    // Request gallery permission
+                    galleryPermissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES);
+                }
+                return true;
+            } else if (item.getTitle().equals("Remove Photo")) {
+                imageHandler.clearImage();  // Clear the current image
                 return true;
             }
             return false;
