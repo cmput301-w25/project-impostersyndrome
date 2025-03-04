@@ -1,6 +1,7 @@
 package com.example.impostersyndrom;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -13,18 +14,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private ListView moodListView;
     private MoodAdapter moodAdapter;
     private String userId;
+    private List<DocumentSnapshot> moodDocs = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("userId", userId); // Ensure userId is not null here
             startActivity(intent);
         });
+        // Inside onCreate() method, after setting the adapter
 
         // Logout Button
         Button logoutButton = findViewById(R.id.logoutButton);
@@ -93,6 +101,35 @@ public class MainActivity extends AppCompatActivity {
                             List moodDocs = snapshot.getDocuments();
                             moodAdapter = new MoodAdapter(this, moodDocs);
                             moodListView.setAdapter(moodAdapter);
+                            Log.d("MainActivity", "Fetched " + moodDocs.size() + " moods");
+                            moodListView.setOnItemClickListener((parent, view, position, id) -> {
+                                if (moodDocs != null && moodDocs.size() > position) {
+                                    DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
+                                    Map<String, Object> data = moodDoc.getData();
+
+                                    if (data != null) {
+                                        // Retrieve mood data
+                                        String emoji = (String) data.get("emotionalState");
+                                        Timestamp timestamp = (Timestamp) data.get("timestamp");
+                                        String reason = (String) data.get("reason");
+                                        String group = (String) data.get("group");
+                                        int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE;
+                                        String imageUrl = (String) data.get("imageUrl");
+                                        String emojiDescription = (String) data.get("emojiDescription");
+
+
+                                        // Pass data to MoodDetailActivity
+                                        Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
+                                        intent.putExtra("emoji", emoji);
+                                        intent.putExtra("timestamp", timestamp);
+                                        intent.putExtra("reason", reason);
+                                        intent.putExtra("group", group);
+                                        intent.putExtra("color", color);
+                                        intent.putExtra("imageUrl", imageUrl);
+                                        intent.putExtra("emojiDescription", emojiDescription);
+                                        startActivity(intent);
+                                    }}
+                            });
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
