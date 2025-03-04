@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/black">
+    android:background="@android:color/black">
 
     <!-- Header -->
     <TextView
@@ -14,7 +14,8 @@
         android:text="Your Moods"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/white"/>
 
     <!-- ListView to Display Moods -->
     <ListView

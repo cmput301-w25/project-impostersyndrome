@@ -1,7 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:gravity="center"
     android:padding="20dp"
@@ -17,9 +17,13 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp" />
 
+    <!-- Email Input -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:errorEnabled="true"
+        app:helperTextEnabled="true"
         android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -33,9 +37,14 @@
             android:inputType="textEmailAddress"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Password Input -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:errorEnabled="true"
+        app:helperTextEnabled="true"
+        app:endIconMode="password_toggle"
         android:layout_marginBottom="24dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -55,6 +64,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <!-- Progress Bar (Initially Hidden) -->
+    <ProgressBar
+        android:id="@+id/loginProgressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        android:indeterminateTint="@android:color/white" />
+
     <TextView
         android:id="@+id/forgotPassword"
         android:text="Forgot password?"
@@ -70,7 +88,7 @@
     <TextView
         android:id="@+id/newUserSignUp"
         android:text="New user? Sign Up"
-        android:textColor="#ffffffff"
+        android:textColor="#ffffff"
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -78,21 +96,4 @@
         android:layout_marginTop="20dp"
         android:clickable="true"
         android:focusable="true"/>
-
-    <TextView
-        android:id="@+id/emailErrorText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/holo_red_dark"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/passwordErrorText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/holo_red_dark"
-        android:text=""
-        android:visibility="gone"/>
-
-
 </LinearLayout>

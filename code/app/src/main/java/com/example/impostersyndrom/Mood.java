@@ -10,7 +10,6 @@ public class Mood implements Serializable {
     private String emojiDescription;
     private String id;
     private String reason;
-    private String trigger; // New field for trigger description
     private Date timestamp;
     private int color;
     private String imageUrl;
@@ -26,18 +25,8 @@ public class Mood implements Serializable {
         this.timestamp = timestamp;
         this.color = color;
         this.reason = reason;
-        this.trigger = ""; // Initialize trigger to empty string
         this.group = "alone"; // Default to alone
         this.imageUrl = null; // Initialize imageUrl to null
-    }
-
-    // Add getter and setter for trigger
-    public String getTrigger() {
-        return trigger;
-    }
-
-    public void setTrigger(String trigger) {
-        this.trigger = trigger;
     }
 
     // Existing getters and setters...
