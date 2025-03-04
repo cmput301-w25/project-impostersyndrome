@@ -260,6 +260,7 @@ public class AddMoodActivity extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
         popup.getMenu().add("Choose from Gallery");
+        popup.getMenu().add("Remove Photo");  // Add option to remove photo
 
         popup.setOnMenuItemClickListener(item -> {
             if (item.getTitle().equals("Take a Photo")) {
@@ -279,6 +280,9 @@ public class AddMoodActivity extends AppCompatActivity {
                     // Request gallery permission
                     galleryPermissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES);
                 }
+                return true;
+            } else if (item.getTitle().equals("Remove Photo")) {
+                imageHandler.clearImage();  // Clear the current image
                 return true;
             }
             return false;
