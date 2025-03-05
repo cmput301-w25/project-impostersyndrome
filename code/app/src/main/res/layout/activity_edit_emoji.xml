@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- Top Bar with Back Button, Title, and Checkmark -->
+    <LinearLayout
+        android:id="@+id/FirstLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/left_arrow"
+            android:layout_gravity="center_vertical"/>
+
+        <!-- This acts like a placeholder -->
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="53dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Choose a different mood"
+            android:textColor="@color/black"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <!-- Checkmark Button -->
+        <ImageButton
+            android:id="@+id/submitButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/white_checkmark"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/SecondLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/FirstLinearLayout"
+        android:layout_above="@+id/CircularLayout"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="53dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Choose a different mood"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Circular Layout to edit selected emoji -->
+    <RelativeLayout
+        android:id="@+id/CircularLayout"
+        android:layout_width="365dp"
+        android:layout_height="349dp"
+        android:layout_centerInParent="true">
+
+        <!-- Top emoji -->
+        <ImageView
+            android:id="@+id/emojiI"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="Happy"
+            android:src="@drawable/emoji_happy"/>
+
+        <!-- Top right emoji -->
+        <ImageView
+            android:id="@+id/emojiII"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="47dp"
+            android:layout_marginEnd="41dp"
+            android:contentDescription="Confused"
+            android:src="@drawable/emoji_confused"/>
+
+        <!-- Right emoji -->
+        <ImageView
+            android:id="@+id/emojiIII"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Disgust"
+            android:src="@drawable/emoji_disgust"/>
+
+        <!-- Bottom right emoji -->
+        <ImageView
+            android:id="@+id/emojiIV"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="41dp"
+            android:layout_marginBottom="47dp"
+            android:contentDescription="Angry"
+            android:src="@drawable/emoji_angry"/>
+
+        <!-- Bottom emoji -->
+        <ImageView
+            android:id="@+id/emojiV"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="Sad"
+            android:src="@drawable/emoji_sad"/>
+
+        <!-- Bottom left emoji -->
+        <ImageView
+            android:id="@+id/emojiVI"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="41dp"
+            android:layout_marginBottom="47dp"
+            android:contentDescription="Fear"
+            android:src="@drawable/emoji_fear"/>
+
+        <!-- Left emoji -->
+        <ImageView
+            android:id="@+id/emojiVII"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Shame"
+            android:src="@drawable/emoji_shame"/>
+
+        <!-- Top left emoji -->
+        <ImageView
+            android:id="@+id/emojiVIII"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="47dp"
+            android:contentDescription="Surprise"
+            android:src="@drawable/emoji_surprised"/>
+
+        <!-- Shows the user the current selected emoji -->
+        <ImageView
+            android:id="@+id/EditEmojiView"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:layout_centerInParent="true"
+            android:contentDescription="Selected Emoji"/>
+    </RelativeLayout>
+
+</RelativeLayout>
