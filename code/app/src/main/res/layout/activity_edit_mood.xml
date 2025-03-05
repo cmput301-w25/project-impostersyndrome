@@ -20,6 +20,54 @@
             android:layout_height="wrap_content">
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/left_arrow"
+                    android:layout_gravity="center_vertical"/>
+
+                <!-- This acts like a placeholder -->
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="53dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Choose a different mood"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <!-- Checkmark Button -->
+                <ImageButton
+                    android:id="@+id/submitButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/white_checkmark"/>
+
+
+
+
+
+            </LinearLayout>
+
+
+
+            <LinearLayout
                 android:id="@+id/EditEmojiRectangle"
                 android:layout_width="359dp"
                 android:layout_height="450dp"
@@ -135,16 +183,6 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/EditSubmitButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp"
-                android:src="@drawable/checkmark"
-                android:layout_gravity="top|end" />
 
         </FrameLayout>
 
