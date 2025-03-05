@@ -8,7 +8,7 @@
     android:background="#000000">
 
     <TextView
-        android:text="Create Account"
+        android:text="@string/create_account"
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="#ffffff"
@@ -31,7 +31,7 @@
             android:id="@+id/firstName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="First Name"
+            android:hint="@string/first_name_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -52,7 +52,7 @@
             android:id="@+id/lastName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Last Name"
+            android:hint="@string/last_name_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -73,7 +73,7 @@
             android:id="@+id/username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:hint="@string/username_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -94,7 +94,7 @@
             android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
+            android:hint="@string/email_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -116,7 +116,7 @@
             android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
+            android:hint="@string/password_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -126,7 +126,7 @@
     <!-- Register Button -->
     <Button
         android:id="@+id/registerBtn"
-        android:text="Register"
+        android:text="@string/register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"/>
@@ -134,7 +134,7 @@
     <!-- Already have an account? -->
     <TextView
         android:id="@+id/loginLink"
-        android:text="Already have an account? Sign in"
+        android:text="@string/already_have_account"
         android:textColor="#ffffff"
         android:textStyle="bold"
         android:layout_width="wrap_content"

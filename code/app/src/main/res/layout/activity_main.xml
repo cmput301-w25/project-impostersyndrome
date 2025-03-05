@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Your Moods"
+        android:text="@string/your_moods"
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"
@@ -31,7 +31,7 @@
         android:id="@+id/addMoodButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Mood"
+        android:text="@string/add_mood"
         android:layout_marginTop="16dp"/>
 
     <!-- Logout Button -->
@@ -39,6 +39,6 @@
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Logout"
+        android:text="@string/logout"
         android:layout_marginTop="8dp"/>
 </LinearLayout>
