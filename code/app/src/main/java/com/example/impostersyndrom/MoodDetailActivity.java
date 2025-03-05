@@ -18,8 +18,22 @@ import com.google.firebase.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+/**
+ * MoodDetailActivity displays detailed information about a specific mood entry.
+ * It provides a comprehensive view of a mood, including:
+ * - Emoji representation
+ * - Timestamp
+ * - Mood reason
+ * - Social group context
+ * - Optional attached image
+ *
+ * @author
+ */
 public class MoodDetailActivity extends AppCompatActivity {
 
+    /**
+     * Logging tag for debugging purposes.
+     */
     private static final String TAG = "MoodDetailActivity";
 
     @Override
@@ -114,11 +128,4 @@ public class MoodDetailActivity extends AppCompatActivity {
         gradientDrawable.setStroke(2, Color.BLACK);
         emojiRectangle.setBackground(gradientDrawable);
     }
-
-//    @Override
-//    protected void onDestroy() {
-//        // Clean up Glide resources when activity is destroyed
-//        Glide.with(this).clear(findViewById(R.id.imageUrlView));
-//        super.onDestroy();
-//    }
 }

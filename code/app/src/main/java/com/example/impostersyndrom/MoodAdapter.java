@@ -22,10 +22,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * MoodAdapter is a custom ArrayAdapter for displaying mood entries in a ListView or RecyclerView.
+ * It binds mood data from Firestore documents to the corresponding views in the layout.
+ *
+ * @author
+ */
 public class MoodAdapter extends ArrayAdapter {
-    private Context context;
-    private List moodDocs;
+    private Context context; // Context of the adapter
+    private List moodDocs; // List of Firestore documents containing mood data
 
+    /**
+     * Constructor for MoodAdapter.
+     *
+     * @param context  The context of the adapter.
+     * @param moodDocs The list of Firestore documents containing mood data.
+     */
     public MoodAdapter(Context context, List moodDocs) {
         super(context, R.layout.item_mood, moodDocs);
         this.context = context;
@@ -35,14 +47,18 @@ public class MoodAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        // Inflate the layout if convertView is null
         if (convertView == null) {
             LayoutInflater inflater = LayoutInflater.from(context);
             convertView = inflater.inflate(R.layout.item_mood, parent, false);
         }
 
+        // Get the mood document at the current position
         DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
         Map data = moodDoc.getData();
+
         if (data != null) {
+            // Extract mood data from the document
             String emoji = (String) data.get("emotionalState");
             Timestamp timestamp = (Timestamp) data.get("timestamp");
             String reason = (String) data.get("reason");
@@ -81,7 +97,12 @@ public class MoodAdapter extends ArrayAdapter {
         return convertView;
     }
 
-    // Method to set rounded background with dynamic color
+    /**
+     * Sets a rounded background with dynamic color for a view.
+     *
+     * @param view  The view to apply the background to.
+     * @param color The color to set as the background.
+     */
     private void setRoundedBackground(View view, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);

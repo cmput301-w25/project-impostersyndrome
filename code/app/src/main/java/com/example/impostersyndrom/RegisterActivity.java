@@ -12,24 +12,32 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
-import java.util.regex.Pattern;
 
+/**
+ * RegisterActivity handles user registration functionality.
+ * It allows users to create a new account by providing their first name, last name, email, password, and username.
+ * The activity validates user input, checks for username availability, and registers the user using Firebase Authentication and Firestore.
+ *
+ * @author
+ */
 public class RegisterActivity extends AppCompatActivity {
 
-    private TextInputLayout layoutFirstName, layoutLastName, layoutEmail, layoutPassword, layoutUsername;
-    private TextInputEditText firstName, lastName, email, password, username;
-    private FirebaseAuth auth;
-    private FirebaseFirestore db;
-    private TextView loginLink;
+    private TextInputLayout layoutFirstName, layoutLastName, layoutEmail, layoutPassword, layoutUsername; // Layouts for input fields
+    private TextInputEditText firstName, lastName, email, password, username; // EditTexts for user input
+    private FirebaseAuth auth; // Firebase Authentication instance
+    private FirebaseFirestore db; // Firestore database instance
+    private TextView loginLink; // Link to navigate to the login screen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // Initialize Firebase Authentication and Firestore
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Initialize views
         layoutFirstName = findViewById(R.id.layoutFirstName);
         layoutLastName = findViewById(R.id.layoutLastName);
         layoutEmail = findViewById(R.id.layoutEmail);
@@ -43,8 +51,10 @@ public class RegisterActivity extends AppCompatActivity {
         username = findViewById(R.id.username);
         loginLink = findViewById(R.id.loginLink);
 
+        // Set click listener for the register button
         findViewById(R.id.registerBtn).setOnClickListener(v -> validateAndCheckUsername());
 
+        // Set click listener for the login link
         loginLink.setOnClickListener(v -> {
             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(intent);
@@ -52,6 +62,10 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Validates user input and checks if the username is already taken.
+     * If the input is valid and the username is available, it proceeds to register the user.
+     */
     private void validateAndCheckUsername() {
         String firstNameText = firstName.getText().toString().trim();
         String lastNameText = lastName.getText().toString().trim();
@@ -61,21 +75,31 @@ public class RegisterActivity extends AppCompatActivity {
 
         boolean isValid = true;
 
+        // Validate first name
         if (firstNameText.isEmpty()) {
             layoutFirstName.setError("First name is required");
             isValid = false;
-        } else layoutFirstName.setError(null);
+        } else {
+            layoutFirstName.setError(null);
+        }
 
+        // Validate last name
         if (lastNameText.isEmpty()) {
             layoutLastName.setError("Last name is required");
             isValid = false;
-        } else layoutLastName.setError(null);
+        } else {
+            layoutLastName.setError(null);
+        }
 
+        // Validate username
         if (usernameText.isEmpty() || usernameText.length() < 5) {
             layoutUsername.setError("Username must be at least 5 characters");
             isValid = false;
-        } else layoutUsername.setError(null);
+        } else {
+            layoutUsername.setError(null);
+        }
 
+        // Validate email
         if (emailText.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
             layoutEmail.setError("Please enter a valid email");
             layoutEmail.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
@@ -86,13 +110,18 @@ public class RegisterActivity extends AppCompatActivity {
             layoutEmail.setEndIconMode(TextInputLayout.END_ICON_NONE);
         }
 
+        // Validate password
         if (passwordText.isEmpty() || passwordText.length() < 6) {
             layoutPassword.setError("Password must be at least 6 characters");
             isValid = false;
-        } else layoutPassword.setError(null);
+        } else {
+            layoutPassword.setError(null);
+        }
 
+        // If input is invalid, stop further processing
         if (!isValid) return;
 
+        // Check if the username is already taken
         db.collection("users").whereEqualTo("username", usernameText).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -100,6 +129,7 @@ public class RegisterActivity extends AppCompatActivity {
                         if (result != null && !result.isEmpty()) {
                             layoutUsername.setError("Username is already taken");
                         } else {
+                            // Register the user if the username is available
                             registerUser(emailText, passwordText, firstNameText, lastNameText, usernameText);
                         }
                     } else {
@@ -108,11 +138,21 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Registers the user using Firebase Authentication and stores user data in Firestore.
+     *
+     * @param email     The user's email address.
+     * @param password  The user's password.
+     * @param firstName The user's first name.
+     * @param lastName  The user's last name.
+     * @param username  The user's username.
+     */
     private void registerUser(String email, String password, String firstName, String lastName, String username) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String userId = auth.getCurrentUser().getUid();
 
+                // Store user data in Firestore
                 db.collection("users").document(userId)
                         .set(new UserModel(email, username, firstName, lastName))
                         .addOnSuccessListener(unused -> {
@@ -130,9 +170,20 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * UserModel represents the user data stored in Firestore.
+     */
     static class UserModel {
         public String email, username, firstName, lastName;
 
+        /**
+         * Constructor for UserModel.
+         *
+         * @param email     The user's email address.
+         * @param username  The user's username.
+         * @param firstName The user's first name.
+         * @param lastName  The user's last name.
+         */
         public UserModel(String email, String username, String firstName, String lastName) {
             this.email = email;
             this.username = username;
