@@ -129,12 +129,26 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:background="@null"
-                                android:hint="Enter new reason..."
+                                android:hint="@string/EditReasonHint"
                                 android:maxLength="20"
                                 android:padding="8dp"
                                 android:singleLine="true"
                                 android:textColor="#D3D3D3"
                                 android:textColorHint="#D3D3D3"/>
+
+                            <!-- Image Preview - positioned below reason field -->
+                            <ImageView
+                                android:id="@+id/EditImagePreview"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:minHeight="0dp"
+                                android:maxHeight="250dp"
+                                android:layout_marginTop="16dp"
+                                android:layout_marginHorizontal="8dp"
+                                android:adjustViewBounds="true"
+                                android:scaleType="fitCenter"
+                                android:visibility="gone" />
+
 
                         </FrameLayout>
 
@@ -154,35 +168,46 @@
                             android:layout_marginTop="4dp"
                             android:background="@drawable/edit_text_background">
 
-                            <EditText
-                                android:id="@+id/editTrigger"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@null"
-                                android:gravity="top|start"
-                                android:hint="Describe new reason that triggered this mood"
-                                android:maxLength="100"
-                                android:minLines="2"
-                                android:padding="8dp"
-                                android:textColor="#D3D3D3"
-                                android:textColorHint="#D3D3D3"
-                                />
                         </FrameLayout>
 
-                        <!-- Did not add trigger char count -->
+
                     </LinearLayout>
 
-                    <ImageButton
-                        android:id="@+id/EditGroupButton"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="5dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="16dp"
-                        android:src="@drawable/person" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <!-- Camera menu button -->
+                        <ImageButton
+                            android:id="@+id/EditCameraMenuButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/camera_menu_description"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_camera" />
+
+                        <!-- Group button -->
+                        <ImageButton
+                            android:id="@+id/EditGroupButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="16dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="8dp"
+                            android:src="@drawable/person" />
+
+
+                    </LinearLayout>
+
+
+
 
                 </LinearLayout>
 
@@ -190,45 +215,6 @@
 
 
         </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:gravity="center">
-
-            <Button
-                android:id="@+id/EditCameraButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Take a new photo" />
-
-            <Button
-                android:id="@+id/EditUploadButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Choose new photo from gallery" />
-
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/EditImageContainer"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="20dp">
-
-            <ImageView
-                android:id="@+id/EditImagePreview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="20dp"/>
-
-
-        </FrameLayout>
-
 
     </LinearLayout>
 

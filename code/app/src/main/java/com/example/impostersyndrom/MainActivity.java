@@ -203,8 +203,9 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("emoji", (String) moodDoc.get("emotionalState"));
             intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
             intent.putExtra("reason", (String) moodDoc.get("reason"));
-            intent.putExtra("trigger", (String) moodDoc.get("trigger"));
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
+            intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
+            intent.putExtra("group", (String) moodDoc.get("group")); // Pass group data
 
             startActivity(intent);
             bottomSheetDialog.dismiss();
