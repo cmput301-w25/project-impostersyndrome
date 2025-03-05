@@ -106,7 +106,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"
+
+
+
                         android:textSize="12sp"
                         android:textStyle="bold"/>
 
@@ -123,6 +125,7 @@
                             android:background="@drawable/edit_text_background">
 
                             <EditText
+                                android:id="@+id/EditReason"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:background="@null"
@@ -130,7 +133,8 @@
                                 android:maxLength="20"
                                 android:padding="8dp"
                                 android:singleLine="true"
-                                android:textColorHint="#546E7A"/>
+                                android:textColor="#D3D3D3"
+                                android:textColorHint="#D3D3D3"/>
 
                         </FrameLayout>
 
@@ -160,8 +164,9 @@
                                 android:maxLength="100"
                                 android:minLines="2"
                                 android:padding="8dp"
-                                android:textColorHint="#546E7A"
-                                android:backgroundTint="#E0E0E0" />
+                                android:textColor="#D3D3D3"
+                                android:textColorHint="#D3D3D3"
+                                />
                         </FrameLayout>
 
                         <!-- Did not add trigger char count -->

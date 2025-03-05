@@ -197,7 +197,15 @@ public class MainActivity extends AppCompatActivity {
         // Handle Edit option
         editMood.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EditMoodActivity.class);
+
+            // Pass mood details to EditMoodActivity
             intent.putExtra("moodId", moodDoc.getId());
+            intent.putExtra("emoji", (String) moodDoc.get("emotionalState"));
+            intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
+            intent.putExtra("reason", (String) moodDoc.get("reason"));
+            intent.putExtra("trigger", (String) moodDoc.get("trigger"));
+            intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
+
             startActivity(intent);
             bottomSheetDialog.dismiss();
         });
@@ -217,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.setContentView(bottomSheetView);
         bottomSheetDialog.show();
     }
+
 
 }
 
