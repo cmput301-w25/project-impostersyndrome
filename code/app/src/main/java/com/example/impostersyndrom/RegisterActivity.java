@@ -71,8 +71,8 @@ public class RegisterActivity extends AppCompatActivity {
             isValid = false;
         } else layoutLastName.setError(null);
 
-        if (usernameText.isEmpty() || usernameText.length() < 5) {
-            layoutUsername.setError("Username must be at least 5 characters");
+        if (!isUsernameValid(usernameText)) {
+            layoutUsername.setError("Username must be 5-20 alphanumeric characters!");
             isValid = false;
         } else layoutUsername.setError(null);
 
@@ -108,6 +108,9 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    private boolean isUsernameValid(String username) {
+        return Pattern.matches("^[a-zA-Z0-9]{5,20}$", username);
+    }
     private void registerUser(String email, String password, String firstName, String lastName, String username) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
