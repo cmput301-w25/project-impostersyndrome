@@ -55,54 +55,31 @@ public class EditMoodActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         // Get UI elements
+        ImageView editEmoji = findViewById(R.id.EditEmoji);
         editEmojiDescription = findViewById(R.id.EditEmojiDescription);
         editReason = findViewById(R.id.EditReason);
+        editImagePreview = findViewById(R.id.EditImagePreview);
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         LinearLayout EditEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+
+        // Retrieve passed mood data
+        Intent intent = getIntent();
+        moodId = intent.getStringExtra("moodId");
+        String emoji = intent.getStringExtra("emoji");
+        String reason = intent.getStringExtra("reason");
+        String imageUrl = intent.getStringExtra("imageUrl");
+        int color = intent.getIntExtra("color", 0);
+        editEmoji.setImageResource(getEmojiResource(emoji));
 
         // Initialize buttons
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
         ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
 
-        // Initialize image handling
+        // Initialize ImageHandler AFTER editImagePreview is set
         imageHandler = new ImageHandler(this, editImagePreview);
-
-        // Initialize permission launchers
-        cameraPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (isGranted) {
-                        // Permission granted, launch camera intent
-                        imageHandler.openCamera(cameraLauncher);
-                    } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        galleryPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (isGranted) {
-                        // Permission granted, launch gallery intent
-                        imageHandler.openGallery(galleryLauncher);
-                    } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        // Start ActivityResultLauncher for gallery
-        galleryLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
-        );
-
-        // Start ActivityResultLauncher for camera
-        cameraLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
-        );
+        editImagePreview.setVisibility(View.GONE); // Hide initially
 
         // Set up listener to show/hide image preview
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
@@ -117,32 +94,57 @@ public class EditMoodActivity extends AppCompatActivity {
             }
         });
 
+        // Initialize permission launchers
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        imageHandler.openCamera(cameraLauncher);
+                    } else {
+                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        galleryPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        imageHandler.openGallery(galleryLauncher);
+                    } else {
+                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Start ActivityResultLaunchers for gallery and camera
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        // Only handle the result if the user actually selects an image
+                        imageHandler.handleActivityResult(result.getResultCode(), result.getData());
+                    } else {
+                        // Do nothing if the user backs out
+                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
+        );
 
         // Attach event listeners
         editGroupButton.setOnClickListener(v -> showGroupsMenu(v));
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
 
-
-        // Retrieve passed mood data
-        Intent intent = getIntent();
-        moodId = intent.getStringExtra("moodId");
-        String emoji = intent.getStringExtra("emoji");
-        String reason = intent.getStringExtra("reason");
-        String imageUrl = intent.getStringExtra("imageUrl");
-        int color = intent.getIntExtra("color", 0);
-
-        editImagePreview = findViewById(R.id.EditImagePreview);
-
-        // Get UI elements
-        editEmojiDescription = findViewById(R.id.EditEmojiDescription);
-        editReason = findViewById(R.id.EditReason);
-        backButton = findViewById(R.id.backButton);
-        submitButton = findViewById(R.id.submitButton);
-
-        if (imageUrl != null && !imageUrl.isEmpty() && editImagePreview != null) {
+        // Load Image into ImageView if it exists
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            editImagePreview.setVisibility(View.VISIBLE); // Show ImageView
             Glide.with(this).load(imageUrl).into(editImagePreview);
         } else {
-            editImagePreview.setImageResource(0); // Clear image if null
+            editImagePreview.setVisibility(View.GONE); // Hide ImageView if no image
         }
 
         // Set UI elements with retrieved data
@@ -152,26 +154,13 @@ public class EditMoodActivity extends AppCompatActivity {
         // Apply the background color to the rectangle
         setRoundedBackground(EditEmojiRectangle, color);
 
-        // Back button functionality
-        backButton.setOnClickListener(v -> finish());
-
-        // Save updated mood when checkmark button is clicked
-        submitButton.setOnClickListener(v -> updateMoodInFirestore());
-
-
-        // Set UI elements with retrieved data
-        editEmojiDescription.setText(getReadableMood(emoji));
-        editReason.setText(reason); // Display previous reason
-
-        // Clear text only when the user first clicks inside the EditText
+        // Ensure EditText clears only once when clicked
         editReason.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 editReason.setText(""); // Clears text when clicked
                 editReason.setOnFocusChangeListener(null); // Removes listener so it doesn't clear repeatedly
             }
         });
-
-
 
         // Back button functionality
         backButton.setOnClickListener(v -> finish());
@@ -180,6 +169,7 @@ public class EditMoodActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
+
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
 
@@ -187,12 +177,12 @@ public class EditMoodActivity extends AppCompatActivity {
         Map<String, Object> updates = new HashMap<>();
         updates.put("reason", newReason);
 
-        // Only update the group if a new one was selected
+        // Update group if a new one is selected
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
 
-        // Handle Image Upload
+        // Handle image updates
         if (imageHandler.hasImage()) {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
@@ -206,13 +196,11 @@ public class EditMoodActivity extends AppCompatActivity {
                     Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
-            // If image is removed, update Firestore with null
+        } else if (imageUrl == null) {
             updates.put("imageUrl", null);
             saveToFirestore(updates);
         }
     }
-
 
     private void saveToFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
@@ -241,6 +229,23 @@ public class EditMoodActivity extends AppCompatActivity {
             default: return "Unknown Mood"; // Fallback
         }
     }
+
+    private int getEmojiResource(String emojiName) {
+        if (emojiName == null) return R.drawable.emoji_confused; // Default emoji if unknown
+
+        switch (emojiName.toLowerCase()) {
+            case "emoji_happy": return R.drawable.emoji_happy;
+            case "emoji_sad": return R.drawable.emoji_sad;
+            case "emoji_angry": return R.drawable.emoji_angry;
+            case "emoji_confused": return R.drawable.emoji_confused;
+            case "emoji_surprised": return R.drawable.emoji_surprised;
+            case "emoji_fear": return R.drawable.emoji_fear;
+            case "emoji_disgust": return R.drawable.emoji_disgust;
+            case "emoji_shame": return R.drawable.emoji_shame;
+            default: return R.drawable.emoji_confused; // Default if emoji name is unrecognized
+        }
+    }
+
 
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
@@ -299,7 +304,8 @@ public class EditMoodActivity extends AppCompatActivity {
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
                 imageHandler.clearImage();
-                updateMoodInFirestore();
+                imageUrl = null;
+                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
                 return true;
             }
             return false;

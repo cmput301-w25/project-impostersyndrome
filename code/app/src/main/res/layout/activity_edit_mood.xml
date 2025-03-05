@@ -23,6 +23,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+
                 android:padding="16dp">
 
                 <ImageButton
@@ -59,18 +60,14 @@
                     android:padding="8dp"
                     android:src="@drawable/white_checkmark"/>
 
-
-
-
-
             </LinearLayout>
 
 
 
             <LinearLayout
                 android:id="@+id/EditEmojiRectangle"
-                android:layout_width="359dp"
-                android:layout_height="450dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="65sp"
                 android:gravity="center"
                 android:orientation="vertical">
@@ -78,7 +75,7 @@
                 <ImageView
                     android:layout_width="100sp"
                     android:layout_height="100sp"
-
+                    android:id="@+id/EditEmoji"
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter"
                     android:layout_marginTop="25dp"/>
@@ -106,9 +103,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-
-
-
                         android:textSize="12sp"
                         android:textStyle="bold"/>
 
@@ -137,24 +131,25 @@
                                 android:textColorHint="#D3D3D3"/>
 
                             <!-- Image Preview - positioned below reason field -->
-                            <ImageView
-                                android:id="@+id/EditImagePreview"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:minHeight="0dp"
-                                android:maxHeight="250dp"
-                                android:layout_marginTop="16dp"
-                                android:layout_marginHorizontal="8dp"
-                                android:adjustViewBounds="true"
-                                android:scaleType="fitCenter"
-                                android:visibility="gone" />
+
 
 
                         </FrameLayout>
 
-                        <!-- Did not add reasonCharCount -->
+                        <ImageView
+                            android:id="@+id/EditImagePreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="0dp"
+                            android:maxHeight="250dp"
+                            android:layout_marginTop="16dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitCenter"
+                            android:visibility="gone" />
 
                     </LinearLayout>
+
 
                     <LinearLayout
                         android:layout_width="280dp"
@@ -173,43 +168,42 @@
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <!-- Camera menu button -->
-                        <ImageButton
-                            android:id="@+id/EditCameraMenuButton"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/camera_menu_description"
-                            android:padding="8dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_camera" />
-
-                        <!-- Group button -->
-                        <ImageButton
-                            android:id="@+id/EditGroupButton"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginStart="16dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:padding="8dp"
-                            android:src="@drawable/person" />
-
-
-                    </LinearLayout>
-
-
 
 
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+
+                    <ImageButton
+                        android:id="@+id/EditCameraMenuButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/camera_menu_description"
+                        android:padding="8dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_camera" />
+
+                    <ImageButton
+                        android:id="@+id/EditGroupButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="16dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_gravity="center"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/person" />
+
+
+                </LinearLayout>
+
+                <!-- Group button -->
+
 
             </LinearLayout>
 
