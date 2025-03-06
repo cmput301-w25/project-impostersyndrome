@@ -265,9 +265,10 @@ public class EditMoodActivity extends AppCompatActivity {
                     }
                 });
             }
-        } else {
-            updates.put("imageUrl", null);
+        } else if (imageUrl != null) {
+            updates.put("imageUrl", imageUrl);
         }
+
 
 
         saveToFirestore(updates);
