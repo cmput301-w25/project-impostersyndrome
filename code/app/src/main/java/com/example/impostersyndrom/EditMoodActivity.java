@@ -3,6 +3,7 @@ package com.example.impostersyndrom;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,6 +45,10 @@ public class EditMoodActivity extends AppCompatActivity {
     private String imageUrl = null;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<String> galleryPermissionLauncher;
+    private String emoji;
+    private ImageView editEmoji;
+    private LinearLayout editEmojiRectangle;
+
 
 
     @Override
@@ -55,22 +60,32 @@ public class EditMoodActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         // Get UI elements
-        ImageView editEmoji = findViewById(R.id.EditEmoji);
+        editEmoji = findViewById(R.id.EditEmoji);
         editEmojiDescription = findViewById(R.id.EditEmojiDescription);
         editReason = findViewById(R.id.EditReason);
         editImagePreview = findViewById(R.id.EditImagePreview);
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
-        LinearLayout EditEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+        editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
 
         // Retrieve passed mood data
         Intent intent = getIntent();
         moodId = intent.getStringExtra("moodId");
-        String emoji = intent.getStringExtra("emoji");
+        emoji = intent.getStringExtra("emoji");
         String reason = intent.getStringExtra("reason");
         String imageUrl = intent.getStringExtra("imageUrl");
         int color = intent.getIntExtra("color", 0);
+
+        // Set the correct emoji image
         editEmoji.setImageResource(getEmojiResource(emoji));
+
+        editEmoji.setOnClickListener(v -> {
+            Log.d("EditMoodActivity", "Emoji clicked, opening EditEmojiActivity");
+            Intent editEmojiIntent = new Intent(EditMoodActivity.this, EditEmojiActivity.class);
+            editEmojiIntent.putExtra("moodId", moodId);
+            editEmojiIntent.putExtra("emoji", emoji);
+            startActivityForResult(editEmojiIntent, 1);
+        });
 
         // Initialize buttons
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
@@ -129,7 +144,6 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
         );
 
-
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
@@ -152,7 +166,7 @@ public class EditMoodActivity extends AppCompatActivity {
         editReason.setText(reason);
 
         // Apply the background color to the rectangle
-        setRoundedBackground(EditEmojiRectangle, color);
+        setRoundedBackground(editEmojiRectangle, color);
 
         // Ensure EditText clears only once when clicked
         editReason.setOnFocusChangeListener((v, hasFocus) -> {
@@ -176,6 +190,10 @@ public class EditMoodActivity extends AppCompatActivity {
         // Create a map for updating Firestore
         Map<String, Object> updates = new HashMap<>();
         updates.put("reason", newReason);
+        updates.put("emotionalState", emoji);
+        updates.put("emojiDescription", getReadableMood(emoji));
+        updates.put("color", getMoodColor(emoji));
+
 
         // Update group if a new one is selected
         if (selectedGroup != null) {
@@ -210,6 +228,49 @@ public class EditMoodActivity extends AppCompatActivity {
                     finish(); // Return to MainActivity
                 })
                 .addOnFailureListener(e -> Toast.makeText(EditMoodActivity.this, "Failed to update mood", Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            String selectedEmoji = data.getStringExtra("selectedEmoji");
+            emoji = selectedEmoji;
+
+            // ✅ Update the UI
+            editEmoji.setImageResource(getEmojiResource(selectedEmoji));
+            editEmojiDescription.setText(getReadableMood(selectedEmoji));
+            setRoundedBackground(editEmojiRectangle, getMoodColor(selectedEmoji));
+
+            // ✅ Update Firestore
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("emotionalState", selectedEmoji);
+            updates.put("emojiDescription", getReadableMood(selectedEmoji));
+            updates.put("color", getMoodColor(selectedEmoji));
+
+            db.collection("moods").document(moodId)
+                    .update(updates)
+                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Emoji updated successfully"))
+                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to update emoji", e));
+        }
+    }
+
+
+    private int getMoodColor(String emojiName) {
+        if (emojiName == null) return Color.GRAY; // Default color if unknown
+
+        switch (emojiName.toLowerCase()) {
+            case "emoji_happy": return Color.parseColor("#FFCC00"); // Yellow
+            case "emoji_sad": return Color.parseColor("#2980B9"); // Blue
+            case "emoji_angry": return Color.parseColor("#FF4D00"); // Orange-Red
+            case "emoji_confused": return Color.parseColor("#8B7355"); // Brown
+            case "emoji_surprised": return Color.parseColor("#1ABC9C"); // Teal
+            case "emoji_fear": return Color.parseColor("#9B59B6"); // Purple
+            case "emoji_disgust": return Color.parseColor("#808000"); // Olive
+            case "emoji_shame": return Color.parseColor("#C64B70"); // Dark Pink
+            default: return Color.GRAY; // Fallback color
+        }
     }
 
 

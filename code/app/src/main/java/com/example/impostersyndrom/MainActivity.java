@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -83,8 +84,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Add Mood Button
-        Button addButton = findViewById(R.id.addMoodButton);
-        addButton.setOnClickListener(v -> {
+        ImageButton addMoodButton = findViewById(R.id.addMoodButton);
+        addMoodButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
             intent.putExtra("userId", userId);
             startActivity(intent);
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         // Inside onCreate() method, after setting the adapter
 
         // Logout Button
-        Button logoutButton = findViewById(R.id.logoutButton);
+        ImageButton logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut(); // Logs out the user
             showToast("Logged out successfully!");
