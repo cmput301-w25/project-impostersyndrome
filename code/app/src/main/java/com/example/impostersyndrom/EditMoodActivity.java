@@ -267,6 +267,8 @@ public class EditMoodActivity extends AppCompatActivity {
             }
         } else if (imageUrl != null) {
             updates.put("imageUrl", imageUrl);
+        } else {
+            updates.put("imageUrl", null);
         }
 
 
@@ -417,26 +419,37 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                if (imageUrl != null) {
+                if (imageUrl != null && !imageUrl.isEmpty()) {
                     StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
                     imageRef.delete()
-                            .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image deleted successfully"))
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("Firebase Storage", "Image deleted successfully");
+
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("imageUrl", null);
+
+                                db.collection("moods").document(moodId)
+                                        .update(updates)
+                                        .addOnSuccessListener(aVoid2 -> Log.d("Firestore", "Image removed from Firestore"))
+                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image", e));
+                            })
                             .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+                } else {
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("imageUrl", null);
+
+                    db.collection("moods").document(moodId)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
+                            .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
                 }
 
                 imageHandler.clearImage();
                 imageUrl = null;
 
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("imageUrl", null);
-
-                db.collection("moods").document(moodId)
-                        .update(updates)
-                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image removed from Firestore"))
-                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image", e));
-
                 Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
             }
+
 
             return false;
         });
