@@ -48,6 +48,7 @@ public class EditMoodActivity extends AppCompatActivity {
     private String emoji;
     private ImageView editEmoji;
     private LinearLayout editEmojiRectangle;
+    private String imageURL;
 
 
 
@@ -146,8 +147,34 @@ public class EditMoodActivity extends AppCompatActivity {
 
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        imageHandler.handleActivityResult(result.getResultCode(), result.getData());
+
+
+                        imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                            @Override
+                            public void onImageUploadSuccess(String url) {
+                                EditMoodActivity.this.imageUrl = url;
+
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("imageUrl", url);
+
+                                db.collection("moods").document(moodId)
+                                        .update(updates)
+                                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image updated successfully"))
+                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
+                            }
+
+                            @Override
+                            public void onImageUploadFailure(Exception e) {
+                                Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
         );
+
 
         // Attach event listeners
         editGroupButton.setOnClickListener(v -> showGroupsMenu(v));
