@@ -136,14 +136,34 @@ public class EditMoodActivity extends AppCompatActivity {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        // Only handle the result if the user actually selects an image
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
+
+                        imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                            @Override
+                            public void onImageUploadSuccess(String url) {
+                                EditMoodActivity.this.imageUrl = url;
+
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("imageUrl", url);
+
+                                db.collection("moods").document(moodId)
+                                        .update(updates)
+                                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Gallery Image updated successfully"))
+                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
+                            }
+
+                            @Override
+                            public void onImageUploadFailure(Exception e) {
+                                Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
-                        // Do nothing if the user backs out
+                        // User exited gallery without selecting an image
                         Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
+
 
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -221,31 +241,35 @@ public class EditMoodActivity extends AppCompatActivity {
         updates.put("emojiDescription", getReadableMood(emoji));
         updates.put("color", getMoodColor(emoji));
 
-
         // Update group if a new one is selected
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
 
-        // Handle image updates
         if (imageHandler.hasImage()) {
-            imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                @Override
-                public void onImageUploadSuccess(String url) {
-                    updates.put("imageUrl", url);
-                    saveToFirestore(updates);
-                }
+            if (imageUrl != null) {
+                updates.put("imageUrl", imageUrl);
+            } else {
+                imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                    @Override
+                    public void onImageUploadSuccess(String url) {
+                        updates.put("imageUrl", url);
+                        saveToFirestore(updates);
+                    }
 
-                @Override
-                public void onImageUploadFailure(Exception e) {
-                    Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else if (imageUrl == null) {
-            updates.put("imageUrl", null);
-            saveToFirestore(updates);
+                    @Override
+                    public void onImageUploadFailure(Exception e) {
+                        Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } else if (imageUrl != null) {
+            updates.put("imageUrl", imageUrl);
         }
+
+        saveToFirestore(updates);
     }
+
 
     private void saveToFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
