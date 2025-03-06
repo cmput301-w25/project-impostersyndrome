@@ -23,6 +23,9 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -214,19 +217,49 @@ public class MainActivity extends AppCompatActivity {
 
         // Handle Delete option
         deleteMood.setOnClickListener(v -> {
-            db.collection("moods").document(moodDoc.getId()).delete()
-                    .addOnSuccessListener(aVoid -> {
-                        showToast("Mood deleted!");
-                        fetchMoods(userId); // Refresh list after deletion
-                    })
-                    .addOnFailureListener(e -> showToast("Failed to delete mood"));
+            String moodId = moodDoc.getId();
+            String imageUrl = (String) moodDoc.get("imageUrl");
+
+            deleteMoodAndImage(moodId, imageUrl);
+            showToast("Mood deleted!");
+            fetchMoods(userId); // Refresh list after deletion
+
             bottomSheetDialog.dismiss();
         });
+
 
         // Set view and show dialog
         bottomSheetDialog.setContentView(bottomSheetView);
         bottomSheetDialog.show();
     }
+
+    private void deleteMoodAndImage(String moodId, String imageUrl) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+            imageRef.delete()
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firebase Storage", "Image deleted successfully");
+
+                        db.collection("moods").document(moodId)
+                                .delete()
+                                .addOnSuccessListener(aVoid2 -> {
+                                    Log.d("Firestore", "Mood deleted successfully");
+                                    fetchMoods(userId); // Refresh list after deletion
+                                })
+                                .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+                    })
+                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+        } else {
+            db.collection("moods").document(moodId)
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Mood deleted successfully");
+                        fetchMoods(userId); // Refresh list after deletion
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+        }
+    }
+
 
 
 }

@@ -26,6 +26,12 @@
         android:divider="@android:color/transparent"
         android:dividerHeight="8dp"/>
 
+    <!-- Thin White Line Above the Navigation Bar -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/white"/>
+
     <!-- Bottom Navigation Bar -->
     <LinearLayout
         android:layout_width="match_parent"
