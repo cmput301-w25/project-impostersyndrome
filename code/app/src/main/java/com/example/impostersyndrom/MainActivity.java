@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             String moodId = moodDoc.getId();
             String imageUrl = (String) moodDoc.get("imageUrl");
 
-            deleteMoodAndImage(moodId, imageUrl);
+            deleteMoodAndImage(moodId);
             showToast("Mood deleted!");
             fetchMoods(userId); // Refresh list after deletion
 
@@ -233,32 +233,41 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void deleteMoodAndImage(String moodId, String imageUrl) {
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-            imageRef.delete()
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d("Firebase Storage", "Image deleted successfully");
+    private void deleteMoodAndImage(String moodId) {
+        db.collection("moods").document(moodId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
 
-                        db.collection("moods").document(moodId)
-                                .delete()
-                                .addOnSuccessListener(aVoid2 -> {
-                                    Log.d("Firestore", "Mood deleted successfully");
-                                    fetchMoods(userId); // Refresh list after deletion
-                                })
-                                .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
-                    })
-                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
-        } else {
-            db.collection("moods").document(moodId)
-                    .delete()
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d("Firestore", "Mood deleted successfully");
-                        fetchMoods(userId); // Refresh list after deletion
-                    })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
-        }
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                            imageRef.delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firebase Storage", "Image deleted successfully");
+                                        db.collection("moods").document(moodId)
+                                                .delete()
+                                                .addOnSuccessListener(aVoid2 -> {
+                                                    Log.d("Firestore", "Mood deleted successfully");
+                                                    fetchMoods(userId); // Refresh list after deletion
+                                                })
+                                                .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+                                    })
+                                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+                        } else {
+                            db.collection("moods").document(moodId)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firestore", "Mood deleted successfully");
+                                        fetchMoods(userId); // Refresh list after deletion
+                                    })
+                                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Failed to fetch mood details", e));
     }
+
 
 
 
