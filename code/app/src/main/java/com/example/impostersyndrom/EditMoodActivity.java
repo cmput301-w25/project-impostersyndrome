@@ -55,8 +55,10 @@ public class EditMoodActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_mood);
+
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
+
         // Get UI elements
         editEmoji = findViewById(R.id.EditEmoji);
         editEmojiDescription = findViewById(R.id.EditEmojiDescription);
@@ -65,6 +67,7 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+
         // Retrieve passed mood data
         Intent intent = getIntent();
         moodId = intent.getStringExtra("moodId");
@@ -72,6 +75,7 @@ public class EditMoodActivity extends AppCompatActivity {
         String reason = intent.getStringExtra("reason");
         String imageUrl = intent.getStringExtra("imageUrl");
         int color = intent.getIntExtra("color", 0);
+
         // Set the correct emoji image
         editEmoji.setImageResource(EditEmojiResources.getEmojiResource(emoji));
         editEmoji.setOnClickListener(v -> {
@@ -81,13 +85,16 @@ public class EditMoodActivity extends AppCompatActivity {
             editEmojiIntent.putExtra("emoji", emoji);
             startActivityForResult(editEmojiIntent, 1);
         });
+
         // Initialize buttons
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
         ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
+
         // Initialize ImageHandler AFTER editImagePreview is set
         imageHandler = new ImageHandler(this, editImagePreview);
-        editImagePreview.setVisibility(View.GONE); // Hide initially
+        editImagePreview.setVisibility(View.GONE);
+
         // Set up listener to show/hide image preview
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
             @Override
@@ -147,6 +154,7 @@ public class EditMoodActivity extends AppCompatActivity {
                             }
                         });
                     } else {
+
                         // User exited gallery without selecting an image
                         Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
                     }
@@ -181,6 +189,7 @@ public class EditMoodActivity extends AppCompatActivity {
         // Attach event listeners
         editGroupButton.setOnClickListener(v -> showGroupsMenu(v));
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
+
         // Load Image into ImageView if it exists
         if (imageUrl != null && !imageUrl.isEmpty()) {
             editImagePreview.setVisibility(View.VISIBLE); // Show ImageView
@@ -188,9 +197,11 @@ public class EditMoodActivity extends AppCompatActivity {
         } else {
             editImagePreview.setVisibility(View.GONE); // Hide ImageView if no image
         }
+
         // Set UI elements with retrieved data
         editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
         editReason.setText(reason);
+
         // Apply the background color to the rectangle
         setRoundedBackground(editEmojiRectangle, color);
 
@@ -201,24 +212,27 @@ public class EditMoodActivity extends AppCompatActivity {
                 editReason.setOnFocusChangeListener(null); // Removes listener so it doesn't clear repeatedly
             }
         });
+
         // Back button functionality
         backButton.setOnClickListener(v -> finish());
+
         // Save updated mood when checkmark button is clicked
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
-        // Create a map for updating Firestore
         Map<String, Object> updates = new HashMap<>();
+
         updates.put("reason", newReason);
         updates.put("emotionalState", emoji);
         updates.put("emojiDescription", EditEmojiResources.getReadableMood(emoji));
         updates.put("color", EditEmojiResources.getMoodColor(emoji));
-        // Update group if a new one is selected
+
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
+
         if (imageHandler.hasImage()) {
             if (imageUrl != null) {
                 updates.put("imageUrl", imageUrl);
@@ -229,26 +243,47 @@ public class EditMoodActivity extends AppCompatActivity {
                         updates.put("imageUrl", url);
                         saveToFirestore(updates);
                     }
+
                     @Override
                     public void onImageUploadFailure(Exception e) {
                         Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+                return;
             }
-        } else if (imageUrl != null) {
-            updates.put("imageUrl", imageUrl);
-        } else {
-            updates.put("imageUrl", null);
         }
+
+        if (imageUrl != null) {
+            updates.put("imageUrl", imageUrl);
+        }
+
         saveToFirestore(updates);
     }
 
     private void saveToFirestore(Map<String, Object> updates) {
+        // Prevent unintentional overwrites
+        if (!updates.containsKey("imageUrl")) {
+            db.collection("moods").document(moodId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists() && documentSnapshot.contains("imageUrl")) {
+                            updates.put("imageUrl", documentSnapshot.getString("imageUrl"));
+                        }
+
+                        updateFirestore(updates);
+                    })
+                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to get current mood data", e));
+        } else {
+            updateFirestore(updates);
+        }
+    }
+
+    private void updateFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(EditMoodActivity.this, "Mood updated!", Toast.LENGTH_SHORT).show();
-                    finish(); // Return to MainActivity
+                    finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(EditMoodActivity.this, "Failed to update mood", Toast.LENGTH_SHORT).show());
     }
@@ -279,6 +314,7 @@ public class EditMoodActivity extends AppCompatActivity {
         gradientDrawable.setCornerRadius(50); // Rounded corners
         gradientDrawable.setColor(color); // Apply mood color
         gradientDrawable.setStroke(2, Color.BLACK); // Add border
+
         // Apply the background to the layout
         layout.setBackground(gradientDrawable);
     }
