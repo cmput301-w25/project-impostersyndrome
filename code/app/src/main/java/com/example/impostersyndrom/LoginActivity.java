@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             } else {
-                layoutEmail.setError("Login failed: " + task.getException().getMessage());
+                layoutPassword.setError("Wrong password. Try again or click Forgot password to reset it.");
             }
         });
     }
