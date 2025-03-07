@@ -35,7 +35,6 @@ import java.util.Map;
 public class EditMoodActivity extends AppCompatActivity {
     private String moodId;
     private FirebaseFirestore db;
-
     private TextView editEmojiDescription;
     private EditText editReason;
     private ImageView editImagePreview;
@@ -52,16 +51,12 @@ public class EditMoodActivity extends AppCompatActivity {
     private LinearLayout editEmojiRectangle;
     private String imageURL;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_mood);
-
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
-
         // Get UI elements
         editEmoji = findViewById(R.id.EditEmoji);
         editEmojiDescription = findViewById(R.id.EditEmojiDescription);
@@ -70,7 +65,6 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
-
         // Retrieve passed mood data
         Intent intent = getIntent();
         moodId = intent.getStringExtra("moodId");
@@ -78,10 +72,8 @@ public class EditMoodActivity extends AppCompatActivity {
         String reason = intent.getStringExtra("reason");
         String imageUrl = intent.getStringExtra("imageUrl");
         int color = intent.getIntExtra("color", 0);
-
         // Set the correct emoji image
-        editEmoji.setImageResource(getEmojiResource(emoji));
-
+        editEmoji.setImageResource(EditEmojiResources.getEmojiResource(emoji));
         editEmoji.setOnClickListener(v -> {
             Log.d("EditMoodActivity", "Emoji clicked, opening EditEmojiActivity");
             Intent editEmojiIntent = new Intent(EditMoodActivity.this, EditEmojiActivity.class);
@@ -89,23 +81,19 @@ public class EditMoodActivity extends AppCompatActivity {
             editEmojiIntent.putExtra("emoji", emoji);
             startActivityForResult(editEmojiIntent, 1);
         });
-
         // Initialize buttons
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
         ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-
         // Initialize ImageHandler AFTER editImagePreview is set
         imageHandler = new ImageHandler(this, editImagePreview);
         editImagePreview.setVisibility(View.GONE); // Hide initially
-
         // Set up listener to show/hide image preview
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
             @Override
             public void onImageLoaded() {
                 editImagePreview.setVisibility(View.VISIBLE);
             }
-
             @Override
             public void onImageCleared() {
                 editImagePreview.setVisibility(View.GONE);
@@ -153,7 +141,6 @@ public class EditMoodActivity extends AppCompatActivity {
                                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Gallery Image updated successfully"))
                                         .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
                             }
-
                             @Override
                             public void onImageUploadFailure(Exception e) {
                                 Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -166,28 +153,22 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
         );
 
-
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
-
-
                         imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                             @Override
                             public void onImageUploadSuccess(String url) {
                                 EditMoodActivity.this.imageUrl = url;
-
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("imageUrl", url);
-
                                 db.collection("moods").document(moodId)
                                         .update(updates)
                                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image updated successfully"))
                                         .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
                             }
-
                             @Override
                             public void onImageUploadFailure(Exception e) {
                                 Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -197,11 +178,9 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
         );
 
-
         // Attach event listeners
         editGroupButton.setOnClickListener(v -> showGroupsMenu(v));
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-
         // Load Image into ImageView if it exists
         if (imageUrl != null && !imageUrl.isEmpty()) {
             editImagePreview.setVisibility(View.VISIBLE); // Show ImageView
@@ -209,11 +188,9 @@ public class EditMoodActivity extends AppCompatActivity {
         } else {
             editImagePreview.setVisibility(View.GONE); // Hide ImageView if no image
         }
-
         // Set UI elements with retrieved data
-        editEmojiDescription.setText(getReadableMood(emoji));
+        editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
         editReason.setText(reason);
-
         // Apply the background color to the rectangle
         setRoundedBackground(editEmojiRectangle, color);
 
@@ -224,30 +201,24 @@ public class EditMoodActivity extends AppCompatActivity {
                 editReason.setOnFocusChangeListener(null); // Removes listener so it doesn't clear repeatedly
             }
         });
-
         // Back button functionality
         backButton.setOnClickListener(v -> finish());
-
         // Save updated mood when checkmark button is clicked
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
-
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
-
         // Create a map for updating Firestore
         Map<String, Object> updates = new HashMap<>();
         updates.put("reason", newReason);
         updates.put("emotionalState", emoji);
-        updates.put("emojiDescription", getReadableMood(emoji));
-        updates.put("color", getMoodColor(emoji));
-
+        updates.put("emojiDescription", EditEmojiResources.getReadableMood(emoji));
+        updates.put("color", EditEmojiResources.getMoodColor(emoji));
         // Update group if a new one is selected
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
-
         if (imageHandler.hasImage()) {
             if (imageUrl != null) {
                 updates.put("imageUrl", imageUrl);
@@ -258,7 +229,6 @@ public class EditMoodActivity extends AppCompatActivity {
                         updates.put("imageUrl", url);
                         saveToFirestore(updates);
                     }
-
                     @Override
                     public void onImageUploadFailure(Exception e) {
                         Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -270,12 +240,8 @@ public class EditMoodActivity extends AppCompatActivity {
         } else {
             updates.put("imageUrl", null);
         }
-
-
-
         saveToFirestore(updates);
     }
-
 
     private void saveToFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
@@ -290,20 +256,16 @@ public class EditMoodActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == 1 && resultCode == RESULT_OK) {
             String selectedEmoji = data.getStringExtra("selectedEmoji");
             emoji = selectedEmoji;
-
-            editEmoji.setImageResource(getEmojiResource(selectedEmoji));
-            editEmojiDescription.setText(getReadableMood(selectedEmoji));
-            setRoundedBackground(editEmojiRectangle, getMoodColor(selectedEmoji));
-
+            editEmoji.setImageResource(EditEmojiResources.getEmojiResource(selectedEmoji));
+            editEmojiDescription.setText(EditEmojiResources.getReadableMood(selectedEmoji));
+            setRoundedBackground(editEmojiRectangle, EditEmojiResources.getMoodColor(selectedEmoji));
             Map<String, Object> updates = new HashMap<>();
             updates.put("emotionalState", selectedEmoji);
-            updates.put("emojiDescription", getReadableMood(selectedEmoji));
-            updates.put("color", getMoodColor(selectedEmoji));
-
+            updates.put("emojiDescription", EditEmojiResources.getReadableMood(selectedEmoji));
+            updates.put("color", EditEmojiResources.getMoodColor(selectedEmoji));
             db.collection("moods").document(moodId)
                     .update(updates)
                     .addOnSuccessListener(aVoid -> Log.d("Firestore", "Emoji updated successfully"))
@@ -311,65 +273,12 @@ public class EditMoodActivity extends AppCompatActivity {
         }
     }
 
-
-    private int getMoodColor(String emojiName) {
-        if (emojiName == null) return Color.GRAY; // Default color if unknown
-
-        switch (emojiName.toLowerCase()) {
-            case "emoji_happy": return Color.parseColor("#FFCC00"); // Yellow
-            case "emoji_sad": return Color.parseColor("#2980B9"); // Blue
-            case "emoji_angry": return Color.parseColor("#FF4D00"); // Orange-Red
-            case "emoji_confused": return Color.parseColor("#8B7355"); // Brown
-            case "emoji_surprised": return Color.parseColor("#1ABC9C"); // Teal
-            case "emoji_fear": return Color.parseColor("#9B59B6"); // Purple
-            case "emoji_disgust": return Color.parseColor("#808000"); // Olive
-            case "emoji_shame": return Color.parseColor("#C64B70"); // Dark Pink
-            default: return Color.GRAY; // Fallback color
-        }
-    }
-
-
-
-    private String getReadableMood(String emoji) {
-        if (emoji == null) return "Unknown Mood";
-
-        switch (emoji.toLowerCase()) {
-            case "emoji_happy": return "Happy";
-            case "emoji_sad": return "Sad";
-            case "emoji_angry": return "Angry";
-            case "emoji_confused": return "Confused";
-            case "emoji_surprised": return "Surprised";
-            case "emoji_fear": return "Fearful";
-            case "emoji_disgust": return "Disgusted";
-            case "emoji_shame": return "Ashamed";
-            default: return "Unknown Mood"; // Fallback
-        }
-    }
-
-    private int getEmojiResource(String emojiName) {
-        if (emojiName == null) return R.drawable.emoji_confused; // Default emoji if unknown
-
-        switch (emojiName.toLowerCase()) {
-            case "emoji_happy": return R.drawable.emoji_happy;
-            case "emoji_sad": return R.drawable.emoji_sad;
-            case "emoji_angry": return R.drawable.emoji_angry;
-            case "emoji_confused": return R.drawable.emoji_confused;
-            case "emoji_surprised": return R.drawable.emoji_surprised;
-            case "emoji_fear": return R.drawable.emoji_fear;
-            case "emoji_disgust": return R.drawable.emoji_disgust;
-            case "emoji_shame": return R.drawable.emoji_shame;
-            default: return R.drawable.emoji_confused; // Default if emoji name is unrecognized
-        }
-    }
-
-
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
         gradientDrawable.setCornerRadius(50); // Rounded corners
         gradientDrawable.setColor(color); // Apply mood color
         gradientDrawable.setStroke(2, Color.BLACK); // Add border
-
         // Apply the background to the layout
         layout.setBackground(gradientDrawable);
     }
@@ -379,12 +288,10 @@ public class EditMoodActivity extends AppCompatActivity {
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.group_menu, popup.getMenu());
         Map<Integer, String> menuMap = new HashMap<>();
-
         menuMap.put(R.id.alone, "Alone");
         menuMap.put(R.id.with_another, "With another person");
         menuMap.put(R.id.with_several, "With several people");
         menuMap.put(R.id.with_crowd, "With a crowd");
-
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId()); // Store selection
@@ -393,7 +300,6 @@ public class EditMoodActivity extends AppCompatActivity {
             }
             return false;
         });
-
         popup.show();
     }
 
@@ -402,7 +308,6 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.getMenu().add("Take a Photo");
         popup.getMenu().add("Choose from Gallery");
         popup.getMenu().add("Remove Photo");
-
         popup.setOnMenuItemClickListener(item -> {
             if (item.getTitle().equals("Take a Photo")) {
                 if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -424,10 +329,8 @@ public class EditMoodActivity extends AppCompatActivity {
                     imageRef.delete()
                             .addOnSuccessListener(aVoid -> {
                                 Log.d("Firebase Storage", "Image deleted successfully");
-
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("imageUrl", null);
-
                                 db.collection("moods").document(moodId)
                                         .update(updates)
                                         .addOnSuccessListener(aVoid2 -> Log.d("Firestore", "Image removed from Firestore"))
@@ -437,26 +340,17 @@ public class EditMoodActivity extends AppCompatActivity {
                 } else {
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("imageUrl", null);
-
                     db.collection("moods").document(moodId)
                             .update(updates)
                             .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
                             .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
                 }
-
                 imageHandler.clearImage();
                 imageUrl = null;
-
                 Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
             }
-
-
             return false;
         });
-
         popup.show();
     }
-
-
-
 }
