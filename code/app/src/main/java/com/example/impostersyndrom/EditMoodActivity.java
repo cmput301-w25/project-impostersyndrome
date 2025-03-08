@@ -135,28 +135,8 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
 
-                        imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                            @Override
-                            public void onImageUploadSuccess(String url) {
-                                EditMoodActivity.this.imageUrl = url;
-
-                                Map<String, Object> updates = new HashMap<>();
-                                updates.put("imageUrl", url);
-
-                                db.collection("moods").document(moodId)
-                                        .update(updates)
-                                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Gallery Image updated successfully"))
-                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
-                            }
-                            @Override
-                            public void onImageUploadFailure(Exception e) {
-                                Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-
-                        // User exited gallery without selecting an image
-                        Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
+                        EditMoodActivity.this.imageUrl = null;
+                        Log.d("EditMoodActivity", "Image selected but not uploaded yet.");
                     }
                 }
         );
@@ -166,22 +146,9 @@ public class EditMoodActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
-                        imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                            @Override
-                            public void onImageUploadSuccess(String url) {
-                                EditMoodActivity.this.imageUrl = url;
-                                Map<String, Object> updates = new HashMap<>();
-                                updates.put("imageUrl", url);
-                                db.collection("moods").document(moodId)
-                                        .update(updates)
-                                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image updated successfully"))
-                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to update image", e));
-                            }
-                            @Override
-                            public void onImageUploadFailure(Exception e) {
-                                Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+
+                        EditMoodActivity.this.imageUrl = null;
+                        Log.d("EditMoodActivity", "Image captured but not uploaded yet.");
                     }
                 }
         );
@@ -214,7 +181,19 @@ public class EditMoodActivity extends AppCompatActivity {
         });
 
         // Back button functionality
-        backButton.setOnClickListener(v -> finish());
+        backButton.setOnClickListener(v -> {
+            if (imageUrl != null) {
+                StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                imageRef.delete()
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("EditMoodActivity", "Temporary image deleted from Firebase Storage");
+                            EditMoodActivity.this.imageUrl = null;
+                        })
+                        .addOnFailureListener(e -> Log.e("EditMoodActivity", "Failed to delete temporary image", e));
+            }
+            finish();
+        });
+
 
         // Save updated mood when checkmark button is clicked
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
@@ -233,25 +212,25 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("group", selectedGroup);
         }
 
-        if (imageHandler.hasImage()) {
-            if (imageUrl != null) {
-                updates.put("imageUrl", imageUrl);
-            } else {
-                imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                    @Override
-                    public void onImageUploadSuccess(String url) {
-                        updates.put("imageUrl", url);
-                        saveToFirestore(updates);
-                    }
+        if (imageUrl == null && imageHandler.hasImage()) {
+            imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                @Override
+                public void onImageUploadSuccess(String url) {
+                    EditMoodActivity.this.imageUrl = url;
+                    updates.put("imageUrl", url);
+                    saveToFirestore(updates);
+                }
 
-                    @Override
-                    public void onImageUploadFailure(Exception e) {
-                        Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-                return;
-            }
+                @Override
+                public void onImageUploadFailure(Exception e) {
+                    Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+            return;
+        } else if (imageUrl != null) {
+            updates.put("imageUrl", imageUrl);
         }
+
 
         if (imageUrl != null) {
             updates.put("imageUrl", imageUrl);
