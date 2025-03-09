@@ -50,6 +50,8 @@ public class EditMoodActivity extends AppCompatActivity {
     private ImageView editEmoji;
     private LinearLayout editEmojiRectangle;
     private String imageURL;
+    private boolean hasSubmittedChanges = false;
+    private String originalImageUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +75,8 @@ public class EditMoodActivity extends AppCompatActivity {
         moodId = intent.getStringExtra("moodId");
         emoji = intent.getStringExtra("emoji");
         String reason = intent.getStringExtra("reason");
-        String imageUrl = intent.getStringExtra("imageUrl");
+        imageUrl = intent.getStringExtra("imageUrl");
+        originalImageUrl = imageUrl;
         int color = intent.getIntExtra("color", 0);
 
         // Set the correct emoji image
@@ -182,18 +185,12 @@ public class EditMoodActivity extends AppCompatActivity {
 
         // Back button functionality
         backButton.setOnClickListener(v -> {
-            if (imageUrl != null) {
-                StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-                imageRef.delete()
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d("EditMoodActivity", "Temporary image deleted from Firebase Storage");
-                            EditMoodActivity.this.imageUrl = null;
-                        })
-                        .addOnFailureListener(e -> Log.e("EditMoodActivity", "Failed to delete temporary image", e));
+            if (!hasSubmittedChanges) {
+                Log.d("EditMoodActivity", "User backed out. Restoring original image.");
+                imageUrl = originalImageUrl;
             }
             finish();
         });
-
 
         // Save updated mood when checkmark button is clicked
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
@@ -232,8 +229,12 @@ public class EditMoodActivity extends AppCompatActivity {
         }
 
 
-        if (imageUrl != null) {
-            updates.put("imageUrl", imageUrl);
+        if (imageUrl == null && originalImageUrl != null) {
+            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
+            imageRef.delete()
+                    .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image permanently deleted"))
+                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+            updates.put("imageUrl", null);
         }
 
         saveToFirestore(updates);
@@ -340,18 +341,10 @@ public class EditMoodActivity extends AppCompatActivity {
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
                 if (imageUrl != null && !imageUrl.isEmpty()) {
-                    StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-                    imageRef.delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("Firebase Storage", "Image deleted successfully");
-                                Map<String, Object> updates = new HashMap<>();
-                                updates.put("imageUrl", null);
-                                db.collection("moods").document(moodId)
-                                        .update(updates)
-                                        .addOnSuccessListener(aVoid2 -> Log.d("Firestore", "Image removed from Firestore"))
-                                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image", e));
-                            })
-                            .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+                    Log.d("EditMoodActivity", "Image marked for removal but not yet deleted.");
+                    imageUrl = null;
+                    imageHandler.clearImage();
+                    Toast.makeText(this, "Image removed (pending submission)", Toast.LENGTH_SHORT).show();
                 } else {
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("imageUrl", null);
