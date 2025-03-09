@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -20,6 +21,15 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +87,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Add Mood Button
-        Button addButton = findViewById(R.id.addMoodButton);
-        addButton.setOnClickListener(v -> {
+        ImageButton addMoodButton = findViewById(R.id.addMoodButton);
+        addMoodButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
             intent.putExtra("userId", userId);
             startActivity(intent);
@@ -86,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         // Inside onCreate() method, after setting the adapter
 
         // Logout Button
-        Button logoutButton = findViewById(R.id.logoutButton);
+        ImageButton logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut(); // Logs out the user
             showToast("Logged out successfully!");
@@ -158,6 +168,14 @@ public class MainActivity extends AppCompatActivity {
                                     }}
                             });
 
+                            moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
+                                if (moodDocs != null && moodDocs.size() > position) {
+                                    DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
+                                    showBottomSheetDialog(moodDoc);
+                                }
+                                return true; // Return true to indicate that the long press was handled
+                            });
+
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
@@ -170,5 +188,88 @@ public class MainActivity extends AppCompatActivity {
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
+    private void showBottomSheetDialog(DocumentSnapshot moodDoc) {
+        // Create bottom sheet dialog
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
+
+        // Find views inside the bottom sheet
+        TextView editMood = bottomSheetView.findViewById(R.id.editMoodOption);
+        TextView deleteMood = bottomSheetView.findViewById(R.id.deleteMoodOption);
+
+        // Handle Edit option
+        editMood.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, EditMoodActivity.class);
+
+            // Pass mood details to EditMoodActivity
+            intent.putExtra("moodId", moodDoc.getId());
+            intent.putExtra("emoji", (String) moodDoc.get("emotionalState"));
+            intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
+            intent.putExtra("reason", (String) moodDoc.get("reason"));
+            intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
+            intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
+            intent.putExtra("group", (String) moodDoc.get("group")); // Pass group data
+
+            startActivity(intent);
+            bottomSheetDialog.dismiss();
+        });
+
+        // Handle Delete option
+        deleteMood.setOnClickListener(v -> {
+            String moodId = moodDoc.getId();
+            String imageUrl = (String) moodDoc.get("imageUrl");
+
+            deleteMoodAndImage(moodId);
+            showToast("Mood deleted!");
+            fetchMoods(userId); // Refresh list after deletion
+
+            bottomSheetDialog.dismiss();
+        });
+
+
+        // Set view and show dialog
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
+    }
+
+    private void deleteMoodAndImage(String moodId) {
+        db.collection("moods").document(moodId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                            imageRef.delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firebase Storage", "Image deleted successfully");
+                                        db.collection("moods").document(moodId)
+                                                .delete()
+                                                .addOnSuccessListener(aVoid2 -> {
+                                                    Log.d("Firestore", "Mood deleted successfully");
+                                                    fetchMoods(userId); // Refresh list after deletion
+                                                })
+                                                .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+                                    })
+                                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
+                        } else {
+                            db.collection("moods").document(moodId)
+                                    .delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firestore", "Mood deleted successfully");
+                                        fetchMoods(userId); // Refresh list after deletion
+                                    })
+                                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to delete mood", e));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Failed to fetch mood details", e));
+    }
+
+
+
+
 }
 

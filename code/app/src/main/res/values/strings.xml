@@ -3,4 +3,5 @@
     <string name="addReasonHint">Enter a reason...</string>
     <string name="addReasonText">Why are you feeling this way?</string>
     <string name="camera_menu_description" />
+    <string name="EditReasonHint">Enter new reason...</string>
 </resources>

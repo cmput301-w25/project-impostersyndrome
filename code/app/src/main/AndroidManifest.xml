@@ -56,6 +56,10 @@
             android:name=".MoodDetailActivity"
             android:exported="false"
             />
+
+        <activity android:name=".EditMoodActivity"/>
+        <activity android:name=".EditEmojiActivity"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
