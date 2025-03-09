@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                 // Hide progress bar and re-enable login button on failure
                 loginProgressBar.setVisibility(View.GONE);
                 findViewById(R.id.loginBtn).setEnabled(true);
-                showToast("Login Failed: " + Objects.requireNonNull(task.getException()).getMessage());
+                layoutPassword.setError("Wrong password. Try again or click Forgot password to reset it.");
             }
         });
     }
