@@ -53,5 +53,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation("androidx.test.espresso:espresso-idling-resource:3.5.1")
 
 }
