@@ -37,4 +37,4 @@ ImposterSyndrome is an Android application designed to help users track, manage,
 - [Wiki Link](https://github.com/cmput301-w25/project-impostersyndrome/wiki)
 - [Scrum Board](https://github.com/orgs/cmput301-w25/projects/45)
 - [UI Mockups](https://github.com/cmput301-w25/project-impostersyndrome/wiki/Ui-Mockups)
-- [UML]
+- [UML](https://github.com/cmput301-w25/project-impostersyndrome/wiki/UML)
