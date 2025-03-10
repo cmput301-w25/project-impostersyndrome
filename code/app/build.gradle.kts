@@ -41,6 +41,9 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.auth)
     implementation("com.github.bumptech.glide:glide:4.12.0")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
     implementation("com.google.firebase:firebase-auth:23.2.0")
     testImplementation(libs.junit)
@@ -50,5 +53,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation("androidx.test.espresso:espresso-idling-resource:3.5.1")
 
 }
