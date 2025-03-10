@@ -32,4 +32,5 @@
     <string name="group_button_description">Select group</string>
     <string name="submit_button_description">Submit entry</string>
     <string name="back_button_description">Go back</string>
+    <string name="EditReasonHint">Enter new reason...</string>
 </resources>

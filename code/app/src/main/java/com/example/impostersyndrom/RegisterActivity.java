@@ -13,6 +13,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.regex.Pattern;
+
 /**
  * RegisterActivity handles user registration functionality.
  * It allows users to create a new account by providing their first name, last name, email, password, and username.
@@ -92,8 +94,8 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         // Validate username
-        if (usernameText.isEmpty() || usernameText.length() < 5) {
-            layoutUsername.setError("Username must be at least 5 characters");
+        if (!isUsernameValid(usernameText)) {
+            layoutUsername.setError("Username must be 5-20 alphanumeric characters!");
             isValid = false;
         } else {
             layoutUsername.setError(null);
@@ -138,6 +140,9 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    private boolean isUsernameValid(String username) {
+        return Pattern.matches("^[a-zA-Z0-9]{5,20}$", username);
+    }
     /**
      * Registers the user using Firebase Authentication and stores user data in Firestore.
      *
