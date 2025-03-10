@@ -1,3 +1,36 @@
 <resources>
     <string name="app_name">ImposterSyndrom</string>
+    <string name="addReasonHint">Enter a reason...</string>
+    <string name="addReasonText">Why are you feeling this way?</string>
+    <string name="camera_menu_description" />
+    <string name="create_account">Create Account</string>
+    <string name="first_name_hint">First Name</string>
+    <string name="last_name_hint">Last Name</string>
+    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="register">Register</string>
+    <string name="already_have_account">Already have an account? Sign in</string>
+    <string name="your_moods">Your Moods</string>
+    <string name="add_mood">Add Mood</string>
+    <string name="logout">Logout</string>
+    <string name="sign_in">Sign in</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="new_user_sign_up">New user? Sign Up</string>
+    <string name="enter_your_email">Enter your email</string>
+    <string name="send_reset_link">Send Reset Link</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="happy">Happy</string>
+    <string name="confused">Confused</string>
+    <string name="disgust">Disgust</string>
+    <string name="angry">Angry</string>
+    <string name="sad">Sad</string>
+    <string name="fear">Fear</string>
+    <string name="shame">Shame</string>
+    <string name="surprise">Surprise</string>
+    <string name="how_are_you_feeling">How are u feeling ?</string>
+    <string name="group_button_description">Select group</string>
+    <string name="submit_button_description">Submit entry</string>
+    <string name="back_button_description">Go back</string>
+    <string name="EditReasonHint">Enter new reason...</string>
 </resources>
