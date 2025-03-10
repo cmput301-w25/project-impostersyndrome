@@ -36,7 +36,8 @@ import java.util.Map;
  * It provides functionality to select an emoji, add a reason, choose a group, and optionally upload an image.
  * The mood data is then saved to Firestore.
  * @author Roshan Banisetti
- * @author
+ * @author Eric
+ * @author Garrick
  */
 public class AddMoodActivity extends AppCompatActivity {
     private FirebaseFirestore db; // Firestore database instance
