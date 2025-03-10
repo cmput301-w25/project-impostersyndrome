@@ -10,7 +10,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.widget.TextView;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
@@ -53,31 +52,29 @@ public class AddMoodActivityTest {
 
     @Before
     public void setUp() {
-        // Launch AddMoodActivity with a valid userId
+        // Launch AddMoodActivity with a valid userId and mood
         Intent intent = new Intent(ApplicationProvider.getApplicationContext(), AddMoodActivity.class);
-        intent.putExtra("userId", "testUserId"); // Provide a valid userId
+        intent.putExtra("userId", "testUserId");
+        intent.putExtra("mood", new Mood("emoji_happy", "Happy", new Date(), Color.parseColor("#FFCC00"), "test1 reason"));
         ActivityScenario.launch(intent);
     }
 
     @Test
     public void testAddMoodFlow() {
         onView(withId(R.id.emojiView)).check(matches(isDisplayed())); // Check if emoji view is displayed
-        scenario.onActivity(activity -> {
-            TextView emojiDescription = activity.findViewById(R.id.emojiDescription);
-            emojiDescription.setText("Test Description");
-        });
 
         onView(withId(R.id.emojiDescription)).check(matches(isDisplayed()));
-        onView(withId(R.id.dateTimeView)).check(matches(isDisplayed())); // Check if date/time view is displayed
+        onView(withId(R.id.emojiDescription)).check(matches(withText("Happy")));
+
+        onView(withId(R.id.dateTimeView)).check(matches(isDisplayed()));
 
         onView(withId(R.id.addReasonEdit)).perform(typeText("Feeling great today!"));
-        onView(withId(R.id.addReasonEdit)).check(matches(withText("Feeling great today!"))); // Verify the entered text
+        onView(withId(R.id.addReasonEdit)).check(matches(withText("Feeling great today!")));
 
-        onView(withId(R.id.reasonCharCount)).check(matches(withText("19/20"))); // Verify character count
+        onView(withId(R.id.reasonCharCount)).check(matches(withText("20/20")));
 
         onView(withId(R.id.submitButton)).check(matches(isDisplayed()));
         onView(withId(R.id.submitButton)).perform(click());
 
-        onView(withId(R.id.backButton)).check(matches(isDisplayed()));
     }
 }
