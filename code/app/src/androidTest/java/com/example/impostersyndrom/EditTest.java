@@ -60,14 +60,6 @@ public class EditTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        onView(withId(R.id.login_email)).perform(ViewActions.typeText("gtse1@ualberta.ca"));
-        onView(withId(R.id.login_password)).perform(ViewActions.typeText("gtse1pw"));
-        onView(withId(R.id.loginBtn)).perform(click());
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         onView(withText("test1 reason")).perform(ViewActions.longClick());
         try {
             Thread.sleep(2000);
