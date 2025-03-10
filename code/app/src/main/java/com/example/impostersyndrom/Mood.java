@@ -162,8 +162,9 @@ public class Mood implements Serializable {
      *
      * @param id The ID to set.
      */
-    public void setId(String id) {
+    public Mood setId(String id) {
         this.id = id;
+        return this;
     }
 
     /**
@@ -216,8 +217,9 @@ public class Mood implements Serializable {
      *
      * @param userId The user ID to set.
      */
-    public void setUserId(String userId) {
+    public Mood setUserId(String userId) {
         this.userId = userId;
+        return this;
     }
 
     /**
