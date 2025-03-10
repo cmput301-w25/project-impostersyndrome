@@ -2,12 +2,17 @@ package com.example.impostersyndrom;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+
+import static java.util.function.Predicate.not;
 
 import android.graphics.Color;
 
 import androidx.test.espresso.action.ViewActions;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -50,6 +55,11 @@ public class EditTest {
 
     @Test
     public void testEditMovie(){
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         onView(withId(R.id.login_email)).perform(ViewActions.typeText("gtse1@ualberta.ca"));
         onView(withId(R.id.login_password)).perform(ViewActions.typeText("gtse1pw"));
         onView(withId(R.id.loginBtn)).perform(click());
@@ -64,10 +74,54 @@ public class EditTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        onView(withId(R.id.editMoodOption)).perform(click());
+        onView(withId(R.id.EditReason)).perform(ViewActions.typeText("new_test1_reason"));
+        onView(withId(R.id.EditGroupButton)).perform((ViewActions.click()));
+        onView(withText("With a crowd")).perform(ViewActions.click());
+        onView(withId(R.id.submitButton)).perform((ViewActions.click()));
+
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        onView(withText("new_test1_reason")).check(matches(ViewMatchers.isDisplayed()));
+        onView(withText("With a crowd")).check(matches(ViewMatchers.isDisplayed()));
+    }
+
+    @Test
+    public void testDeleteMovie() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        onView(withId(R.id.login_email)).perform(ViewActions.typeText("gtse1@ualberta.ca"));
+        onView(withId(R.id.login_password)).perform(ViewActions.typeText("gtse1pw"));
         onView(withId(R.id.loginBtn)).perform(click());
-
-
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        onView(withText("test2 reason")).perform(ViewActions.longClick());
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        onView(withId(R.id.deleteMoodOption)).perform(click());
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        onView(withText("test2 reason")).check(doesNotExist());
 
     }
+
+
 }
 
