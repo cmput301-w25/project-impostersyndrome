@@ -7,15 +7,22 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * EditEmojiActivity allows users to select a new emoji for their mood entry.
+ * It displays the current emoji and provides options to choose a different one.
+ * The selected emoji is returned to the calling activity (EditMoodActivity).
+ *
+ * @author Rayan
+ */
 public class EditEmojiActivity extends AppCompatActivity {
-    private String selectedEmoji;
+    private String selectedEmoji; // Stores the currently selected emoji
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_emoji);
 
-        // Get the passed emoji data
+        // Get the passed emoji data from the intent
         Intent intent = getIntent();
         selectedEmoji = intent.getStringExtra("emoji");
 
@@ -34,7 +41,12 @@ public class EditEmojiActivity extends AppCompatActivity {
         findViewById(R.id.emojiVII).setOnClickListener(v -> returnEmoji("emoji_shame"));
     }
 
-    // Converts emoji name into drawable resource
+    /**
+     * Converts an emoji name into its corresponding drawable resource ID.
+     *
+     * @param emojiName The name of the emoji (e.g., "emoji_happy").
+     * @return The drawable resource ID for the emoji, or a default emoji if not found.
+     */
     private int getEmojiResource(String emojiName) {
         if (emojiName == null) return R.drawable.emoji_confused; // Default emoji
 
@@ -51,7 +63,11 @@ public class EditEmojiActivity extends AppCompatActivity {
         }
     }
 
-    // Returns the selected emoji back to EditMoodActivity
+    /**
+     * Returns the selected emoji back to the calling activity (EditMoodActivity).
+     *
+     * @param emoji The name of the selected emoji.
+     */
     private void returnEmoji(String emoji) {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("selectedEmoji", emoji);

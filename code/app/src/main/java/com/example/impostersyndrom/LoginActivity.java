@@ -25,7 +25,7 @@ import java.util.Objects;
  * It allows users to log in using their email and password, and pre-fetches mood data
  * from Firestore before navigating to the MainActivity.
  *
- * @author
+ * @author Bhuvan Veeravalli
  */
 public class LoginActivity extends AppCompatActivity {
 

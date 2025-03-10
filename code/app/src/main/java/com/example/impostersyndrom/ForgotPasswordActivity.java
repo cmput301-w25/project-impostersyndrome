@@ -12,7 +12,7 @@ import com.google.firebase.auth.FirebaseAuth;
  * ForgotPasswordActivity allows users to reset their password by providing their registered email address.
  * It uses Firebase Authentication to send a password reset email to the user.
  *
- * @author
+ * @author Bhuvan Veeravalli
  */
 public class ForgotPasswordActivity extends AppCompatActivity {
 

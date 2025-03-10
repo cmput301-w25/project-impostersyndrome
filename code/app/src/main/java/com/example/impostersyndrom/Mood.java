@@ -19,9 +19,9 @@ import java.util.UUID;
  *
  * This class implements Serializable to allow Mood objects to be passed between activities.
  *
- * @author Your Name
- * @version 1.0
- * @since 2023-10-01
+ * @author Roshan Banisetti
+ * @author Garrick
+ * @author Eric Mo
  */
 public class Mood implements Serializable {
 

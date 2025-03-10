@@ -35,6 +35,7 @@ import java.util.Map;
  * AddMoodActivity is responsible for allowing users to add a new mood entry.
  * It provides functionality to select an emoji, add a reason, choose a group, and optionally upload an image.
  * The mood data is then saved to Firestore.
+ * @author Roshan Banisetti
  * @author
  */
 public class AddMoodActivity extends AppCompatActivity {

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * It allows users to create a new account by providing their first name, last name, email, password, and username.
  * The activity validates user input, checks for username availability, and registers the user using Firebase Authentication and Firestore.
  *
- * @author
+ * @author Bhuvan Veeravalli
  */
 public class RegisterActivity extends AppCompatActivity {
 
@@ -140,9 +140,16 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Validates the username format.
+     *
+     * @param username The username to validate.
+     * @return True if the username is valid, false otherwise.
+     */
     private boolean isUsernameValid(String username) {
         return Pattern.matches("^[a-zA-Z0-9]{5,20}$", username);
     }
+
     /**
      * Registers the user using Firebase Authentication and stores user data in Firestore.
      *

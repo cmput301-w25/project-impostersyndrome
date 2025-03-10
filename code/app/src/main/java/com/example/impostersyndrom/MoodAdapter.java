@@ -26,7 +26,7 @@ import java.util.Map;
  * MoodAdapter is a custom ArrayAdapter for displaying mood entries in a ListView or RecyclerView.
  * It binds mood data from Firestore documents to the corresponding views in the layout.
  *
- * @author
+ * @author Ali Zain
  */
 public class MoodAdapter extends ArrayAdapter {
     private Context context; // Context of the adapter

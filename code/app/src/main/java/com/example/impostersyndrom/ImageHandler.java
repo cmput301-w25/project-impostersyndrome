@@ -26,7 +26,7 @@ import java.util.UUID;
  * ImageHandler is a utility class that handles image selection, compression, and uploading to Firebase Storage.
  * It supports both gallery and camera sources for images and provides callbacks for image loading and upload events.
  *
- * @author
+ * @author Eric Mo
  */
 public class ImageHandler {
     private static final int MAX_IMAGE_SIZE = 65536; // Maximum allowed image size in bytes

@@ -27,7 +27,7 @@ import java.util.Locale;
  * - Social group context
  * - Optional attached image
  *
- * @author
+ * @author Ali Zain
  */
 public class MoodDetailActivity extends AppCompatActivity {
 

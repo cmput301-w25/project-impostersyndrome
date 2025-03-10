@@ -5,9 +5,7 @@ package com.example.impostersyndrom;
  * It stores the user's unique ID and provides methods to access and modify it.
  * This class follows the Singleton design pattern to ensure only one instance exists throughout the app.
  *
- * @author Your Name
- * @version 1.0
- * @since 2023-10-01
+ * @author Ali Zain
  */
 public class User {
     private static User instance = null; // Singleton instance of the User class

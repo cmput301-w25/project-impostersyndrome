@@ -32,26 +32,33 @@ import com.google.firebase.storage.StorageReference;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * EditMoodActivity allows users to edit an existing mood entry.
+ * Users can update the emoji, reason, group, and image associated with the mood.
+ * The updated mood data is saved to Firestore.
+ *
+ * @author Rayan
+ */
 public class EditMoodActivity extends AppCompatActivity {
-    private String moodId;
-    private FirebaseFirestore db;
-    private TextView editEmojiDescription;
-    private EditText editReason;
-    private ImageView editImagePreview;
-    private ImageButton backButton, submitButton;
-    private String selectedGroup;
-    private ImageHandler imageHandler;
-    private ActivityResultLauncher<Intent> galleryLauncher;
-    private ActivityResultLauncher<Intent> cameraLauncher;
-    private String imageUrl = null;
-    private ActivityResultLauncher<String> cameraPermissionLauncher;
-    private ActivityResultLauncher<String> galleryPermissionLauncher;
-    private String emoji;
-    private ImageView editEmoji;
-    private LinearLayout editEmojiRectangle;
-    private String imageURL;
-    private boolean hasSubmittedChanges = false;
-    private String originalImageUrl;
+    private String moodId; // ID of the mood being edited
+    private FirebaseFirestore db; // Firestore database instance
+    private TextView editEmojiDescription; // TextView for emoji description
+    private EditText editReason; // EditText for mood reason
+    private ImageView editImagePreview; // ImageView for mood image preview
+    private ImageButton backButton, submitButton; // Back and submit buttons
+    private String selectedGroup; // Selected group for the mood
+    private ImageHandler imageHandler; // Handles image selection and uploading
+    private ActivityResultLauncher<Intent> galleryLauncher; // Launcher for gallery intent
+    private ActivityResultLauncher<Intent> cameraLauncher; // Launcher for camera intent
+    private String imageUrl = null; // URL of the uploaded image
+    private ActivityResultLauncher<String> cameraPermissionLauncher; // Launcher for camera permission request
+    private ActivityResultLauncher<String> galleryPermissionLauncher; // Launcher for gallery permission request
+    private String emoji; // Current emoji for the mood
+    private ImageView editEmoji; // ImageView for emoji display
+    private LinearLayout editEmojiRectangle; // Layout for emoji background
+    private String imageURL; // URL of the mood image
+    private boolean hasSubmittedChanges = false; // Tracks if changes have been submitted
+    private String originalImageUrl; // Original image URL before editing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,6 +203,9 @@ public class EditMoodActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
+    /**
+     * Updates the mood entry in Firestore with the new data.
+     */
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
         Map<String, Object> updates = new HashMap<>();
@@ -228,7 +238,6 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("imageUrl", imageUrl);
         }
 
-
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
@@ -240,6 +249,11 @@ public class EditMoodActivity extends AppCompatActivity {
         saveToFirestore(updates);
     }
 
+    /**
+     * Saves the updated mood data to Firestore.
+     *
+     * @param updates A map containing the updated mood data.
+     */
     private void saveToFirestore(Map<String, Object> updates) {
         // Prevent unintentional overwrites
         if (!updates.containsKey("imageUrl")) {
@@ -258,6 +272,11 @@ public class EditMoodActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Updates the mood document in Firestore with the provided data.
+     *
+     * @param updates A map containing the updated mood data.
+     */
     private void updateFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
                 .update(updates)
@@ -288,6 +307,12 @@ public class EditMoodActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets a rounded background with dynamic color for a LinearLayout.
+     *
+     * @param layout The LinearLayout to apply the background to.
+     * @param color  The color to set as the background.
+     */
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
@@ -299,6 +324,11 @@ public class EditMoodActivity extends AppCompatActivity {
         layout.setBackground(gradientDrawable);
     }
 
+    /**
+     * Displays a popup menu for selecting a group.
+     *
+     * @param v The view to anchor the popup menu.
+     */
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
@@ -319,6 +349,11 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
+    /**
+     * Displays a popup menu for image options (camera, gallery, remove photo).
+     *
+     * @param v The view to anchor the popup menu.
+     */
     private void showImageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
