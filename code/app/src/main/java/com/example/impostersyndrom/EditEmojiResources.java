@@ -2,9 +2,21 @@ package com.example.impostersyndrom;
 
 import android.graphics.Color;
 
+/**
+ * EditEmojiResources is a utility class that provides methods to retrieve
+ * mood-related resources such as colors, descriptions, and drawable resources
+ * based on the emoji name.
+ *
+ * @author Rayan
+ */
 public class EditEmojiResources {
 
-    // Returns the color associated with an emoji name
+    /**
+     * Returns the color associated with a specific emoji name.
+     *
+     * @param emojiName The name of the emoji (e.g., "emoji_happy").
+     * @return The color associated with the emoji, or gray if the emoji is unknown.
+     */
     public static int getMoodColor(String emojiName) {
         if (emojiName == null) return Color.GRAY; // Default color if unknown
 
@@ -21,7 +33,12 @@ public class EditEmojiResources {
         }
     }
 
-    // Converts emoji names into human-readable mood descriptions
+    /**
+     * Converts an emoji name into a human-readable mood description.
+     *
+     * @param emoji The name of the emoji (e.g., "emoji_happy").
+     * @return A human-readable mood description, or "Unknown Mood" if the emoji is unknown.
+     */
     public static String getReadableMood(String emoji) {
         if (emoji == null) return "Unknown Mood";
 
@@ -38,7 +55,12 @@ public class EditEmojiResources {
         }
     }
 
-    // Returns the correct emoji drawable resource based on emoji name
+    /**
+     * Returns the drawable resource ID associated with a specific emoji name.
+     *
+     * @param emojiName The name of the emoji (e.g., "emoji_happy").
+     * @return The drawable resource ID for the emoji, or a default emoji if the emoji is unknown.
+     */
     public static int getEmojiResource(String emojiName) {
         if (emojiName == null) return R.drawable.emoji_confused; // Default emoji if unknown
 

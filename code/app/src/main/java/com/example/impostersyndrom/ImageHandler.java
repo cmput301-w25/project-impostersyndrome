@@ -22,27 +22,44 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * ImageHandler is a utility class that handles image selection, compression, and uploading to Firebase Storage.
+ * It supports both gallery and camera sources for images and provides callbacks for image loading and upload events.
+ *
+ * @author Eric Mo
+ */
 public class ImageHandler {
-    private static final int MAX_IMAGE_SIZE = 65536;
+    private static final int MAX_IMAGE_SIZE = 65536; // Maximum allowed image size in bytes
 
-    private final Activity activity;
-    private final ImageView imagePreview;
-    private final FirebaseStorage storage;
-    private final StorageReference storageRef;
-    private Bitmap selectedImageBitmap = null;
+    private final Activity activity; // Reference to the calling activity
+    private final ImageView imagePreview; // ImageView to display the selected image
+    private final FirebaseStorage storage; // Firebase Storage instance
+    private final StorageReference storageRef; // Reference to the Firebase Storage root
+    private Bitmap selectedImageBitmap = null; // Bitmap of the selected image
 
-    // Add listener interface
+    // Listener interface for image loading events
     public interface OnImageLoadedListener {
-        void onImageLoaded();
-        void onImageCleared();
+        void onImageLoaded(); // Called when an image is successfully loaded
+        void onImageCleared(); // Called when the image is cleared
     }
 
-    private OnImageLoadedListener imageLoadedListener;
+    private OnImageLoadedListener imageLoadedListener; // Listener for image loading events
 
+    /**
+     * Sets the listener for image loading events.
+     *
+     * @param listener The listener to be notified of image loading events.
+     */
     public void setOnImageLoadedListener(OnImageLoadedListener listener) {
         this.imageLoadedListener = listener;
     }
 
+    /**
+     * Constructor for ImageHandler.
+     *
+     * @param activity     The calling activity.
+     * @param imagePreview The ImageView to display the selected image.
+     */
     public ImageHandler(Activity activity, ImageView imagePreview) {
         this.activity = activity;
         this.imagePreview = imagePreview;
@@ -50,16 +67,32 @@ public class ImageHandler {
         storageRef = storage.getReference();
     }
 
+    /**
+     * Opens the gallery to allow the user to select an image.
+     *
+     * @param galleryLauncher The ActivityResultLauncher to handle the gallery intent.
+     */
     public void openGallery(ActivityResultLauncher<Intent> galleryLauncher) {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         galleryLauncher.launch(intent);
     }
 
+    /**
+     * Opens the camera to allow the user to capture an image.
+     *
+     * @param cameraLauncher The ActivityResultLauncher to handle the camera intent.
+     */
     public void openCamera(ActivityResultLauncher<Intent> cameraLauncher) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraLauncher.launch(intent);
     }
 
+    /**
+     * Handles the result of the gallery or camera intent.
+     *
+     * @param resultCode The result code from the activity result.
+     * @param data       The intent data containing the selected or captured image.
+     */
     public void handleActivityResult(int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK && data != null) {
             if (data.getData() != null) { // Gallery
@@ -77,7 +110,7 @@ public class ImageHandler {
 
             if (selectedImageBitmap != null) {
                 imagePreview.setImageBitmap(selectedImageBitmap);
-                // Trigger onImageLoaded
+                // Notify listener that an image has been loaded
                 if (imageLoadedListener != null) {
                     imageLoadedListener.onImageLoaded();
                 }
@@ -89,19 +122,32 @@ public class ImageHandler {
         }
     }
 
+    /**
+     * Clears the selected image and updates the UI.
+     */
     public void clearImage() {
         selectedImageBitmap = null;
         imagePreview.setImageBitmap(null);
-        // Trigger onImageCleared
+        // Notify listener that the image has been cleared
         if (imageLoadedListener != null) {
             imageLoadedListener.onImageCleared();
         }
     }
 
+    /**
+     * Checks if an image is currently selected.
+     *
+     * @return True if an image is selected, false otherwise.
+     */
     public boolean hasImage() {
         return selectedImageBitmap != null;
     }
 
+    /**
+     * Uploads the selected image to Firebase Storage.
+     *
+     * @param listener The listener to handle upload success or failure events.
+     */
     public void uploadImageToFirebase(OnImageUploadListener listener) {
         if (selectedImageBitmap == null) {
             listener.onImageUploadFailure(new Exception("No image selected"));
@@ -141,12 +187,20 @@ public class ImageHandler {
         });
     }
 
+    /**
+     * Displays a toast message.
+     *
+     * @param message The message to display.
+     */
     private void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Listener interface for image upload events.
+     */
     public interface OnImageUploadListener {
-        void onImageUploadSuccess(String imageUrl);
-        void onImageUploadFailure(Exception e);
+        void onImageUploadSuccess(String imageUrl); // Called when the image is successfully uploaded
+        void onImageUploadFailure(Exception e); // Called when the image upload fails
     }
 }

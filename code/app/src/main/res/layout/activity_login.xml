@@ -8,7 +8,7 @@
     android:background="#000000">
 
     <TextView
-        android:text="Sign in"
+        android:text="@string/sign_in"
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="#ffffff"
@@ -30,7 +30,7 @@
             android:id="@+id/login_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
+            android:hint="@string/email_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -51,7 +51,7 @@
             android:id="@+id/login_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
+            android:hint="@string/password_hint"
             android:textColorHint="@android:color/white"
             android:textColor="@android:color/white"
             android:backgroundTint="@android:color/white"
@@ -60,7 +60,7 @@
 
     <Button
         android:id="@+id/loginBtn"
-        android:text="Sign In"
+        android:text="@string/sign_in"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -75,7 +75,7 @@
 
     <TextView
         android:id="@+id/forgotPassword"
-        android:text="Forgot password?"
+        android:text="@string/forgot_password"
         android:textColor="#ffffff"
         android:textStyle="bold"
         android:layout_width="wrap_content"
@@ -87,7 +87,7 @@
 
     <TextView
         android:id="@+id/newUserSignUp"
-        android:text="New user? Sign Up"
+        android:text="@string/new_user_sign_up"
         android:textColor="#ffffff"
         android:textStyle="bold"
         android:layout_width="wrap_content"

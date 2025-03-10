@@ -31,28 +31,50 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * AddMoodActivity is responsible for allowing users to add a new mood entry.
+ * It provides functionality to select an emoji, add a reason, choose a group, and optionally upload an image.
+ * The mood data is then saved to Firestore.
+ * @author Roshan Banisetti
+ * @author Eric
+ * @author Garrick
+ */
 public class AddMoodActivity extends AppCompatActivity {
-    private FirebaseFirestore db;
-    private CollectionReference moodsRef;
-    private String selectedGroup;
-    private ImageHandler imageHandler;
-    private ActivityResultLauncher<Intent> galleryLauncher;
-    private ActivityResultLauncher<Intent> cameraLauncher;
-    private String imageUrl = null;
-    private TextView reasonCharCount;
-    private ImageView imagePreview;
-    private ActivityResultLauncher<String> cameraPermissionLauncher;
-    private ActivityResultLauncher<String> galleryPermissionLauncher;
+    private FirebaseFirestore db; // Firestore database instance
+    private CollectionReference moodsRef; // Reference to the "moods" collection in Firestore
+    private String selectedGroup; // Stores the selected group for the mood
+    private ImageHandler imageHandler; // Handles image selection and uploading
+    private ActivityResultLauncher<Intent> galleryLauncher; // Launcher for gallery intent
+    private ActivityResultLauncher<Intent> cameraLauncher; // Launcher for camera intent
+    private String imageUrl = null; // URL of the uploaded image
+    private TextView reasonCharCount; // Displays character count for the reason text
+    private ImageView imagePreview; // Preview of the selected image
+    private ActivityResultLauncher<String> cameraPermissionLauncher; // Launcher for camera permission request
+    private ActivityResultLauncher<String> galleryPermissionLauncher; // Launcher for gallery permission request
+
+    /**
+     * Initializes the activity, setting up UI components, event listeners,
+     * and handling mood creation workflow.
+     *
+     * Key initialization steps:
+     * - Sets up Firebase Firestore connection
+     * - Configures permission launchers for camera and gallery
+     * - Sets up UI event listeners
+     * - Handles incoming mood data
+     *
+     * @param savedInstanceState Previous saved state of the activity
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_mood);
 
+        // Initialize Firestore and moods collection reference
         db = FirebaseFirestore.getInstance();
         moodsRef = db.collection("moods");
 
-        // Initialize permission launchers
+        // Initialize permission launchers for camera and gallery
         cameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
@@ -91,7 +113,7 @@ public class AddMoodActivity extends AppCompatActivity {
         // Initially hide the image preview
         imagePreview.setVisibility(View.GONE);
 
-        // Add text change listener to update character count
+        // Add text change listener to update character count and enforce word limit
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -206,7 +228,9 @@ public class AddMoodActivity extends AppCompatActivity {
         });
     }
 
-    // Helper method to navigate to main activity
+    /**
+     * Navigates to the MainActivity and clears the back stack.
+     */
     private void navigateToMainActivity() {
         Intent newIntent = new Intent(AddMoodActivity.this, MainActivity.class);
         newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -214,13 +238,22 @@ public class AddMoodActivity extends AppCompatActivity {
         finish();
     }
 
-    // Add mood to Firestore
+    /**
+     * Adds a mood entry to Firestore.
+     *
+     * @param mood The Mood object to be saved.
+     */
     public void addMood(Mood mood) {
         DocumentReference docRef = moodsRef.document(mood.getId());
         docRef.set(mood);
     }
 
-    // Helper method to set rounded background with dynamic color
+    /**
+     * Sets a rounded background with dynamic color for a LinearLayout.
+     *
+     * @param layout The LinearLayout to apply the background to.
+     * @param color  The color to set as the background.
+     */
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
@@ -232,7 +265,11 @@ public class AddMoodActivity extends AppCompatActivity {
         layout.setBackground(gradientDrawable);
     }
 
-    // Group menu method
+    /**
+     * Displays a popup menu for selecting a group.
+     *
+     * @param v The view to anchor the popup menu.
+     */
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
@@ -255,7 +292,11 @@ public class AddMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
-    // Image menu method
+    /**
+     * Displays a popup menu for image options (camera, gallery, remove photo).
+     *
+     * @param v The view to anchor the popup menu.
+     */
     private void showImageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");

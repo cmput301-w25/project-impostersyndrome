@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -29,19 +28,23 @@ import com.google.firebase.storage.StorageReference;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MainActivity is the main screen of the application where users can view their mood entries.
+ * It displays a list of moods, allows users to add new moods, and provides options to edit or delete existing moods.
+ *
+ * @author ImposterSyndrome
+ */
 public class MainActivity extends AppCompatActivity {
-    private FirebaseFirestore db;
-    private ListView moodListView;
-    private MoodAdapter moodAdapter;
-    private String userId;
-    private List<DocumentSnapshot> moodDocs = new ArrayList<>();
-
+    private FirebaseFirestore db; // Firestore database instance
+    private ListView moodListView; // ListView to display mood entries
+    private MoodAdapter moodAdapter; // Adapter for the mood list
+    private String userId; // ID of the current user
+    private List<DocumentSnapshot> moodDocs = new ArrayList<>(); // List of mood documents from Firestore
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         moodListView = findViewById(R.id.moodListView);
 
-        // Get userId
+        // Get userId from intent or FirebaseAuth
         userId = getIntent().getStringExtra("userId");
         if (userId == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -93,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("userId", userId);
             startActivity(intent);
         });
-        // Inside onCreate() method, after setting the adapter
 
         // Logout Button
         ImageButton logoutButton = findViewById(R.id.logoutButton);
@@ -116,6 +118,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the MoodAdapter with the provided list of mood documents.
+     *
+     * @param moodDocs The list of mood documents to display.
+     */
     private void setupMoodAdapter(List moodDocs) {
         if (moodDocs != null && !moodDocs.isEmpty()) {
             moodAdapter = new MoodAdapter(this, moodDocs);
@@ -125,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fetches mood entries from Firestore for the current user.
+     *
+     * @param userId The ID of the current user.
+     */
     private void fetchMoods(String userId) {
         db.collection("moods")
                 .whereEqualTo("userId", userId)
@@ -139,6 +151,8 @@ public class MainActivity extends AppCompatActivity {
                             moodAdapter = new MoodAdapter(this, moodDocs);
                             moodListView.setAdapter(moodAdapter);
                             Log.d("MainActivity", "Fetched " + moodDocs.size() + " moods");
+
+                            // Set click listener for mood items
                             moodListView.setOnItemClickListener((parent, view, position, id) -> {
                                 if (moodDocs != null && moodDocs.size() > position) {
                                     DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
@@ -154,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                                         String imageUrl = (String) data.get("imageUrl");
                                         String emojiDescription = (String) data.get("emojiDescription");
 
-
                                         // Pass data to MoodDetailActivity
                                         Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
                                         intent.putExtra("emoji", emoji);
@@ -165,9 +178,11 @@ public class MainActivity extends AppCompatActivity {
                                         intent.putExtra("imageUrl", imageUrl);
                                         intent.putExtra("emojiDescription", emojiDescription);
                                         startActivity(intent);
-                                    }}
+                                    }
+                                }
                             });
 
+                            // Set long-click listener for mood items
                             moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
                                 if (moodDocs != null && moodDocs.size() > position) {
                                     DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
@@ -185,10 +200,20 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Displays a toast message.
+     *
+     * @param message The message to display.
+     */
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Displays a bottom sheet dialog with options to edit or delete a mood.
+     *
+     * @param moodDoc The Firestore document representing the mood.
+     */
     private void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         // Create bottom sheet dialog
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
@@ -209,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("reason", (String) moodDoc.get("reason"));
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
             intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
-            intent.putExtra("group", (String) moodDoc.get("group")); // Pass group data
+            intent.putExtra("group", (String) moodDoc.get("group"));
 
             startActivity(intent);
             bottomSheetDialog.dismiss();
@@ -227,12 +252,16 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-
         // Set view and show dialog
         bottomSheetDialog.setContentView(bottomSheetView);
         bottomSheetDialog.show();
     }
 
+    /**
+     * Deletes a mood and its associated image (if any) from Firestore and Firebase Storage.
+     *
+     * @param moodId The ID of the mood to delete.
+     */
     private void deleteMoodAndImage(String moodId) {
         db.collection("moods").document(moodId)
                 .get()
@@ -267,9 +296,4 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Failed to fetch mood details", e));
     }
-
-
-
-
 }
-

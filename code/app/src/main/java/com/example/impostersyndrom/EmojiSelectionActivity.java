@@ -11,6 +11,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * EmojiSelectionActivity allows users to select an emoji representing their current mood.
+ * Each emoji corresponds to a specific mood, description, and color. Upon selection,
+ * the user is navigated to the AddMoodActivity to add additional details about the mood.
+ *
+ * @author Roshan Banisetti
+ */
 public class EmojiSelectionActivity extends AppCompatActivity {
 
     @Override
@@ -29,7 +36,7 @@ public class EmojiSelectionActivity extends AppCompatActivity {
         ImageView emoji8 = findViewById(R.id.emoji8);
         ImageButton backButton = findViewById(R.id.backButton);
 
-        // List of emoji descriptions and colors
+        // Map to store emoji descriptions and corresponding colors
         Map<String, Pair<String, Integer>> emojiMap = new HashMap<>();
         emojiMap.put("emoji_happy", new Pair<>("Happy", Color.parseColor("#FFCC00"))); // Happy
         emojiMap.put("emoji_confused", new Pair<>("Confused", Color.parseColor("#8B7355"))); // Confused
@@ -88,10 +95,16 @@ public class EmojiSelectionActivity extends AppCompatActivity {
             mood.setEmojiDrawableId(R.drawable.emoji_surprised); // Pass the drawable resource ID
             navigateToViewMood(mood);
         });
+
+        // Back button functionality
         backButton.setOnClickListener(v -> finish());
     }
 
-    // Helper method to navigate to View Mood Screen
+    /**
+     * Navigates to the AddMoodActivity with the selected mood details.
+     *
+     * @param mood The Mood object containing the selected emoji, description, color, and timestamp.
+     */
     private void navigateToViewMood(Mood mood) {
         Intent intent = new Intent(EmojiSelectionActivity.this, AddMoodActivity.class);
         intent.putExtra("mood", mood);
@@ -99,11 +112,22 @@ public class EmojiSelectionActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // Pair class to hold emoji description and color
+    /**
+     * A simple Pair class to hold two related values: description and color.
+     *
+     * @param <F> The type of the first value (description).
+     * @param <S> The type of the second value (color).
+     */
     private static class Pair<F, S> {
-        public final F desc; // Description
-        public final S color; // Color
+        public final F desc; // Description of the emoji
+        public final S color; // Color associated with the emoji
 
+        /**
+         * Constructs a new Pair with the given values.
+         *
+         * @param desc  The description of the emoji.
+         * @param color The color associated with the emoji.
+         */
         public Pair(F desc, S color) {
             this.desc = desc;
             this.color = color;
