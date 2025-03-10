@@ -54,7 +54,16 @@ public class EditTest {
     }
 
     @Test
-    public void testEditMovie(){
+    public void testEditMood(){
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        onView(withId(R.id.login_email)).perform(ViewActions.typeText("gtse1@ualberta.ca"));
+        onView(withId(R.id.login_password)).perform(ViewActions.typeText("gtse1pw"));
+        onView(withId(R.id.loginBtn)).perform(click());
+
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -84,15 +93,18 @@ public class EditTest {
     }
 
     @Test
-    public void testDeleteMovie() {
+    public void testDeleteMood() {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        /*
         onView(withId(R.id.login_email)).perform(ViewActions.typeText("gtse1@ualberta.ca"));
         onView(withId(R.id.login_password)).perform(ViewActions.typeText("gtse1pw"));
         onView(withId(R.id.loginBtn)).perform(click());
+
+         */
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
