@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Logout Button
-        ImageButton logoutButton = findViewById(R.id.logoutButton);
+        ImageButton logoutButton = findViewById(R.id.profileButton);
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut(); // Logs out the user
             showToast("Logged out successfully!");
