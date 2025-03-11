@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -27,9 +28,11 @@ import com.google.firebase.storage.StorageReference;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private MoodAdapter moodAdapter; // Adapter for the mood list
     private String userId; // ID of the current user
     private List<DocumentSnapshot> moodDocs = new ArrayList<>(); // List of mood documents from Firestore
+    private boolean filterByRecentWeek = false; // Flag to track if the filter is active
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +111,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        // Filter Button
+        ImageButton filterButton = findViewById(R.id.filterButton);
+        filterButton.setOnClickListener(v -> showFilterDialog());
     }
 
     @Override
@@ -123,10 +131,45 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param moodDocs The list of mood documents to display.
      */
-    private void setupMoodAdapter(List moodDocs) {
+    private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         if (moodDocs != null && !moodDocs.isEmpty()) {
             moodAdapter = new MoodAdapter(this, moodDocs);
             moodListView.setAdapter(moodAdapter);
+
+            // Set click listener for mood items
+            moodListView.setOnItemClickListener((parent, view, position, id) -> {
+                DocumentSnapshot moodDoc = moodDocs.get(position);
+                Map<String, Object> data = moodDoc.getData();
+
+                if (data != null) {
+                    // Retrieve mood data
+                    String emoji = (String) data.get("emotionalState");
+                    Timestamp timestamp = (Timestamp) data.get("timestamp");
+                    String reason = (String) data.get("reason");
+                    String group = (String) data.get("group");
+                    int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE;
+                    String imageUrl = (String) data.get("imageUrl");
+                    String emojiDescription = (String) data.get("emojiDescription");
+
+                    // Pass data to MoodDetailActivity
+                    Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
+                    intent.putExtra("emoji", emoji);
+                    intent.putExtra("timestamp", timestamp);
+                    intent.putExtra("reason", reason);
+                    intent.putExtra("group", group);
+                    intent.putExtra("color", color);
+                    intent.putExtra("imageUrl", imageUrl);
+                    intent.putExtra("emojiDescription", emojiDescription);
+                    startActivity(intent);
+                }
+            });
+
+            // Set long-click listener for mood items
+            moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
+                DocumentSnapshot moodDoc = moodDocs.get(position);
+                showBottomSheetDialog(moodDoc);
+                return true; // Return true to indicate that the long press was handled
+            });
         } else {
             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
         }
@@ -146,51 +189,8 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         QuerySnapshot snapshot = task.getResult();
                         if (snapshot != null && !snapshot.isEmpty()) {
-                            List moodDocs = snapshot.getDocuments();
-                            setupMoodAdapter(moodDocs);
-                            moodAdapter = new MoodAdapter(this, moodDocs);
-                            moodListView.setAdapter(moodAdapter);
-                            Log.d("MainActivity", "Fetched " + moodDocs.size() + " moods");
-
-                            // Set click listener for mood items
-                            moodListView.setOnItemClickListener((parent, view, position, id) -> {
-                                if (moodDocs != null && moodDocs.size() > position) {
-                                    DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
-                                    Map<String, Object> data = moodDoc.getData();
-
-                                    if (data != null) {
-                                        // Retrieve mood data
-                                        String emoji = (String) data.get("emotionalState");
-                                        Timestamp timestamp = (Timestamp) data.get("timestamp");
-                                        String reason = (String) data.get("reason");
-                                        String group = (String) data.get("group");
-                                        int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE;
-                                        String imageUrl = (String) data.get("imageUrl");
-                                        String emojiDescription = (String) data.get("emojiDescription");
-
-                                        // Pass data to MoodDetailActivity
-                                        Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
-                                        intent.putExtra("emoji", emoji);
-                                        intent.putExtra("timestamp", timestamp);
-                                        intent.putExtra("reason", reason);
-                                        intent.putExtra("group", group);
-                                        intent.putExtra("color", color);
-                                        intent.putExtra("imageUrl", imageUrl);
-                                        intent.putExtra("emojiDescription", emojiDescription);
-                                        startActivity(intent);
-                                    }
-                                }
-                            });
-
-                            // Set long-click listener for mood items
-                            moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
-                                if (moodDocs != null && moodDocs.size() > position) {
-                                    DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
-                                    showBottomSheetDialog(moodDoc);
-                                }
-                                return true; // Return true to indicate that the long press was handled
-                            });
-
+                            moodDocs = snapshot.getDocuments();
+                            applyFilter(); // Apply filter after fetching moods
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
@@ -198,6 +198,61 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed to fetch moods!", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /**
+     * Applies the filter to the mood list based on the current filter settings.
+     */
+    private void applyFilter() {
+        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
+
+        if (filterByRecentWeek) {
+            // Calculate the timestamp for 7 days ago
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, -7);
+            long oneWeekAgo = calendar.getTimeInMillis();
+
+            // Filter moods from the last 7 days
+            for (DocumentSnapshot moodDoc : moodDocs) {
+                Timestamp timestamp = moodDoc.getTimestamp("timestamp");
+                if (timestamp != null && timestamp.toDate().getTime() >= oneWeekAgo) {
+                    filteredMoods.add(moodDoc);
+                }
+            }
+        } else {
+            // Show all moods
+            filteredMoods.addAll(moodDocs);
+        }
+
+        // Update the adapter with the filtered list
+        setupMoodAdapter(filteredMoods);
+    }
+
+    /**
+     * Shows the filter dialog with options to filter moods.
+     */
+    private void showFilterDialog() {
+        // Create the dialog
+        BottomSheetDialog filterDialog = new BottomSheetDialog(this);
+        View filterView = LayoutInflater.from(this).inflate(R.layout.filter_mood_dialog, null);
+
+        // Get views from the dialog
+        CheckBox checkboxRecentWeek = filterView.findViewById(R.id.checkboxRecentWeek);
+        Button applyFilterButton = filterView.findViewById(R.id.applyFilterButton);
+
+        // Set the current filter state
+        checkboxRecentWeek.setChecked(filterByRecentWeek);
+
+        // Handle Apply Filter button click
+        applyFilterButton.setOnClickListener(v -> {
+            filterByRecentWeek = checkboxRecentWeek.isChecked();
+            applyFilter(); // Apply the filter
+            filterDialog.dismiss(); // Close the dialog
+        });
+
+        // Set the view and show the dialog
+        filterDialog.setContentView(filterView);
+        filterDialog.show();
     }
 
     /**
@@ -243,12 +298,9 @@ public class MainActivity extends AppCompatActivity {
         // Handle Delete option
         deleteMood.setOnClickListener(v -> {
             String moodId = moodDoc.getId();
-            String imageUrl = (String) moodDoc.get("imageUrl");
-
             deleteMoodAndImage(moodId);
             showToast("Mood deleted!");
             fetchMoods(userId); // Refresh list after deletion
-
             bottomSheetDialog.dismiss();
         });
 

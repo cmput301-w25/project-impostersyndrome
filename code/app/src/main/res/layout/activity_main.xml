@@ -7,15 +7,32 @@
     android:padding="16dp"
     android:background="@android:color/black">
 
-    <!-- Header -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Header with Filter Button -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/your_moods"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"
-        android:textColor="@color/white"/>
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/your_moods"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"/>
+
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/filter"
+            android:background="@android:color/transparent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Filter Moods"/>
+    </RelativeLayout>
 
     <!-- ListView to Display Moods -->
     <ListView
@@ -62,7 +79,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/search"
-        android:contentDescription="Search"/>
+            android:contentDescription="Search"/>
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -73,7 +90,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/add"
-        android:contentDescription="Add Mood"/>
+            android:contentDescription="Add Mood"/>
 
         <!-- Heart Button -->
         <ImageButton
@@ -84,7 +101,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/heart"
-        android:contentDescription="Favorites"/>
+            android:contentDescription="Favorites"/>
 
         <!-- Profile Button (Larger Person Icon) -->
         <ImageButton
@@ -97,11 +114,4 @@
             android:src="@drawable/white_profile"
             android:contentDescription="Profile"/>
     </LinearLayout>
-
-
-
-
-
-
-
 </LinearLayout>
