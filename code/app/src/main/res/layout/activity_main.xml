@@ -44,7 +44,7 @@
                 android:src="@drawable/filter"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="5dp"
                 android:contentDescription="Filter Moods" />
 
             <!-- Remove the filter button as requested -->
