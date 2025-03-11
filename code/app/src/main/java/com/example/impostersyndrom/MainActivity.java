@@ -1,9 +1,18 @@
 package com.example.impostersyndrom;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -233,25 +242,24 @@ public class MainActivity extends AppCompatActivity {
      */
     private void showFilterDialog() {
         // Create the dialog
-        BottomSheetDialog filterDialog = new BottomSheetDialog(this);
-        View filterView = LayoutInflater.from(this).inflate(R.layout.filter_mood_dialog, null);
+        Dialog filterDialog = new Dialog(this);
+        filterDialog.setContentView(R.layout.filter_mood_dialog);
 
         // Get views from the dialog
-        CheckBox checkboxRecentWeek = filterView.findViewById(R.id.checkboxRecentWeek);
-        Button applyFilterButton = filterView.findViewById(R.id.applyFilterButton);
+        CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
+        ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
 
         // Set the current filter state
         checkboxRecentWeek.setChecked(filterByRecentWeek);
 
-        // Handle Apply Filter button click
-        applyFilterButton.setOnClickListener(v -> {
+        // Handle Tick Button click
+        tickButton.setOnClickListener(v -> {
             filterByRecentWeek = checkboxRecentWeek.isChecked();
             applyFilter(); // Apply the filter
             filterDialog.dismiss(); // Close the dialog
         });
 
-        // Set the view and show the dialog
-        filterDialog.setContentView(filterView);
+        // Show the dialog
         filterDialog.show();
     }
 
