@@ -1,24 +1,24 @@
 package com.example.impostersyndrom;
 
 import android.graphics.Color;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmojiUtils {
 
-    // Map to store emoji keys, descriptions, and colors
-    private static final Map<String, Pair<String, Integer>> emojiMap = new HashMap<>();
+    // List to store emoji data in a specific order
+    private static final List<EmojiData> emojiList = new ArrayList<>();
 
     static {
-        // Initialize the map with emoji data
-        emojiMap.put("emoji_happy", new Pair<>("Happy", Color.parseColor("#FFCC00"))); // Happy
-        emojiMap.put("emoji_confused", new Pair<>("Confused", Color.parseColor("#8B7355"))); // Confused
-        emojiMap.put("emoji_disgust", new Pair<>("Disgust", Color.parseColor("#808000"))); // Disgust
-        emojiMap.put("emoji_angry", new Pair<>("Angry", Color.parseColor("#FF4D00"))); // Angry
-        emojiMap.put("emoji_sad", new Pair<>("Sad", Color.parseColor("#2980B9"))); // Sad
-        emojiMap.put("emoji_fear", new Pair<>("Fear", Color.parseColor("#9B59B6"))); // Fear
-        emojiMap.put("emoji_shame", new Pair<>("Shame", Color.parseColor("#C64B70"))); // Shame
-        emojiMap.put("emoji_surprised", new Pair<>("Surprise", Color.parseColor("#1ABC9C"))); // Surprise
+        // Initialize the list with emoji data
+        emojiList.add(new EmojiData("emoji_happy", "Happy", Color.parseColor("#FFCC00"))); // Happy
+        emojiList.add(new EmojiData("emoji_confused", "Confused", Color.parseColor("#8B7355"))); // Confused
+        emojiList.add(new EmojiData("emoji_disgust", "Disgust", Color.parseColor("#808000"))); // Disgust
+        emojiList.add(new EmojiData("emoji_angry", "Angry", Color.parseColor("#FF4D00"))); // Angry
+        emojiList.add(new EmojiData("emoji_sad", "Sad", Color.parseColor("#2980B9"))); // Sad
+        emojiList.add(new EmojiData("emoji_fear", "Fear", Color.parseColor("#9B59B6"))); // Fear
+        emojiList.add(new EmojiData("emoji_shame", "Shame", Color.parseColor("#C64B70"))); // Shame
+        emojiList.add(new EmojiData("emoji_surprised", "Surprise", Color.parseColor("#1ABC9C"))); // Surprise
     }
 
     /**
@@ -28,8 +28,12 @@ public class EmojiUtils {
      * @return The description of the emoji (e.g., "Happy").
      */
     public static String getDescription(String emojiKey) {
-        Pair<String, Integer> pair = emojiMap.get(emojiKey);
-        return pair != null ? pair.desc : "";
+        for (EmojiData emojiData : emojiList) {
+            if (emojiData.getKey().equals(emojiKey)) {
+                return emojiData.getDescription();
+            }
+        }
+        return ""; // Return empty string if no match is found
     }
 
     /**
@@ -39,71 +43,65 @@ public class EmojiUtils {
      * @return The color associated with the emoji.
      */
     public static int getColor(String emojiKey) {
-        Pair<String, Integer> pair = emojiMap.get(emojiKey);
-        return pair != null ? pair.color : Color.WHITE;
+        for (EmojiData emojiData : emojiList) {
+            if (emojiData.getKey().equals(emojiKey)) {
+                return emojiData.getColor();
+            }
+        }
+        return Color.WHITE; // Return default color if no match is found
     }
 
     /**
      * Gets all emoji keys.
      *
-     * @return A list of all emoji keys.
-     */
-    public static String[] getEmojiKeys() {
-        return emojiMap.keySet().toArray(new String[0]);
-    }
-
-    /**
-     * Gets all emoji descriptions.
-     *
-     * @return A list of all emoji descriptions.
-     */
-    public static String[] getEmojiDescriptions() {
-        return emojiMap.values().stream().map(pair -> pair.desc).toArray(String[]::new);
-    }
-
-    /**
-     * A simple Pair class to hold two related values: description and color.
-     *
-     * @param <F> The type of the first value (description).
-     * @param <S> The type of the second value (color).
-     */
-    public static class Pair<F, S> {
-        public final F desc; // Description of the emoji
-        public final S color; // Color associated with the emoji
-
-        /**
-         * Constructs a new Pair with the given values.
-         *
-         * @param desc  The description of the emoji.
-         * @param color The color associated with the emoji.
-         */
-        public Pair(F desc, S color) {
-            this.desc = desc;
-            this.color = color;
-        }
-    }
-
-    /**
-     * Gets the emoji map.
-     *
-     * @return The map of emoji keys to their descriptions and colors.
-     */
-    public static Map<String, Pair<String, Integer>> getEmojiMap() {
-        return emojiMap;
-    }
-
-    /**
-     * Gets the emoji key for a given description.
-     *
-     * @param description The description of the emoji (e.g., "Happy").
-     * @return The emoji key (e.g., "emoji_happy").
+     * @return An array of all emoji keys.
      */
     public static String getEmojiKey(String description) {
-        for (Map.Entry<String, Pair<String, Integer>> entry : emojiMap.entrySet()) {
-            if (entry.getValue().desc.equals(description)) {
-                return entry.getKey();
+        for (EmojiData emojiData : emojiList) {
+            if (emojiData.getDescription().equals(description)) {
+                return emojiData.getKey();
             }
         }
         return ""; // Return empty string if no match is found
+    }
+
+    /**
+     * Gets the descriptions of all emojis in the correct order.
+     *
+     * @return An array of emoji descriptions.
+     */
+    public static String[] getEmojiDescriptions() {
+        String[] descriptions = new String[emojiList.size()];
+        for (int i = 0; i < emojiList.size(); i++) {
+            descriptions[i] = emojiList.get(i).getDescription();
+        }
+        return descriptions;
+    }
+
+    /**
+     * A class to hold emoji data: key, description, and color.
+     */
+    private static class EmojiData {
+        private final String key; // Key of the emoji
+        private final String description; // Description of the emoji
+        private final int color; // Color associated with the emoji
+
+        public EmojiData(String key, String description, int color) {
+            this.key = key;
+            this.description = description;
+            this.color = color;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public int getColor() {
+            return color;
+        }
     }
 }
