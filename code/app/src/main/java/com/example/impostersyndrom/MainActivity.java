@@ -224,18 +224,22 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up the emotional state spinner
         List<String> emotionalStates = new ArrayList<>();
-        emotionalStates.add(""); // Empty option for no filter
-        emotionalStates.add("emoji_happy");
-        emotionalStates.add("emoji_confused");
-        emotionalStates.add("emoji_disgust");
-        emotionalStates.add("emoji_angry");
-        emotionalStates.add("emoji_sad");
-        emotionalStates.add("emoji_fear");
-        emotionalStates.add("emoji_shame");
-        emotionalStates.add("emoji_surprised");
+        emotionalStates.add("All Moods"); // First item for no filter
+        emotionalStates.addAll(List.of(EmojiUtils.getEmojiDescriptions())); // Add all emoji descriptions
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, emotionalStates);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // List of emoji drawable resource IDs (in the same order as descriptions)
+        List<Integer> emojiDrawables = new ArrayList<>();
+        emojiDrawables.add(R.drawable.emoji_happy);       // Happy
+        emojiDrawables.add(R.drawable.emoji_confused);    // Confused
+        emojiDrawables.add(R.drawable.emoji_disgust);     // Disgust
+        emojiDrawables.add(R.drawable.emoji_angry);       // Angry
+        emojiDrawables.add(R.drawable.emoji_sad);         // Sad
+        emojiDrawables.add(R.drawable.emoji_fear);        // Fear
+        emojiDrawables.add(R.drawable.emoji_shame);       // Shame
+        emojiDrawables.add(R.drawable.emoji_surprised);   // Surprise
+
+        // Create and set the adapter
+        EmojiSpinnerAdapter spinnerAdapter = new EmojiSpinnerAdapter(this, emotionalStates, emojiDrawables);
         emotionalStateSpinner.setAdapter(spinnerAdapter);
 
         // Set the current filter state
@@ -244,7 +248,14 @@ public class MainActivity extends AppCompatActivity {
         // Handle Tick Button click
         tickButton.setOnClickListener(v -> {
             filterByRecentWeek = checkboxRecentWeek.isChecked();
-            String selectedEmotionalState = emotionalStateSpinner.getSelectedItem().toString();
+            String selectedDescription = (String) emotionalStateSpinner.getSelectedItem(); // Cast to String
+            String selectedEmotionalState = "";
+
+            // Map the selected description to the corresponding emoji key
+            if (!selectedDescription.equals("All Moods")) {
+                selectedEmotionalState = EmojiUtils.getEmojiKey(selectedDescription);
+            }
+
             applyFilter(selectedEmotionalState); // Apply the filter
             filterDialog.dismiss(); // Close the dialog
         });

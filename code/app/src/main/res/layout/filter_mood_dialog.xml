@@ -42,7 +42,7 @@
         android:layout_below="@id/title"
         android:layout_marginBottom="16dp" />
 
-    <!-- Emotional State Dropdown -->
+    <!-- Emotional State Label -->
     <TextView
         android:id="@+id/emotionalStateLabel"
         android:layout_width="wrap_content"
@@ -54,13 +54,12 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp" />
 
+    <!-- Emotional State Spinner -->
     <Spinner
         android:id="@+id/emotionalStateSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/emotionalStateLabel"
-        android:background="@drawable/spinner_background"
-        android:padding="8dp"
-        android:popupBackground="@android:color/white" />
+        android:padding="8dp" />
 
 </RelativeLayout>
