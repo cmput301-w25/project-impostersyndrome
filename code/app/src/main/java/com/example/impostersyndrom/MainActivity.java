@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private List<DocumentSnapshot> moodDocs = new ArrayList<>(); // List of mood documents from Firestore
     private boolean filterByRecentWeek = false; // Flag to track if the filter is active
     private MoodFilter moodFilter; // Instance of MoodFilter for filtering logic
+    private String selectedEmotionalState = ""; // Track the selected emoji key
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                         QuerySnapshot snapshot = task.getResult();
                         if (snapshot != null && !snapshot.isEmpty()) {
                             moodDocs = snapshot.getDocuments();
-                            applyFilter(""); // Apply filter after fetching moods (no emotional state filter initially)
+                            applyFilter(selectedEmotionalState); // Apply filter after fetching moods
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
@@ -245,6 +246,15 @@ public class MainActivity extends AppCompatActivity {
         // Set the current filter state
         checkboxRecentWeek.setChecked(filterByRecentWeek);
 
+        // Restore the previously selected emoji (if any)
+        if (!selectedEmotionalState.isEmpty()) {
+            String selectedDescription = EmojiUtils.getDescription(selectedEmotionalState);
+            int selectedPosition = emotionalStates.indexOf(selectedDescription);
+            if (selectedPosition != -1) {
+                emotionalStateSpinner.setSelection(selectedPosition);
+            }
+        }
+
         // Handle Tick Button click
         tickButton.setOnClickListener(v -> {
             filterByRecentWeek = checkboxRecentWeek.isChecked();
@@ -270,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
      * @param emotionalState The emotional state to filter by (empty string for no filter).
      */
     private void applyFilter(String emotionalState) {
+        selectedEmotionalState = emotionalState; // Save the selected emoji key
+
         List<DocumentSnapshot> filteredMoods;
 
         if (filterByRecentWeek) {
