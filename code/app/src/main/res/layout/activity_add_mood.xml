@@ -94,7 +94,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="end"
                             android:layout_marginTop="2dp"
-                            android:text="0/20"
+                            android:text="0/200"
                             android:textColor="@color/white"
                             android:textSize="12sp"
                             android:textStyle="bold" />

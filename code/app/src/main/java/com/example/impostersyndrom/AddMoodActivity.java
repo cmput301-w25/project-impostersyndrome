@@ -128,14 +128,7 @@ public class AddMoodActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 int chars = s.length();
-                String text = s.toString().trim();
-                String[] words = text.split("\\s+"); // Splits based on number of whitespaces
-                int wordCount = words.length;
-
-                if (wordCount > 3) {
-                    s.delete(s.length() - 1, s.length());
-                }
-                reasonCharCount.setText(chars + "/20");
+                reasonCharCount.setText(chars + "/200");
             }
         });
 
