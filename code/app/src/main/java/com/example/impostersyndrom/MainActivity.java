@@ -6,11 +6,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,33 +22,21 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-/**
- * MainActivity is the main screen of the application where users can view their mood entries.
- * It displays a list of moods, allows users to add new moods, and provides options to edit or delete existing moods.
- *
- * @author ImposterSyndrome
- */
 public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db; // Firestore database instance
     private ListView moodListView; // ListView to display mood entries
@@ -53,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private String userId; // ID of the current user
     private List<DocumentSnapshot> moodDocs = new ArrayList<>(); // List of mood documents from Firestore
     private boolean filterByRecentWeek = false; // Flag to track if the filter is active
+    private MoodFilter moodFilter; // Instance of MoodFilter for filtering logic
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
         moodListView = findViewById(R.id.moodListView);
+
+        // Initialize MoodFilter
+        moodFilter = new MoodFilter();
 
         // Get userId from intent or FirebaseAuth
         userId = getIntent().getStringExtra("userId");
@@ -208,24 +203,14 @@ public class MainActivity extends AppCompatActivity {
      * Applies the filter to the mood list based on the current filter settings.
      */
     private void applyFilter() {
-        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
+        List<DocumentSnapshot> filteredMoods;
 
         if (filterByRecentWeek) {
-            // Calculate the timestamp for 7 days ago
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DAY_OF_YEAR, -7);
-            long oneWeekAgo = calendar.getTimeInMillis();
-
-            // Filter moods from the last 7 days
-            for (DocumentSnapshot moodDoc : moodDocs) {
-                Timestamp timestamp = moodDoc.getTimestamp("timestamp");
-                if (timestamp != null && timestamp.toDate().getTime() >= oneWeekAgo) {
-                    filteredMoods.add(moodDoc);
-                }
-            }
+            // Use MoodFilter to filter moods from the last 7 days
+            filteredMoods = moodFilter.filterByRecentWeek(moodDocs);
         } else {
             // Show all moods
-            filteredMoods.addAll(moodDocs);
+            filteredMoods = new ArrayList<>(moodDocs);
         }
 
         // Update the adapter with the filtered list
@@ -243,13 +228,12 @@ public class MainActivity extends AppCompatActivity {
         // Set dialog window attributes
         Window window = filterDialog.getWindow();
         if (window != null) {
-            // Set the dialog to match the screen width
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setBackgroundDrawableResource(android.R.color.transparent); // Transparent background
             window.setGravity(Gravity.CENTER); // Center the dialog vertically
         }
 
-        // Get views f  rom the dialog
+        // Get views from the dialog
         CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
         ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
 
