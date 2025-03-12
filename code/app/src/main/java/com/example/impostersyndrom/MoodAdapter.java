@@ -88,7 +88,7 @@ public class MoodAdapter extends ArrayAdapter {
             reasonView.setText(reason != null ? reason : "No reason provided");
 
             // Set the group
-            groupView.setText(group != null ? group : "No group provided");
+            //groupView.setText(group != null ? group : "No group provided");
 
             // Apply rounded background color
             setRoundedBackground(rootLayout, color);
