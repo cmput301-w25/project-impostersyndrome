@@ -82,7 +82,7 @@
                                 android:layout_height="wrap_content"
                                 android:background="@null"
                                 android:hint="@string/addReasonHint"
-                                android:maxLength="20"
+                                android:maxLength="200"
                                 android:padding="8dp"
                                 android:singleLine="true"
                                 android:textColorHint="#546E7A" />
