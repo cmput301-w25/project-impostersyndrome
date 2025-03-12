@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -237,7 +240,16 @@ public class MainActivity extends AppCompatActivity {
         Dialog filterDialog = new Dialog(this);
         filterDialog.setContentView(R.layout.filter_mood_dialog);
 
-        // Get views from the dialog
+        // Set dialog window attributes
+        Window window = filterDialog.getWindow();
+        if (window != null) {
+            // Set the dialog to match the screen width
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawableResource(android.R.color.transparent); // Transparent background
+            window.setGravity(Gravity.CENTER); // Center the dialog vertically
+        }
+
+        // Get views f  rom the dialog
         CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
         ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
 
