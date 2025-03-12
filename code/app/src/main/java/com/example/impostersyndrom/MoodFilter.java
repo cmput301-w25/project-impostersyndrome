@@ -33,4 +33,24 @@ public class MoodFilter {
 
         return filteredMoods;
     }
+
+    /**
+     * Filters moods by emotional state.
+     *
+     * @param moodDocs The list of mood documents to filter.
+     * @param emotionalState The emotional state to filter by.
+     * @return A list of moods with the specified emotional state.
+     */
+    public List<DocumentSnapshot> filterByEmotionalState(List<DocumentSnapshot> moodDocs, String emotionalState) {
+        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
+
+        for (DocumentSnapshot moodDoc : moodDocs) {
+            String state = moodDoc.getString("emotionalState");
+            if (state != null && state.equals(emotionalState)) {
+                filteredMoods.add(moodDoc);
+            }
+        }
+
+        return filteredMoods;
+    }
 }
