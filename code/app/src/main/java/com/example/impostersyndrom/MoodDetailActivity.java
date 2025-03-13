@@ -31,53 +31,104 @@ import java.util.Locale;
  */
 public class MoodDetailActivity extends AppCompatActivity {
 
-    /**
-     * Logging tag for debugging purposes.
-     */
     private static final String TAG = "MoodDetailActivity";
+
+    // UI Components
+    private ImageView emojiView;
+    private TextView timeView;
+    private TextView reasonView;
+    private TextView emojiDescView;
+    private TextView groupView;
+    private View emojiRectangle;
+    private ImageView imageUrlView;
+    private ImageButton backButton;
+
+    // Mood Data
+    private String emoji;
+    private Timestamp timestamp;
+    private String reason;
+    private String group;
+    private int color;
+    private String emojiDescription;
+    private String imageUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mood_detail);
 
-        // Initialize views
-        ImageView emojiView = findViewById(R.id.emojiView);
-        TextView timeView = findViewById(R.id.timeView);
-        TextView reasonView = findViewById(R.id.reasonView);
-        TextView emojiDescView = findViewById(R.id.emojiDescription);
-        TextView groupView = findViewById(R.id.groupView);
-        View emojiRectangle = findViewById(R.id.emojiRectangle);
-        ImageView imageUrlView = findViewById(R.id.imageUrlView);
-        ImageButton backButton = findViewById(R.id.backButton);
+        // Initialize UI components
+        initializeViews();
 
         // Retrieve data from Intent
+        retrieveIntentData();
+
+        // Set up UI with mood data
+        setupUI();
+
+        // Set up back button click listener
+        setupBackButton();
+    }
+
+    /**
+     * Initializes all UI components.
+     */
+    private void initializeViews() {
+        emojiView = findViewById(R.id.emojiView);
+        timeView = findViewById(R.id.timeView);
+        reasonView = findViewById(R.id.reasonView);
+        emojiDescView = findViewById(R.id.emojiDescription);
+        groupView = findViewById(R.id.groupView);
+        emojiRectangle = findViewById(R.id.emojiRectangle);
+        imageUrlView = findViewById(R.id.imageUrlView);
+        backButton = findViewById(R.id.backButton);
+    }
+
+    /**
+     * Retrieves mood data from the Intent.
+     */
+    private void retrieveIntentData() {
         Intent intent = getIntent();
-        String emoji = intent.getStringExtra("emoji");
-        Timestamp timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
-        String reason = intent.getStringExtra("reason");
-        String group = intent.getStringExtra("group");
-        int color = intent.getIntExtra("color", Color.WHITE);
-        String emojiDescription = intent.getStringExtra("emojiDescription");
-        String imageUrl = intent.getStringExtra("imageUrl");
+        emoji = intent.getStringExtra("emoji");
+        timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
+        reason = intent.getStringExtra("reason");
+        group = intent.getStringExtra("group");
+        color = intent.getIntExtra("color", Color.WHITE);
+        emojiDescription = intent.getStringExtra("emojiDescription");
+        imageUrl = intent.getStringExtra("imageUrl");
 
         // Log received data for debugging
+        logMoodData();
+    }
+
+    /**
+     * Logs mood data for debugging purposes.
+     */
+    private void logMoodData() {
         Log.d(TAG, "Emoji: " + emoji);
         Log.d(TAG, "Reason: " + reason);
         Log.d(TAG, "Group: " + group);
         Log.d(TAG, "Emoji Description: " + emojiDescription);
         Log.d(TAG, "Image URL: " + (imageUrl != null ? imageUrl : "null"));
+    }
 
-        // Set click listener for the back button
-        backButton.setOnClickListener(v -> {
-            // Navigate to MainActivity
-            Intent intent2 = new Intent(MoodDetailActivity.this, MainActivity.class);
-            intent2.putExtra("userId", getIntent().getStringExtra("userId")); // Pass userId back
-            startActivity(intent2);
-            finish();
-        });
+    /**
+     * Sets up the UI with mood data.
+     */
+    private void setupUI() {
+        setEmojiImage();
+        setTimestamp();
+        setReason();
+        setGroup();
+        setEmojiDescription();
+        loadImage();
+        setRoundedBackground();
+    }
 
-        // Set the custom emoji image
+    /**
+     * Sets the custom emoji image.
+     */
+    private void setEmojiImage() {
         if (emoji != null) {
             int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
             if (emojiResId != 0) {
@@ -86,32 +137,49 @@ public class MoodDetailActivity extends AppCompatActivity {
                 Log.e(TAG, "Could not find drawable resource for emoji: " + emoji);
             }
         }
+    }
 
-        // Set the time
+    /**
+     * Sets the formatted timestamp.
+     */
+    private void setTimestamp() {
         if (timestamp != null) {
             String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
             timeView.setText(formattedTime);
         } else {
             timeView.setText("Unknown time");
         }
+    }
 
-        // Set the reason
+    /**
+     * Sets the mood reason.
+     */
+    private void setReason() {
         reasonView.setText(reason != null ? reason : "No reason provided");
+    }
 
-        // Set the group
+    /**
+     * Sets the group context.
+     */
+    private void setGroup() {
         groupView.setText(group != null ? group : "No group provided");
+    }
 
-        // Set the emoji description
+    /**
+     * Sets the emoji description.
+     */
+    private void setEmojiDescription() {
         emojiDescView.setText(emojiDescription != null ? emojiDescription : "No emoji");
+    }
 
-        // Load the image from URL using Glide
+    /**
+     * Loads the image from the URL using Glide.
+     */
+    private void loadImage() {
         if (imageUrl != null && !imageUrl.isEmpty()) {
-            // Make sure ImageView is visible
             imageUrlView.setVisibility(View.VISIBLE);
-
             Log.d(TAG, "Loading image from URL: " + imageUrl);
 
-            // Use Glide to load the image with error handling
             Glide.with(this)
                     .load(imageUrl)
                     .into(imageUrlView);
@@ -119,13 +187,29 @@ public class MoodDetailActivity extends AppCompatActivity {
             Log.d(TAG, "No image URL provided, hiding ImageView");
             imageUrlView.setVisibility(View.GONE);
         }
+    }
 
-        // Apply background to the emoji rectangle, not the root layout
+    /**
+     * Applies a rounded background to the emoji rectangle.
+     */
+    private void setRoundedBackground() {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
         gradientDrawable.setCornerRadius(50);
         gradientDrawable.setColor(color);
         gradientDrawable.setStroke(2, Color.BLACK);
         emojiRectangle.setBackground(gradientDrawable);
+    }
+
+    /**
+     * Sets up the back button click listener.
+     */
+    private void setupBackButton() {
+        backButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MoodDetailActivity.this, MainActivity.class);
+            intent.putExtra("userId", getIntent().getStringExtra("userId")); // Pass userId back
+            startActivity(intent);
+            finish();
+        });
     }
 }
