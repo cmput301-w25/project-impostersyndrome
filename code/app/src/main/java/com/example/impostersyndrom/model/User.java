@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.model;
 
 /**
  * The User class represents a singleton instance of the current user in the application.

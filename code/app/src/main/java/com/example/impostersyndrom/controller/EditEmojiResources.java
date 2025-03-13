@@ -1,6 +1,8 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.controller;
 
 import android.graphics.Color;
+
+import com.example.impostersyndrom.R;
 
 /**
  * EditEmojiResources is a utility class that provides methods to retrieve

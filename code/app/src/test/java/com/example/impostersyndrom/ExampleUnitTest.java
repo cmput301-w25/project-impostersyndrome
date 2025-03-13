@@ -2,7 +2,8 @@ package com.example.impostersyndrom;
 
 import static org.junit.Assert.*;
 
-import org.junit.Before;
+import com.example.impostersyndrom.controller.EditEmojiResources;
+
 import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;

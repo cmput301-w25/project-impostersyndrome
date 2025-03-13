@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.model;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -8,6 +8,28 @@ import java.util.Calendar;
 import java.util.List;
 
 public class MoodFilter {
+
+    /**
+     * Filters moods by both recent week and emotional state.
+     *
+     * @param moodDocs           The list of mood documents to filter.
+     * @param filterByRecentWeek Whether to filter by the recent week.
+     * @param emotionalState     The emotional state to filter by (empty string for no filter).
+     * @return The filtered list of mood documents.
+     */
+    public List<DocumentSnapshot> applyFilter(List<DocumentSnapshot> moodDocs, boolean filterByRecentWeek, String emotionalState) {
+        List<DocumentSnapshot> filteredMoods = new ArrayList<>(moodDocs);
+
+        if (filterByRecentWeek) {
+            filteredMoods = filterByRecentWeek(filteredMoods);
+        }
+
+        if (!emotionalState.isEmpty()) {
+            filteredMoods = filterByEmotionalState(filteredMoods, emotionalState);
+        }
+
+        return filteredMoods;
+    }
 
     /**
      * Filters moods from the last 7 days.
@@ -37,7 +59,7 @@ public class MoodFilter {
     /**
      * Filters moods by emotional state.
      *
-     * @param moodDocs The list of mood documents to filter.
+     * @param moodDocs       The list of mood documents to filter.
      * @param emotionalState The emotional state to filter by.
      * @return A list of moods with the specified emotional state.
      */
