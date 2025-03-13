@@ -28,7 +28,7 @@ public class EditEmojiActivity extends AppCompatActivity {
 
         // Initialize UI components
         ImageView currentEmojiView = findViewById(R.id.EditEmojiView);
-        currentEmojiView.setImageResource(getEmojiResource(selectedEmoji));
+        currentEmojiView.setImageResource(EditEmojiResources.getEmojiResource(selectedEmoji));
 
         // Set click listeners for each emoji selection
         findViewById(R.id.emojiI).setOnClickListener(v -> returnEmoji("emoji_happy"));
@@ -39,28 +39,6 @@ public class EditEmojiActivity extends AppCompatActivity {
         findViewById(R.id.emojiVI).setOnClickListener(v -> returnEmoji("emoji_fear"));
         findViewById(R.id.emojiIII).setOnClickListener(v -> returnEmoji("emoji_disgust"));
         findViewById(R.id.emojiVII).setOnClickListener(v -> returnEmoji("emoji_shame"));
-    }
-
-    /**
-     * Converts an emoji name into its corresponding drawable resource ID.
-     *
-     * @param emojiName The name of the emoji (e.g., "emoji_happy").
-     * @return The drawable resource ID for the emoji, or a default emoji if not found.
-     */
-    private int getEmojiResource(String emojiName) {
-        if (emojiName == null) return R.drawable.emoji_confused; // Default emoji
-
-        switch (emojiName.toLowerCase()) {
-            case "emoji_happy": return R.drawable.emoji_happy;
-            case "emoji_sad": return R.drawable.emoji_sad;
-            case "emoji_angry": return R.drawable.emoji_angry;
-            case "emoji_confused": return R.drawable.emoji_confused;
-            case "emoji_surprised": return R.drawable.emoji_surprised;
-            case "emoji_fear": return R.drawable.emoji_fear;
-            case "emoji_disgust": return R.drawable.emoji_disgust;
-            case "emoji_shame": return R.drawable.emoji_shame;
-            default: return R.drawable.emoji_confused;
-        }
     }
 
     /**
