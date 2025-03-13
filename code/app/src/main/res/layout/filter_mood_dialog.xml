@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dialog_background"
+    android:padding="24dp">
+
+
+<ImageButton
+    android:id="@+id/tickButton"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:src="@drawable/white_checkmark"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:layout_alignParentEnd="true"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="8dp"
+    android:contentDescription="Apply Filter" />
+
+    <!-- Show Mood from Most Recent Week Checkbox -->
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tickButton"
+        android:layout_marginTop="-27dp"
+        android:layout_marginBottom="16dp"
+        android:text="Filter Mood"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <CheckBox
+        android:id="@+id/checkboxRecentWeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Mood from most recent week"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:padding="8dp"
+        android:layout_below="@id/title"
+        android:layout_marginBottom="16dp" />
+
+    </RelativeLayout>
