@@ -1,11 +1,10 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -13,7 +12,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.view.MenuInflater;
 import android.widget.PopupMenu;
 
@@ -25,6 +23,9 @@ import android.content.pm.PackageManager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.impostersyndrom.controller.EditEmojiResources;
+import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.ImageHandler;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;

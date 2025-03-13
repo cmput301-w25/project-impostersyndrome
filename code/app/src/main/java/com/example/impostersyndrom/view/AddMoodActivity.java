@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,6 +19,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.ImageHandler;
+import com.example.impostersyndrom.model.Mood;
+import com.example.impostersyndrom.model.MoodDataManager;
+import com.example.impostersyndrom.model.User;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;

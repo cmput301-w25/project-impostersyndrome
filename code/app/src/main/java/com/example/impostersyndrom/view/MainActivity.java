@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -21,6 +21,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.impostersyndrom.controller.MoodAdapter;
+import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.EmojiUtils;
+import com.example.impostersyndrom.model.MoodDataCache;
+import com.example.impostersyndrom.model.MoodDataManager;
+import com.example.impostersyndrom.model.MoodFilter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;

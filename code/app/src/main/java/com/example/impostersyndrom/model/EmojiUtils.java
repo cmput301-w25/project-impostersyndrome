@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.model;
 
 import android.graphics.Color;
 import java.util.ArrayList;

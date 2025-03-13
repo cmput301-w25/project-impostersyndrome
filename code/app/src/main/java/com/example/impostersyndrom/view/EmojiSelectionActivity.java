@@ -1,11 +1,15 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.EmojiUtils;
+import com.example.impostersyndrom.model.Mood;
+
 import java.util.Date;
 
 /**

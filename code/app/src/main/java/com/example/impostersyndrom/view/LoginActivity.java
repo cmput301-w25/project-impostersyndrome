@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.MoodDataCache;
+import com.example.impostersyndrom.model.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;

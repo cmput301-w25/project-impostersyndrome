@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.controller;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.impostersyndrom.R;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 

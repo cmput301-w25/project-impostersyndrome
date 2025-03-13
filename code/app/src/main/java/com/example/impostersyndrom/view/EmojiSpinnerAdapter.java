@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.example.impostersyndrom.R;
 
 import java.util.List;
 

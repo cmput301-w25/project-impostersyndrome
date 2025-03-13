@@ -1,11 +1,13 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.impostersyndrom.controller.EditEmojiResources;
+import com.example.impostersyndrom.R;
 
 /**
  * EditEmojiActivity allows users to select a new emoji for their mood entry.

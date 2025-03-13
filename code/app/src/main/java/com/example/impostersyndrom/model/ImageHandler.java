@@ -1,4 +1,4 @@
-package com.example.impostersyndrom;
+package com.example.impostersyndrom.model;
 
 import android.app.Activity;
 import android.content.Intent;
