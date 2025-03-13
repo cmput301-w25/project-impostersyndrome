@@ -26,6 +26,7 @@ import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.User;
 
+
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -82,6 +83,7 @@ public class AddMoodActivity extends AppCompatActivity {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
+                        // Permission granted, launch camera intent
                         imageHandler.openCamera(cameraLauncher);
                     } else {
                         Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
@@ -93,6 +95,7 @@ public class AddMoodActivity extends AppCompatActivity {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
+                        // Permission granted, launch gallery intent
                         imageHandler.openGallery(galleryLauncher);
                     } else {
                         Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();

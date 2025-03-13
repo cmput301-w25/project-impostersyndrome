@@ -42,11 +42,5 @@
             android:layout_marginBottom="4dp"/>
 
         <!-- Group/Context TextView -->
-        <TextView
-            android:id="@+id/groupView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@android:color/black"/>
     </LinearLayout>
 </LinearLayout>
