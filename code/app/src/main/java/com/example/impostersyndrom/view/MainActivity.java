@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -18,8 +19,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.impostersyndrom.controller.MoodAdapter;
 import com.example.impostersyndrom.R;
@@ -28,6 +31,7 @@ import com.example.impostersyndrom.model.MoodDataCache;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.MoodFilter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -41,8 +45,13 @@ public class MainActivity extends AppCompatActivity {
     // UI Components
     private ListView moodListView;
     private ImageButton addMoodButton;
-    private ImageButton logoutButton;
+    private ImageButton profileButton;
     private ImageButton filterButton;
+    private ImageButton menuButton;
+    private DrawerLayout drawerLayout;
+    private NavigationView innerNavigationView;
+    private LinearLayout logoutContainer;
+    private TextView userEmailTextView;
 
     // Data
     private List<DocumentSnapshot> moodDocs = new ArrayList<>();
@@ -99,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up button click listeners
         setupButtonListeners();
+
+        // Set up navigation drawer with user information
+        setupNavigationDrawer();
     }
 
     @Override
@@ -116,8 +128,45 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
         moodListView = findViewById(R.id.moodListView);
         addMoodButton = findViewById(R.id.addMoodButton);
-        logoutButton = findViewById(R.id.profileButton);
+        profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
+        menuButton = findViewById(R.id.menuButton);
+        drawerLayout = findViewById(R.id.drawerLayout);
+
+        // New navigation components
+        innerNavigationView = findViewById(R.id.innerNavigationView);
+        logoutContainer = findViewById(R.id.logoutContainer);
+        userEmailTextView = findViewById(R.id.userEmailTextView);
+    }
+
+    /**
+     * Sets up the navigation drawer with user information.
+     */
+    private void setupNavigationDrawer() {
+        // Set up user email in the drawer header
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            if (email != null) {
+                userEmailTextView.setText(email);
+            }
+        }
+
+        // Set up navigation item click listener for the inner navigation view
+        innerNavigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            // Handle navigation item clicks
+            // Add your navigation handling code here
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        // Setup the logout button
+        logoutContainer.setOnClickListener(v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            logoutUser();
+        });
     }
 
     /**
@@ -125,8 +174,16 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setupButtonListeners() {
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
-        logoutButton.setOnClickListener(v -> logoutUser());
+        profileButton.setOnClickListener(v -> {
+            // Profile button action
+            // You can navigate to profile screen or handle other actions
+        });
         filterButton.setOnClickListener(v -> showFilterDialog());
+        menuButton.setOnClickListener(v -> {
+            if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
 
     /**
