@@ -10,9 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private List<DocumentSnapshot> moodDocs = new ArrayList<>(); // List of mood documents from Firestore
     private boolean filterByRecentWeek = false; // Flag to track if the filter is active
     private MoodFilter moodFilter; // Instance of MoodFilter for filtering logic
+    private String selectedEmotionalState = ""; // Track the selected emoji key
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                         QuerySnapshot snapshot = task.getResult();
                         if (snapshot != null && !snapshot.isEmpty()) {
                             moodDocs = snapshot.getDocuments();
-                            applyFilter(); // Apply filter after fetching moods
+                            applyFilter(selectedEmotionalState); // Apply filter after fetching moods
                         } else {
                             Toast.makeText(this, "No moods found!", Toast.LENGTH_SHORT).show();
                         }
@@ -197,24 +200,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "Failed to fetch moods!", Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    /**
-     * Applies the filter to the mood list based on the current filter settings.
-     */
-    private void applyFilter() {
-        List<DocumentSnapshot> filteredMoods;
-
-        if (filterByRecentWeek) {
-            // Use MoodFilter to filter moods from the last 7 days
-            filteredMoods = moodFilter.filterByRecentWeek(moodDocs);
-        } else {
-            // Show all moods
-            filteredMoods = new ArrayList<>(moodDocs);
-        }
-
-        // Update the adapter with the filtered list
-        setupMoodAdapter(filteredMoods);
     }
 
     /**
@@ -235,20 +220,85 @@ public class MainActivity extends AppCompatActivity {
 
         // Get views from the dialog
         CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
+        Spinner emotionalStateSpinner = filterDialog.findViewById(R.id.emotionalStateSpinner);
         ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
+
+        // Set up the emotional state spinner
+        List<String> emotionalStates = new ArrayList<>();
+        emotionalStates.add("All Moods"); // First item for no filter
+        emotionalStates.addAll(List.of(EmojiUtils.getEmojiDescriptions())); // Add all emoji descriptions
+
+        // List of emoji drawable resource IDs (in the same order as descriptions)
+        List<Integer> emojiDrawables = new ArrayList<>();
+        emojiDrawables.add(R.drawable.emoji_happy);       // Happy
+        emojiDrawables.add(R.drawable.emoji_confused);    // Confused
+        emojiDrawables.add(R.drawable.emoji_disgust);     // Disgust
+        emojiDrawables.add(R.drawable.emoji_angry);       // Angry
+        emojiDrawables.add(R.drawable.emoji_sad);         // Sad
+        emojiDrawables.add(R.drawable.emoji_fear);        // Fear
+        emojiDrawables.add(R.drawable.emoji_shame);       // Shame
+        emojiDrawables.add(R.drawable.emoji_surprised);   // Surprise
+
+        // Create and set the adapter
+        EmojiSpinnerAdapter spinnerAdapter = new EmojiSpinnerAdapter(this, emotionalStates, emojiDrawables);
+        emotionalStateSpinner.setAdapter(spinnerAdapter);
 
         // Set the current filter state
         checkboxRecentWeek.setChecked(filterByRecentWeek);
 
+        // Restore the previously selected emoji (if any)
+        if (!selectedEmotionalState.isEmpty()) {
+            String selectedDescription = EmojiUtils.getDescription(selectedEmotionalState);
+            int selectedPosition = emotionalStates.indexOf(selectedDescription);
+            if (selectedPosition != -1) {
+                emotionalStateSpinner.setSelection(selectedPosition);
+            }
+        }
+
         // Handle Tick Button click
         tickButton.setOnClickListener(v -> {
             filterByRecentWeek = checkboxRecentWeek.isChecked();
-            applyFilter(); // Apply the filter
+            String selectedDescription = (String) emotionalStateSpinner.getSelectedItem(); // Cast to String
+            String selectedEmotionalState = "";
+
+            // Map the selected description to the corresponding emoji key
+            if (!selectedDescription.equals("All Moods")) {
+                selectedEmotionalState = EmojiUtils.getEmojiKey(selectedDescription);
+            }
+
+            applyFilter(selectedEmotionalState); // Apply the filter
             filterDialog.dismiss(); // Close the dialog
         });
 
         // Show the dialog
         filterDialog.show();
+    }
+
+    /**
+     * Applies the filter to the mood list based on the current filter settings.
+     *
+     * @param emotionalState The emotional state to filter by (empty string for no filter).
+     */
+    private void applyFilter(String emotionalState) {
+        selectedEmotionalState = emotionalState; // Save the selected emoji key
+
+        List<DocumentSnapshot> filteredMoods;
+
+        if (filterByRecentWeek) {
+            // Filter by recent week
+            filteredMoods = moodFilter.filterByRecentWeek(moodDocs);
+        } else {
+            // Show all moods
+            filteredMoods = new ArrayList<>(moodDocs);
+        }
+
+        // Filter by emotional state if one is selected
+        if (!emotionalState.isEmpty()) {
+            filteredMoods = moodFilter.filterByEmotionalState(filteredMoods, emotionalState);
+        }
+
+        // Update the adapter with the filtered list
+        setupMoodAdapter(filteredMoods);
     }
 
     /**
