@@ -5,8 +5,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -28,7 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class AddMoodActivity extends AppCompatActivity {
-    private MoodRepository moodRepository; // Handles Firestore operations
+    private MoodDataManager moodDataManager; // Handles Firestore operations
     private ImageHandler imageHandler; // Handles image selection and uploading
     private String selectedGroup; // Stores the selected group for the mood
     private String imageUrl = null; // URL of the uploaded image
@@ -45,7 +43,7 @@ public class AddMoodActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_mood);
 
         // Initialize Firestore and moods collection reference
-        moodRepository = new MoodRepository();
+        moodDataManager = new MoodDataManager();
 
         // Initialize views
         ImageView emojiView = findViewById(R.id.emojiView);
@@ -170,7 +168,7 @@ public class AddMoodActivity extends AppCompatActivity {
      * @param mood The Mood object to be saved.
      */
     private void saveMood(Mood mood) {
-        moodRepository.addMood(mood, new MoodRepository.OnMoodAddedListener() {
+        moodDataManager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
             @Override
             public void onMoodAdded() {
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
