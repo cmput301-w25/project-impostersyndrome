@@ -2,17 +2,14 @@ package com.example.impostersyndrom;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -22,12 +19,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * ImageHandler is a utility class that handles image selection, compression, and uploading to Firebase Storage.
- * It supports both gallery and camera sources for images and provides callbacks for image loading and upload events.
- *
- * @author Eric Mo
- */
 public class ImageHandler {
     private static final int MAX_IMAGE_SIZE = 65536; // Maximum allowed image size in bytes
 
@@ -95,17 +86,30 @@ public class ImageHandler {
      */
     public void handleActivityResult(int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK && data != null) {
-            if (data.getData() != null) { // Gallery
-                Uri imageUri = data.getData();
+            Uri imageUri = null;
+
+            // Check if the result is from the gallery
+            if (data.getData() != null) {
+                imageUri = data.getData();
+                Log.d("ImageHandler", "Gallery result: " + imageUri.toString());
+            }
+            // Check if the result is from the camera
+            else if (data.getExtras() != null && data.getExtras().get("data") != null) {
+                selectedImageBitmap = (Bitmap) data.getExtras().get("data");
+                Log.d("ImageHandler", "Camera result: Bitmap received");
+            }
+
+            // Load the image if a valid URI or Bitmap is available
+            if (imageUri != null) {
                 try {
                     selectedImageBitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), imageUri);
+                    Log.d("ImageHandler", "Image loaded from gallery");
                 } catch (IOException e) {
+                    Log.e("ImageHandler", "Failed to load image: " + e.getMessage());
                     showToast("Failed to load image");
                     clearImage();
                     return;
                 }
-            } else if (data.getExtras() != null) { // Camera
-                selectedImageBitmap = (Bitmap) data.getExtras().get("data");
             }
 
             if (selectedImageBitmap != null) {
@@ -115,9 +119,11 @@ public class ImageHandler {
                     imageLoadedListener.onImageLoaded();
                 }
             } else {
+                Log.d("ImageHandler", "No image selected or loaded");
                 clearImage();
             }
         } else {
+            Log.d("ImageHandler", "Activity result not OK or data is null");
             clearImage();
         }
     }

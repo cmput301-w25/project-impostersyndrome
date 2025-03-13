@@ -22,48 +22,22 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * AddMoodActivity is responsible for allowing users to add a new mood entry.
- * It provides functionality to select an emoji, add a reason, choose a group, and optionally upload an image.
- * The mood data is then saved to Firestore.
- * @author Roshan Banisetti
- * @author Eric
- * @author Garrick
- */
 public class AddMoodActivity extends AppCompatActivity {
-    private FirebaseFirestore db; // Firestore database instance
-    private CollectionReference moodsRef; // Reference to the "moods" collection in Firestore
-    private String selectedGroup; // Stores the selected group for the mood
+    private MoodRepository moodRepository; // Handles Firestore operations
     private ImageHandler imageHandler; // Handles image selection and uploading
-    private ActivityResultLauncher<Intent> galleryLauncher; // Launcher for gallery intent
-    private ActivityResultLauncher<Intent> cameraLauncher; // Launcher for camera intent
+    private String selectedGroup; // Stores the selected group for the mood
     private String imageUrl = null; // URL of the uploaded image
-    private TextView reasonCharCount; // Displays character count for the reason text
-    private ImageView imagePreview; // Preview of the selected image
-    private ActivityResultLauncher<String> cameraPermissionLauncher; // Launcher for camera permission request
-    private ActivityResultLauncher<String> galleryPermissionLauncher; // Launcher for gallery permission request
 
-    /**
-     * Initializes the activity, setting up UI components, event listeners,
-     * and handling mood creation workflow.
-     *
-     * Key initialization steps:
-     * - Sets up Firebase Firestore connection
-     * - Configures permission launchers for camera and gallery
-     * - Sets up UI event listeners
-     * - Handles incoming mood data
-     *
-     * @param savedInstanceState Previous saved state of the activity
-     */
+    // ActivityResultLaunchers for gallery and camera
+    private ActivityResultLauncher<Intent> galleryLauncher;
+    private ActivityResultLauncher<Intent> cameraLauncher;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
+    private ActivityResultLauncher<String> galleryPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,31 +45,7 @@ public class AddMoodActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_mood);
 
         // Initialize Firestore and moods collection reference
-        db = FirebaseFirestore.getInstance();
-        moodsRef = db.collection("moods");
-
-        // Initialize permission launchers for camera and gallery
-        cameraPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (isGranted) {
-                        // Permission granted, launch camera intent
-                        imageHandler.openCamera(cameraLauncher);
-                    } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        galleryPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (isGranted) {
-                        // Permission granted, launch gallery intent
-                        imageHandler.openGallery(galleryLauncher);
-                    } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        moodRepository = new MoodRepository();
 
         // Initialize views
         ImageView emojiView = findViewById(R.id.emojiView);
@@ -103,44 +53,48 @@ public class AddMoodActivity extends AppCompatActivity {
         TextView timeView = findViewById(R.id.dateTimeView);
         LinearLayout emojiRectangle = findViewById(R.id.emojiRectangle);
         EditText addReasonEdit = findViewById(R.id.addReasonEdit);
-        reasonCharCount = findViewById(R.id.reasonCharCount);
+        TextView reasonCharCount = findViewById(R.id.reasonCharCount);
         ImageButton submitButton = findViewById(R.id.submitButton);
         ImageButton backButton = findViewById(R.id.backButton);
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
-        imagePreview = findViewById(R.id.imagePreview);
-
-        // Initially hide the image preview
-        imagePreview.setVisibility(View.GONE);
-
-        // Add text change listener to update character count and enforce word limit
-        addReasonEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not needed
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Not needed
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                int chars = s.length();
-                String text = s.toString().trim();
-                String[] words = text.split("\\s+"); // Splits based on number of whitespaces
-                int wordCount = words.length;
-
-                if (wordCount > 3) {
-                    s.delete(s.length() - 1, s.length());
-                }
-                reasonCharCount.setText(chars + "/20");
-            }
-        });
+        ImageView imagePreview = findViewById(R.id.imagePreview);
 
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
+
+        // Initialize ActivityResultLaunchers
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
+        );
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
+        );
+
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        imageHandler.openCamera(cameraLauncher);
+                    } else {
+                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        galleryPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        imageHandler.openGallery(galleryLauncher);
+                    } else {
+                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
         // Set up the listener to show/hide image preview
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
@@ -154,18 +108,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 imagePreview.setVisibility(View.GONE);
             }
         });
-
-        // Start ActivityResultLauncher for gallery
-        galleryLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
-        );
-
-        // Start ActivityResultLauncher for camera
-        cameraLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
-        );
 
         // Retrieve the Mood object from the intent
         Intent intent = getIntent();
@@ -193,9 +135,7 @@ public class AddMoodActivity extends AppCompatActivity {
         cameraMenuButton.setOnClickListener(v -> showImageMenu(v));
 
         // Back button functionality
-        backButton.setOnClickListener(v -> {
-            finish();
-        });
+        backButton.setOnClickListener(v -> finish());
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
@@ -209,9 +149,7 @@ public class AddMoodActivity extends AppCompatActivity {
                     public void onImageUploadSuccess(String url) {
                         imageUrl = url;
                         mood.setImageUrl(imageUrl);
-                        addMood(mood);
-                        Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
-                        navigateToMainActivity();
+                        saveMood(mood);
                     }
 
                     @Override
@@ -221,9 +159,27 @@ public class AddMoodActivity extends AppCompatActivity {
                 });
             } else {
                 mood.setImageUrl(null);
-                addMood(mood);
+                saveMood(mood);
+            }
+        });
+    }
+
+    /**
+     * Saves the mood to Firestore.
+     *
+     * @param mood The Mood object to be saved.
+     */
+    private void saveMood(Mood mood) {
+        moodRepository.addMood(mood, new MoodRepository.OnMoodAddedListener() {
+            @Override
+            public void onMoodAdded() {
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                 navigateToMainActivity();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(AddMoodActivity.this, "Failed to save mood: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -236,16 +192,6 @@ public class AddMoodActivity extends AppCompatActivity {
         newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(newIntent);
         finish();
-    }
-
-    /**
-     * Adds a mood entry to Firestore.
-     *
-     * @param mood The Mood object to be saved.
-     */
-    public void addMood(Mood mood) {
-        DocumentReference docRef = moodsRef.document(mood.getId());
-        docRef.set(mood);
     }
 
     /**
