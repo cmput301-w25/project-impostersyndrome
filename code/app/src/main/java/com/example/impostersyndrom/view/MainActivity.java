@@ -174,18 +174,27 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setupButtonListeners() {
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
-        profileButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-            startActivity(intent);
-        });
+        profileButton.setOnClickListener(v -> navigateToProfile());
         filterButton.setOnClickListener(v -> showFilterDialog());
-        menuButton.setOnClickListener(v -> {
-            if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
+    /**
+     * Navigates to the ProfileActivity.
+     */
+    private void navigateToProfile() {
+        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Method for toggling the navigation drawer
+      */
+    private void toggleNavigationDrawer() {
+        if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.openDrawer(GravityCompat.START);
+        }
+    }
     /**
      * Navigates to EmojiSelectionActivity.
      */
