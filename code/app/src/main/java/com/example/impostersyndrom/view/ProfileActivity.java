@@ -1,16 +1,13 @@
 package com.example.impostersyndrom.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.impostersyndrom.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,25 +16,26 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    // UI Components
     private TextView usernameText;
     private TextView followersCountText;
     private TextView followingCountText;
     private TextView bioText;
     private ImageButton backButton;
+
+    // Bottom Navigation Buttons
+    private ImageButton homeButton;
+    private ImageButton searchButton;
+    private ImageButton addMoodButton;
+    private ImageButton heartButton;
+    private ImageButton profileButton;
+
     private static final String TAG = "ProfileActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.profile_activity);
-
-        // Apply window insets
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         // Initialize components
         initializeViews();
@@ -47,14 +45,67 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Set button listeners
         backButton.setOnClickListener(v -> finish());
+
+        // Set up bottom navigation button listeners
+        setupBottomNavigation();
     }
 
     private void initializeViews() {
+        // Initialize profile views
         usernameText = findViewById(R.id.usernameText);
         followersCountText = findViewById(R.id.followersCountText);
         followingCountText = findViewById(R.id.followingCountText);
         bioText = findViewById(R.id.bioText);
         backButton = findViewById(R.id.backButton);
+
+        // Initialize bottom navigation buttons
+        homeButton = findViewById(R.id.homeButton);
+        searchButton = findViewById(R.id.searchButton);
+        addMoodButton = findViewById(R.id.addMoodButton);
+        heartButton = findViewById(R.id.heartButton);
+        profileButton = findViewById(R.id.profileButton);
+    }
+
+    private void setupBottomNavigation() {
+        // Highlight the profile button since we're in ProfileActivity
+        profileButton.setImageResource(R.drawable.white_profile); // Use a different drawable for the active state
+
+        // Set click listeners for each button
+        homeButton.setOnClickListener(v -> navigateToHome());
+//        searchButton.setOnClickListener(v -> navigateToSearch());
+        addMoodButton.setOnClickListener(v -> navigateToAddMood());
+//        heartButton.setOnClickListener(v -> navigateToFavorites());
+        profileButton.setOnClickListener(v -> navigateToProfile());
+
+        profileButton.setOnClickListener(null); // Remove any existing click listener
+        profileButton.setClickable(false); // Make the button unclickable
+    }
+
+    private void navigateToHome() {
+        Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT); // Bring existing activity to the front if it exists
+        startActivity(intent);
+    }
+
+//    private void navigateToSearch() {
+//        Intent intent = new Intent(ProfileActivity.this, SearchActivity.class);
+//        startActivity(intent);
+//    }
+
+    private void navigateToAddMood() {
+        Intent intent = new Intent(ProfileActivity.this, EmojiSelectionActivity.class);
+        startActivity(intent);
+    }
+
+//    private void navigateToFavorites() {
+//        Intent intent = new Intent(ProfileActivity.this, FavoritesActivity.class);
+//        startActivity(intent);
+//    }
+
+    private void navigateToProfile() {
+        // Already in ProfileActivity, do nothing or refresh the activity
+        Intent intent = new Intent(ProfileActivity.this, ProfileActivity.class);
+        startActivity(intent);
     }
 
     private void fetchUserData() {
