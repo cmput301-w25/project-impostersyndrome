@@ -175,8 +175,8 @@ public class MainActivity extends AppCompatActivity {
     private void setupButtonListeners() {
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
         profileButton.setOnClickListener(v -> {
-            // Profile button action
-            // You can navigate to profile screen or handle other actions
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
         });
         filterButton.setOnClickListener(v -> showFilterDialog());
         menuButton.setOnClickListener(v -> {
