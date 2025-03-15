@@ -32,6 +32,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageButton addMoodButton;
     private ImageButton heartButton;
     private ImageButton profileButton;
+    private ImageButton editButton;
 
     private static final String TAG = "ProfileActivity";
 
@@ -71,6 +72,7 @@ public class ProfileActivity extends AppCompatActivity {
         addMoodButton = findViewById(R.id.addMoodButton);
         heartButton = findViewById(R.id.heartButton);
         profileButton = findViewById(R.id.profileButton);
+        editButton = findViewById(R.id.editButton);
     }
 
     private void setupBottomNavigation() {
@@ -83,6 +85,7 @@ public class ProfileActivity extends AppCompatActivity {
         addMoodButton.setOnClickListener(v -> navigateToAddMood());
 //        heartButton.setOnClickListener(v -> navigateToFavorites());
         profileButton.setOnClickListener(v -> navigateToProfile());
+        editButton.setOnClickListener(v -> navigateToEditProfile());
 
         profileButton.setOnClickListener(null); // Remove any existing click listener
         profileButton.setClickable(false); // Make the button unclickable
@@ -91,6 +94,11 @@ public class ProfileActivity extends AppCompatActivity {
     private void navigateToHome() {
         Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT); // Bring existing activity to the front if it exists
+        startActivity(intent);
+    }
+
+    private void navigateToEditProfile() {
+        Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
         startActivity(intent);
     }
 
@@ -184,6 +192,5 @@ public class ProfileActivity extends AppCompatActivity {
     private void setDefaultProfileData() {
         followersCountText.setText("127");
         followingCountText.setText("256");
-        bioText.setText("Exploring emotional awareness through daily reflections. Sharing my mood journey and connecting with like-minded individuals.");
     }
 }
