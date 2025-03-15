@@ -75,7 +75,32 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Check if the username already exists
+        // Fetch the current username from Firestore
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String currentUsername = documentSnapshot.getString("username");
+
+                        // Check if the username has changed
+                        if (newUsername.equals(currentUsername)) {
+                            // Username hasn't changed, just update the bio
+                            updateProfile(newUsername, newBio);
+                        } else {
+                            // Username has changed, check if it's already taken
+                            checkUsernameAvailability(newUsername, newBio);
+                        }
+                    } else {
+                        Toast.makeText(this, "User data not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching user data: ", e);
+                    Toast.makeText(this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void checkUsernameAvailability(String newUsername, String newBio) {
         db.collection("users")
                 .whereEqualTo("username", newUsername)
                 .get()
@@ -84,26 +109,30 @@ public class EditProfileActivity extends AppCompatActivity {
                         // Username already exists
                         Toast.makeText(this, "Username already taken", Toast.LENGTH_SHORT).show();
                     } else {
-                        // Update the profile in Firestore
-                        Map<String, Object> updates = new HashMap<>();
-                        updates.put("username", newUsername);
-                        updates.put("bio", newBio);
-
-                        db.collection("users").document(userId)
-                                .update(updates)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                                    finish(); // Close the activity
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Error updating profile: ", e);
-                                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                });
+                        // Username is available, update the profile
+                        updateProfile(newUsername, newBio);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error checking username: ", e);
                     Toast.makeText(this, "Failed to check username", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateProfile(String newUsername, String newBio) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("username", newUsername);
+        updates.put("bio", newBio);
+
+        db.collection("users").document(userId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    finish(); // Close the activity
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error updating profile: ", e);
+                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
                 });
     }
 }

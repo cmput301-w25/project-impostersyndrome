@@ -9,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.impostersyndrom.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,7 +24,6 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView followingCountText;
     private TextView bioText;
     private ImageButton backButton;
-
     private ImageView profileImage;
 
     // Bottom Navigation Buttons
@@ -33,6 +33,9 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageButton heartButton;
     private ImageButton profileButton;
     private ImageButton editButton;
+
+    // SwipeRefreshLayout
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private static final String TAG = "ProfileActivity";
 
@@ -52,6 +55,9 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Set up bottom navigation button listeners
         setupBottomNavigation();
+
+        // Set up SwipeRefreshLayout
+        setupSwipeRefresh();
     }
 
     private void initializeViews() {
@@ -73,6 +79,9 @@ public class ProfileActivity extends AppCompatActivity {
         heartButton = findViewById(R.id.heartButton);
         profileButton = findViewById(R.id.profileButton);
         editButton = findViewById(R.id.editButton);
+
+        // Initialize SwipeRefreshLayout
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
     }
 
     private void setupBottomNavigation() {
@@ -81,14 +90,19 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Set click listeners for each button
         homeButton.setOnClickListener(v -> navigateToHome());
-//        searchButton.setOnClickListener(v -> navigateToSearch());
         addMoodButton.setOnClickListener(v -> navigateToAddMood());
-//        heartButton.setOnClickListener(v -> navigateToFavorites());
         profileButton.setOnClickListener(v -> navigateToProfile());
         editButton.setOnClickListener(v -> navigateToEditProfile());
 
         profileButton.setOnClickListener(null); // Remove any existing click listener
         profileButton.setClickable(false); // Make the button unclickable
+    }
+
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            // Fetch user data again when the user pulls to refresh
+            fetchUserData();
+        });
     }
 
     private void navigateToHome() {
@@ -102,20 +116,10 @@ public class ProfileActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-//    private void navigateToSearch() {
-//        Intent intent = new Intent(ProfileActivity.this, SearchActivity.class);
-//        startActivity(intent);
-//    }
-
     private void navigateToAddMood() {
         Intent intent = new Intent(ProfileActivity.this, EmojiSelectionActivity.class);
         startActivity(intent);
     }
-
-//    private void navigateToFavorites() {
-//        Intent intent = new Intent(ProfileActivity.this, FavoritesActivity.class);
-//        startActivity(intent);
-//    }
 
     private void navigateToProfile() {
         // Already in ProfileActivity, do nothing or refresh the activity
@@ -124,6 +128,9 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void fetchUserData() {
+        // Show the refresh indicator
+        swipeRefreshLayout.setRefreshing(true);
+
         // Default data in case of error
         String defaultUsername = "username";
 
@@ -135,6 +142,7 @@ public class ProfileActivity extends AppCompatActivity {
             // No user logged in
             usernameText.setText(defaultUsername);
             setDefaultProfileData();
+            swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
             return;
         }
 
@@ -163,6 +171,7 @@ public class ProfileActivity extends AppCompatActivity {
                         usernameText.setText(defaultUsername);
                         setDefaultProfileData();
                     }
+                    swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
                 })
                 .addOnFailureListener(e -> {
                     // Handle error
@@ -172,6 +181,7 @@ public class ProfileActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     usernameText.setText(defaultUsername);
                     setDefaultProfileData();
+                    swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
                 });
     }
 
@@ -192,5 +202,6 @@ public class ProfileActivity extends AppCompatActivity {
     private void setDefaultProfileData() {
         followersCountText.setText("127");
         followingCountText.setText("256");
+        bioText.setText("Exploring emotional awareness through daily reflections. Sharing my mood journey and connecting with like-minded individuals.");
     }
 }
