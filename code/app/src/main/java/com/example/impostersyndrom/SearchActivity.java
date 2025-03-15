@@ -99,9 +99,9 @@ public class SearchActivity extends AppCompatActivity {
 
     private void searchUsers(String query) {
         TextView noResultsText = findViewById(R.id.noResultsText); // Get reference
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid(); // Get logged-in user ID
 
         if (query.isEmpty()) {
-            // 🔹 Hide everything if the search bar is empty
             userList.clear();
             adapter.notifyDataSetChanged();
             noResultsText.setVisibility(View.GONE); // Hide "No results found."
@@ -117,11 +117,14 @@ public class SearchActivity extends AppCompatActivity {
                         userList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String username = document.getString("username");
-                            if (username != null) userList.add(username);
+                            String userId = document.getId(); // Get Firestore user ID
+
+                            if (username != null && !userId.equals(currentUserId)) {
+                                userList.add(username);
+                            }
                         }
                         adapter.notifyDataSetChanged();
 
-                        // 🔹 Show "No results found" only if input is typed AND no users are found
                         if (userList.isEmpty() && !query.isEmpty()) {
                             noResultsText.setVisibility(View.VISIBLE);
                         } else {
@@ -132,6 +135,4 @@ public class SearchActivity extends AppCompatActivity {
                     }
                 });
     }
-
-
 }
