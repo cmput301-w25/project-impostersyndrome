@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,8 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView followingCountText;
     private TextView bioText;
     private ImageButton backButton;
+
+    private ImageView profileImage;
 
     // Bottom Navigation Buttons
     private ImageButton homeButton;
@@ -57,6 +60,10 @@ public class ProfileActivity extends AppCompatActivity {
         followingCountText = findViewById(R.id.followingCountText);
         bioText = findViewById(R.id.bioText);
         backButton = findViewById(R.id.backButton);
+
+        // Initialize profile image
+        profileImage = findViewById(R.id.profileImage);
+        profileImage.setImageResource(R.drawable.default_person); // Set default profile picture
 
         // Initialize bottom navigation buttons
         homeButton = findViewById(R.id.homeButton);
