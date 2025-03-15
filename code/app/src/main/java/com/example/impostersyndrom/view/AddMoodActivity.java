@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -102,6 +104,23 @@ public class AddMoodActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        addReasonEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Not needed
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Not needed
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                int chars = s.length();
+                String text = s.toString().trim();
+                reasonCharCount.setText(chars + "/200");
+            }
+        });
 
         // Set up the listener to show/hide image preview
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
