@@ -92,6 +92,14 @@ public class MainActivity extends AppCompatActivity {
             fetchMoods(userId);
         }
 
+        // Search Button Click Listener
+        ImageButton searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
+
+
         // Add Mood Button
         ImageButton addMoodButton = findViewById(R.id.addMoodButton);
         addMoodButton.setOnClickListener(v -> {
