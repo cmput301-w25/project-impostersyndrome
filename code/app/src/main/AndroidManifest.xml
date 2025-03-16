@@ -59,6 +59,8 @@
 
         <activity android:name=".view.EditMoodActivity"/>
         <activity android:name=".view.EditEmojiActivity"/>
+        <activity android:name=".view.SearchActivity" android:exported="true"/>
+        <activity android:name=".view.FollowingActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

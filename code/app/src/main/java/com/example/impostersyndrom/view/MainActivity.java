@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton;
     private ImageButton logoutButton;
     private ImageButton filterButton;
+    private ImageButton searchButton;
+    private ImageButton heartButton;
 
     // Data
     private List<DocumentSnapshot> moodDocs = new ArrayList<>();
@@ -118,15 +120,27 @@ public class MainActivity extends AppCompatActivity {
         addMoodButton = findViewById(R.id.addMoodButton);
         logoutButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
+        searchButton = findViewById(R.id.searchButton);
+        heartButton = findViewById(R.id.heartButton);
     }
 
     /**
      * Sets up button click listeners.
      */
     private void setupButtonListeners() {
+
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
         logoutButton.setOnClickListener(v -> logoutUser());
         filterButton.setOnClickListener(v -> showFilterDialog());
+        heartButton.setOnClickListener(v -> {
+            // Navigate to FollowingActivity when the heart button is clicked
+            Intent intent = new Intent(MainActivity.this, FollowingActivity.class);
+            startActivity(intent);
+        });
     }
 
     /**
