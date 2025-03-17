@@ -376,22 +376,26 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                if (imageUrl != null && !imageUrl.isEmpty()) {
-                    Log.d("EditMoodActivity", "Image marked for removal but not yet deleted.");
-                    imageUrl = null;
-                    imageHandler.clearImage();
-                    Toast.makeText(this, "Image removed (pending submission)", Toast.LENGTH_SHORT).show();
-                } else {
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("imageUrl", null);
-                    db.collection("moods").document(moodId)
-                            .update(updates)
-                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
-                            .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
+                // Immediately delete the image from Firebase Storage if it exists
+                if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
+                    StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
+                    imageRef.delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("Firebase Storage", "Image permanently deleted immediately");
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("Firebase Storage", "Failed to delete image immediately", e);
+                            });
                 }
+                // Clear the image from the UI and update Firestore immediately
                 imageHandler.clearImage();
                 imageUrl = null;
+                db.collection("moods").document(moodId)
+                        .update("imageUrl", null)
+                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
+                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
                 Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
+                return true;
             }
             return false;
         });
