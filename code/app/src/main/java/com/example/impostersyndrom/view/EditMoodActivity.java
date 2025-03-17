@@ -224,6 +224,18 @@ public class EditMoodActivity extends AppCompatActivity {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
+                    // If there's an existing image, delete it from Firebase Storage
+                    if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
+                        StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
+                        oldImageRef.delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Firebase Storage", "Old image permanently deleted after new upload");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Firebase Storage", "Failed to delete old image", e);
+                                });
+                    }
+                    // Set the new image URL and update Firestore
                     EditMoodActivity.this.imageUrl = url;
                     updates.put("imageUrl", url);
                     saveToFirestore(updates);
@@ -239,15 +251,22 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("imageUrl", imageUrl);
         }
 
+        // If no image is selected and there was an original image, delete it from Firebase Storage
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
-                    .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image permanently deleted"))
-                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
-            updates.put("imageUrl", null);
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firebase Storage", "Image permanently deleted");
+                        updates.put("imageUrl", null);
+                        saveToFirestore(updates);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firebase Storage", "Failed to delete image", e);
+                        Toast.makeText(EditMoodActivity.this, "Failed to delete image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            saveToFirestore(updates);
         }
-
-        saveToFirestore(updates);
     }
 
     /**
