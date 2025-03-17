@@ -13,30 +13,17 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    // UI Components
-    private TextView usernameText;
-    private TextView followersCountText;
-    private TextView followingCountText;
-    private TextView bioText;
-    private ImageButton backButton;
+    private TextView usernameText, followersCountText, followingCountText, bioText;
+    private ImageButton backButton, homeButton, searchButton, addMoodButton, heartButton, profileButton, editButton;
     private ImageView profileImage;
-
-    // Bottom Navigation Buttons
-    private ImageButton homeButton;
-    private ImageButton searchButton;
-    private ImageButton addMoodButton;
-    private ImageButton heartButton;
-    private ImageButton profileButton;
-    private ImageButton editButton;
-
-    // SwipeRefreshLayout
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ProfileDataManager profileDataManager;
 
     private static final String TAG = "ProfileActivity";
 
@@ -45,185 +32,127 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_activity);
 
-        // Initialize components
         initializeViews();
-
-        // Fetch user data from Firestore
+        profileDataManager = new ProfileDataManager();
         fetchUserData();
-
-        // Set button listeners
-        backButton.setOnClickListener(v -> finish());
-
-        // Set up bottom navigation button listeners
         setupBottomNavigation();
-
-        // Set up SwipeRefreshLayout
         setupSwipeRefresh();
+        backButton.setOnClickListener(v -> finish());
     }
 
     private void initializeViews() {
-        // Initialize profile views
         usernameText = findViewById(R.id.usernameText);
         followersCountText = findViewById(R.id.followersCountText);
         followingCountText = findViewById(R.id.followingCountText);
         bioText = findViewById(R.id.bioText);
         backButton = findViewById(R.id.backButton);
-
-        // Initialize profile image
         profileImage = findViewById(R.id.profileImage);
-        profileImage.setImageResource(R.drawable.default_person); // Set default initially
-
-        // Initialize bottom navigation buttons
+        profileImage.setImageResource(R.drawable.default_person);
         homeButton = findViewById(R.id.homeButton);
         searchButton = findViewById(R.id.searchButton);
         addMoodButton = findViewById(R.id.addMoodButton);
         heartButton = findViewById(R.id.heartButton);
         profileButton = findViewById(R.id.profileButton);
         editButton = findViewById(R.id.editButton);
-
-        // Initialize SwipeRefreshLayout
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
     }
 
     private void setupBottomNavigation() {
-        // Highlight the profile button since we're in ProfileActivity
-        profileButton.setImageResource(R.drawable.white_profile); // Use a different drawable for the active state
-
-        // Set click listeners for each button
-        homeButton.setOnClickListener(v -> navigateToHome());
-        addMoodButton.setOnClickListener(v -> navigateToAddMood());
-        profileButton.setOnClickListener(v -> navigateToProfile());
-        editButton.setOnClickListener(v -> navigateToEditProfile());
-        searchButton.setOnClickListener(v -> {
-            Intent intent = new Intent(ProfileActivity.this, SearchActivity.class);
-            startActivity(intent);
-        });
-        heartButton.setOnClickListener(v -> {
-            // Navigate to FollowingActivity when the heart button is clicked
-            Intent intent = new Intent(ProfileActivity.this, FollowingActivity.class);
-            startActivity(intent);
-        });
-
-        profileButton.setOnClickListener(null); // Remove any existing click listener
-        profileButton.setClickable(false); // Make the button unclickable
+        profileButton.setImageResource(R.drawable.white_profile);
+        homeButton.setOnClickListener(v -> navigateTo(MainActivity.class));
+        addMoodButton.setOnClickListener(v -> navigateTo(EmojiSelectionActivity.class));
+        editButton.setOnClickListener(v -> navigateTo(EditProfileActivity.class));
+        searchButton.setOnClickListener(v -> navigateTo(SearchActivity.class));
+        heartButton.setOnClickListener(v -> navigateTo(FollowingActivity.class));
+        profileButton.setClickable(false);
     }
 
     private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            // Fetch user data again when the user pulls to refresh
-            fetchUserData();
-        });
+        swipeRefreshLayout.setOnRefreshListener(this::fetchUserData);
     }
 
-    private void navigateToHome() {
-        Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT); // Bring existing activity to the front if it exists
-        startActivity(intent);
-    }
-
-    private void navigateToEditProfile() {
-        Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
-        startActivity(intent);
-    }
-
-    private void navigateToAddMood() {
-        Intent intent = new Intent(ProfileActivity.this, EmojiSelectionActivity.class);
-        startActivity(intent);
-    }
-
-    private void navigateToProfile() {
-        // Already in ProfileActivity, do nothing or refresh the activity
-        Intent intent = new Intent(ProfileActivity.this, ProfileActivity.class);
+    private void navigateTo(Class<?> activityClass) {
+        Intent intent = new Intent(ProfileActivity.this, activityClass);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
     }
 
     private void fetchUserData() {
-        // Show the refresh indicator
         swipeRefreshLayout.setRefreshing(true);
-
-        // Default data in case of error
-        String defaultUsername = "username";
-
-        // Get current user ID
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
         if (userId == null) {
-            // No user logged in
-            usernameText.setText(defaultUsername);
             setDefaultProfileData();
-            swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
+            swipeRefreshLayout.setRefreshing(false);
             return;
         }
 
-        // Reference to Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // Fetch profile information
+        profileDataManager.fetchUserProfile(userId, new ProfileDataManager.OnProfileFetchedListener() {
+            @Override
+            public void onProfileFetched(DocumentSnapshot profileDoc) {
+                setProfileDataFromDocument(profileDoc);
+            }
 
-        // Get user document from the users collection
-        db.collection("users").document(userId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Extract username from document
-                        String username = documentSnapshot.getString("username");
+            @Override
+            public void onError(String errorMessage) {
+                showErrorMessage(errorMessage);
+            }
+        });
 
-                        // Set the username in the UI
-                        if (username != null && !username.isEmpty()) {
-                            usernameText.setText(username);
-                        } else {
-                            usernameText.setText(defaultUsername);
-                        }
+        // Fetch followers count
+        profileDataManager.fetchFollowersCount(userId, new ProfileDataManager.OnCountFetchedListener() {
+            @Override
+            public void onCountFetched(int count) {
+                followersCountText.setText(String.valueOf(count));
+            }
 
-                        // Set other profile data, including the profile image
-                        setProfileDataFromDocument(documentSnapshot);
-                    } else {
-                        // Document doesn't exist
-                        usernameText.setText(defaultUsername);
-                        setDefaultProfileData();
-                    }
-                    swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
-                })
-                .addOnFailureListener(e -> {
-                    // Handle error
-                    Log.e(TAG, "Error fetching user data: ", e);
-                    Toast.makeText(ProfileActivity.this,
-                            "Failed to load profile data",
-                            Toast.LENGTH_SHORT).show();
-                    usernameText.setText(defaultUsername);
-                    setDefaultProfileData();
-                    swipeRefreshLayout.setRefreshing(false); // Stop the refresh indicator
-                });
+            @Override
+            public void onError(String errorMessage) {
+                followersCountText.setText("0");
+                Log.e(TAG, "Followers count error: " + errorMessage);
+            }
+        });
+
+        // Fetch following count
+        profileDataManager.fetchFollowingCount(userId, new ProfileDataManager.OnCountFetchedListener() {
+            @Override
+            public void onCountFetched(int count) {
+                followingCountText.setText(String.valueOf(count));
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                followingCountText.setText("0");
+                Log.e(TAG, "Following count error: " + errorMessage);
+            }
+        });
     }
 
     private void setProfileDataFromDocument(DocumentSnapshot document) {
-        // Set other profile data - using document fields if available, otherwise defaults
-        followersCountText.setText("127");  // Hardcoded for now - you could add these fields to your database
-        followingCountText.setText("256");  // Hardcoded for now
-
-        // Get bio from document if it exists, otherwise use default
-        String bio = document.getString("bio");
-        if (bio != null && !bio.isEmpty()) {
-            bioText.setText(bio);
-        } else {
-            bioText.setText("Exploring emotional awareness through daily reflections. Sharing my mood journey and connecting with like-minded individuals.");
-        }
-
-        // Load profile image from Firestore if it exists
+        usernameText.setText(document.getString("username") != null ? document.getString("username") : "username");
+        bioText.setText(document.getString("bio") != null ? document.getString("bio") : "Exploring emotional awareness.");
         String profileImageUrl = document.getString("profileImageUrl");
         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-            Glide.with(this)
-                    .load(profileImageUrl)
-                    .placeholder(R.drawable.default_person) // Show default while loading
-                    .error(R.drawable.default_person)       // Show default on error
-                    .into(profileImage);
+            Glide.with(this).load(profileImageUrl).placeholder(R.drawable.default_person).error(R.drawable.default_person).into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person); // Default if no image
+            profileImage.setImageResource(R.drawable.default_person);
         }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void setDefaultProfileData() {
-        followersCountText.setText("127");
-        followingCountText.setText("256");
-        profileImage.setImageResource(R.drawable.default_person); // Default profile image
+        usernameText.setText("username");
+        bioText.setText("Exploring emotional awareness.");
+        profileImage.setImageResource(R.drawable.default_person);
+        followersCountText.setText("0");
+        followingCountText.setText("0");
+    }
+
+    private void showErrorMessage(String message) {
+        Log.e(TAG, message);
+        Toast.makeText(ProfileActivity.this, message, Toast.LENGTH_SHORT).show();
+        swipeRefreshLayout.setRefreshing(false);
     }
 }
