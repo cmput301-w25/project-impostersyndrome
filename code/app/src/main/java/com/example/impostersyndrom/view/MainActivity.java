@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView innerNavigationView;
     private LinearLayout logoutContainer;
     private TextView userEmailTextView;
+    private ImageButton searchButton;
+    private ImageButton heartButton;
 
     // Data
     private List<DocumentSnapshot> moodDocs = new ArrayList<>();
@@ -130,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
+        searchButton = findViewById(R.id.searchButton);
+        heartButton = findViewById(R.id.heartButton);
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
 
@@ -173,9 +177,19 @@ public class MainActivity extends AppCompatActivity {
      * Sets up button click listeners.
      */
     private void setupButtonListeners() {
+
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
         profileButton.setOnClickListener(v -> navigateToProfile());
         filterButton.setOnClickListener(v -> showFilterDialog());
+        heartButton.setOnClickListener(v -> {
+            // Navigate to FollowingActivity when the heart button is clicked
+            Intent intent = new Intent(MainActivity.this, FollowingActivity.class);
+            startActivity(intent);
+        });
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
