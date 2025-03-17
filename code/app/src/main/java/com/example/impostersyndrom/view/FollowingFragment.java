@@ -36,6 +36,12 @@ public class FollowingFragment extends Fragment {
         emptyMessage = view.findViewById(R.id.emptyMessage);
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getUid();
+
+        // Initialize adapter with empty list
+        followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId);
+        followingAdapter.setEmptyMessageView(emptyMessage);
+        listView.setAdapter(followingAdapter);
+
         loadFollowingUsers();
         return view;
     }
@@ -87,14 +93,10 @@ public class FollowingFragment extends Fragment {
                                     });
                         }
                     }
-
-                    followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId);
-                    listView.setAdapter(followingAdapter);
                 })
                 .addOnFailureListener(e -> {
                     emptyMessage.setText("Failed to load following list.");
                     emptyMessage.setVisibility(View.VISIBLE);
                 });
     }
-
 }
