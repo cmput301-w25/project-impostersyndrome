@@ -94,6 +94,15 @@ public class ProfileActivity extends AppCompatActivity {
         addMoodButton.setOnClickListener(v -> navigateToAddMood());
         profileButton.setOnClickListener(v -> navigateToProfile());
         editButton.setOnClickListener(v -> navigateToEditProfile());
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
+        heartButton.setOnClickListener(v -> {
+            // Navigate to FollowingActivity when the heart button is clicked
+            Intent intent = new Intent(ProfileActivity.this, FollowingActivity.class);
+            startActivity(intent);
+        });
 
         profileButton.setOnClickListener(null); // Remove any existing click listener
         profileButton.setClickable(false); // Make the button unclickable
