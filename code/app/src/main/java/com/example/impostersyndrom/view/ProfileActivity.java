@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -70,7 +71,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Initialize profile image
         profileImage = findViewById(R.id.profileImage);
-        profileImage.setImageResource(R.drawable.default_person); // Set default profile picture
+        profileImage.setImageResource(R.drawable.default_person); // Set default initially
 
         // Initialize bottom navigation buttons
         homeButton = findViewById(R.id.homeButton);
@@ -164,7 +165,7 @@ public class ProfileActivity extends AppCompatActivity {
                             usernameText.setText(defaultUsername);
                         }
 
-                        // Set other profile data
+                        // Set other profile data, including the profile image
                         setProfileDataFromDocument(documentSnapshot);
                     } else {
                         // Document doesn't exist
@@ -197,11 +198,23 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             bioText.setText("Exploring emotional awareness through daily reflections. Sharing my mood journey and connecting with like-minded individuals.");
         }
+
+        // Load profile image from Firestore if it exists
+        String profileImageUrl = document.getString("profileImageUrl");
+        if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(profileImageUrl)
+                    .placeholder(R.drawable.default_person) // Show default while loading
+                    .error(R.drawable.default_person)       // Show default on error
+                    .into(profileImage);
+        } else {
+            profileImage.setImageResource(R.drawable.default_person); // Default if no image
+        }
     }
 
     private void setDefaultProfileData() {
         followersCountText.setText("127");
         followingCountText.setText("256");
-        bioText.setText("Exploring emotional awareness through daily reflections. Sharing my mood journey and connecting with like-minded individuals.");
+        profileImage.setImageResource(R.drawable.default_person); // Default profile image
     }
 }

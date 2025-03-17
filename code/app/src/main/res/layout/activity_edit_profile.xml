@@ -39,7 +39,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:contentDescription="Edit Profile" />
+            android:contentDescription="Save" />
     </RelativeLayout>
 
     <!-- Thin divider line -->
@@ -79,74 +79,8 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/default_person"
                     android:contentDescription="Profile Picture" />
+
             </androidx.cardview.widget.CardView>
-
-
-            <!-- Followers and Following Section -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
-
-                <!-- Followers -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:layout_marginEnd="24dp">
-
-                    <TextView
-                        android:id="@+id/followersCountText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="127"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Followers"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp" />
-                </LinearLayout>
-
-                <!-- Following -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:layout_marginStart="24dp">
-
-                    <TextView
-                        android:id="@+id/followingCountText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="256"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Following"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp"
-                android:background="@android:color/darker_gray" />
 
             <!-- Username -->
             <EditText
@@ -180,7 +114,6 @@
                 android:textColor="@android:color/white"
                 android:textColorHint="@android:color/darker_gray"
                 android:textSize="16sp" />
-
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
