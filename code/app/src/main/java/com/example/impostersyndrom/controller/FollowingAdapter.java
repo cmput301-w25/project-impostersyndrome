@@ -53,9 +53,6 @@ public class FollowingAdapter extends ArrayAdapter<String> {
         usernameText.setClickable(true);
         usernameText.setFocusable(true);
 
-        // Set background resource for touch feedback
-        usernameText.setBackgroundResource(android.R.drawable.list_selector_background);
-
         // Set click listener on the username to navigate to user profile
         usernameText.setOnClickListener(v -> {
             Log.d(TAG, "Username clicked: " + username);

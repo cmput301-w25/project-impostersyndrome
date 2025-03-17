@@ -1,6 +1,7 @@
 package com.example.impostersyndrom.controller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +10,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.FollowRequest;
+import com.example.impostersyndrom.view.UserProfileActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -22,6 +25,7 @@ public class UserListAdapter extends ArrayAdapter<String> {
     private FirebaseFirestore db;
     private String currentUserId;
     private String currentUsername;
+    private static final String TAG = "UserListAdapter";
 
     public UserListAdapter(Context context, List<String> users) {
         super(context, 0, users);
@@ -65,9 +69,16 @@ public class UserListAdapter extends ArrayAdapter<String> {
                         // DEBUG: Log the retrieved receiverId
                         Log.d("DEBUG", "Found receiverId for " + receiverUsername + ": " + receiverId);
 
+                        // Set click listener on the username to navigate to user profile
+                        userNameTextView.setOnClickListener(v -> {
+                            Log.d(TAG, "Username clicked: " + receiverUsername);
+                            navigateToUserProfile(receiverId, receiverUsername);
+                        });
+
+                        // Check follow status and set button visibility
                         checkFollowStatus(receiverId, receiverUsername, followButton, requestedButton, unfollowButton);
 
-                        // ✅ Add Click Listeners
+                        // Add Click Listeners for buttons
                         followButton.setOnClickListener(v -> {
                             Log.d("DEBUG", "Follow button clicked for: " + receiverUsername);
                             sendFollowRequest(receiverId, receiverUsername, followButton, requestedButton, unfollowButton);
@@ -92,6 +103,22 @@ public class UserListAdapter extends ArrayAdapter<String> {
         return convertView;
     }
 
+    private void navigateToUserProfile(String receiverId, String receiverUsername) {
+        Log.d(TAG, "Attempting to navigate to profile for: " + receiverUsername);
+
+        try {
+            // Create intent to open UserProfileActivity
+            Intent intent = new Intent(getContext(), UserProfileActivity.class);
+            intent.putExtra("userId", receiverId); // Pass the userId
+            intent.putExtra("username", receiverUsername); // Pass the username
+
+            Log.d(TAG, "Starting UserProfileActivity with userId: " + receiverId);
+            getContext().startActivity(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting UserProfileActivity", e);
+            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
 
     private void checkFollowStatus(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
         if (receiverId == null || receiverId.isEmpty()) {
@@ -100,15 +127,6 @@ public class UserListAdapter extends ArrayAdapter<String> {
         }
 
         Log.d("DEBUG", "🔍 Checking follow status for receiverId: " + receiverId);
-
-        // 🔹 Print all follower relationships for debugging
-        db.collection("following").get().addOnSuccessListener(querySnapshot -> {
-            for (QueryDocumentSnapshot document : querySnapshot) {
-                Log.d("DEBUG", "🔥 Followers Collection: " +
-                        "followerId=" + document.getString("followerId") +
-                        ", followingId=" + document.getString("followingId"));
-            }
-        });
 
         // First, check if there's a pending follow request
         db.collection("follow_requests")
@@ -145,8 +163,6 @@ public class UserListAdapter extends ArrayAdapter<String> {
                 })
                 .addOnFailureListener(e -> Log.e("DEBUG", "⚠️ Error checking follow requests", e));
     }
-
-
 
     private void sendFollowRequest(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
         FollowRequest followRequest = new FollowRequest(
