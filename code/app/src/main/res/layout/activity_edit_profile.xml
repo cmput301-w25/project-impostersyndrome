@@ -81,18 +81,6 @@
                     android:contentDescription="Profile Picture" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Username -->
-            <EditText
-                android:id="@+id/usernameEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:hint="Username"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/darker_gray"
-                android:textSize="24sp"
-                android:textStyle="bold" />
 
             <!-- Followers and Following Section -->
             <LinearLayout
@@ -159,6 +147,19 @@
                 android:layout_height="1dp"
                 android:layout_marginTop="24dp"
                 android:background="@android:color/darker_gray" />
+
+            <!-- Username -->
+            <EditText
+                android:id="@+id/usernameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:hint="Username"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <!-- Bio Section -->
             <TextView

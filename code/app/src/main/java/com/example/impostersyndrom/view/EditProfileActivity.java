@@ -21,6 +21,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText bioEditText;
     private ImageButton saveButton;
+    private ImageButton backButton;
 
     private FirebaseFirestore db;
     private String userId;
@@ -40,6 +41,11 @@ public class EditProfileActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.usernameEditText);
         bioEditText = findViewById(R.id.bioEditText);
         saveButton = findViewById(R.id.saveButton);
+
+        backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(v -> {
+            finish(); // This will close the current activity and return to the previous one
+        });
 
         // Load current user data
         loadUserData();
