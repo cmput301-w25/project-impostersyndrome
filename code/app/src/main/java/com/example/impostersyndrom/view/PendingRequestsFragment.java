@@ -7,14 +7,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.PendingRequestsAdapter;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +51,10 @@ public class PendingRequestsFragment extends Fragment {
                         loadPendingRequests();
                     }
                 })
-                .addOnFailureListener(e -> Log.e("PendingRequestsFragment", "Error fetching username: " + e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e("PendingRequestsFragment", "Error fetching username: " + e.getMessage());
+                    showMessage("Error fetching username: " + e.getMessage());
+                });
 
         return view;
     }
@@ -74,7 +81,8 @@ public class PendingRequestsFragment extends Fragment {
                         emptyMessage.setVisibility(View.GONE);
                         listView.setVisibility(View.VISIBLE);
 
-                        pendingRequestsAdapter = new PendingRequestsAdapter(requireContext(), pendingRequests, currentUsername);
+                        // Initialize adapter with rootView
+                        pendingRequestsAdapter = new PendingRequestsAdapter(requireContext(), pendingRequests, currentUsername, getView());
                         listView.setAdapter(pendingRequestsAdapter);
                     }
                 })
@@ -82,6 +90,20 @@ public class PendingRequestsFragment extends Fragment {
                     Log.e("PendingRequestsFragment", "Error loading pending requests: " + e.getMessage());
                     emptyMessage.setText("Failed to load pending requests.");
                     emptyMessage.setVisibility(View.VISIBLE);
+                    showMessage("Failed to load pending requests: " + e.getMessage());
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (getView() != null) {
+            Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }
