@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView userEmailTextView;
     private ImageButton searchButton;
     private ImageButton heartButton;
+    private TextView noMoodsTextView;
 
     // Data
     private List<DocumentSnapshot> moodDocs = new ArrayList<>();
@@ -133,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
         moodListView = findViewById(R.id.moodListView);
         addMoodButton = findViewById(R.id.addMoodButton);
+        noMoodsTextView = findViewById(R.id.noMoodsTextView); // Initialize the TextView
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
         searchButton = findViewById(R.id.searchButton);
@@ -245,8 +247,13 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param moodDocs The list of mood documents to display.
      */
+    // Modify the setupMoodAdapter method:
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         if (moodDocs != null && !moodDocs.isEmpty()) {
+            // We have moods, hide the "No moods" text and show the list
+            noMoodsTextView.setVisibility(View.GONE);
+            moodListView.setVisibility(View.VISIBLE);
+
             moodAdapter = new MoodAdapter(this, moodDocs);
             moodListView.setAdapter(moodAdapter);
 
@@ -261,7 +268,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             });
         } else {
-            showMessage("No moods found!");
+            // No moods to display, show the "No moods" text and hide the list
+            noMoodsTextView.setVisibility(View.VISIBLE);
+            moodListView.setVisibility(View.GONE);
         }
     }
 
@@ -300,7 +309,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                showMessage("Failed to fetch moods: " + errorMessage);
+//                showMessage("Failed to fetch moods: " + errorMessage);
+                // If there's an error, show the "No moods" message
+                noMoodsTextView.setVisibility(View.VISIBLE);
+                moodListView.setVisibility(View.GONE);
             }
         });
     }

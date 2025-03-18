@@ -95,14 +95,31 @@
         </LinearLayout>
 
         <!-- Content area for mood posts -->
-        <ListView
-            android:id="@+id/moodListView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="8dp"
-            android:padding="8dp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/noMoodsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No Moods"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="18sp"
+                android:gravity="center"
+                android:visibility="gone"
+                android:layout_marginTop="50dp"/>
+
+            <ListView
+                android:id="@+id/moodListView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="8dp"
+                android:padding="8dp" />
+        </LinearLayout>
 
         <!-- Thin divider line above navigation -->
         <View
