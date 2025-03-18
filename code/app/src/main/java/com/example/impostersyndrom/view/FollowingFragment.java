@@ -10,11 +10,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.FollowingAdapter;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,8 +40,8 @@ public class FollowingFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getUid();
 
-        // Initialize adapter with empty list
-        followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId);
+        // Initialize adapter with empty list and pass the root view for Snackbar
+        followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId, view);
         followingAdapter.setEmptyMessageView(emptyMessage);
         listView.setAdapter(followingAdapter);
 
@@ -90,6 +93,7 @@ public class FollowingFragment extends Fragment {
                                     })
                                     .addOnFailureListener(e -> {
                                         Log.e("FollowingFragment", "Error fetching username: " + e.getMessage());
+                                        showMessage("Error fetching username: " + e.getMessage());
                                     });
                         }
                     }
@@ -97,6 +101,20 @@ public class FollowingFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     emptyMessage.setText("Failed to load following list.");
                     emptyMessage.setVisibility(View.VISIBLE);
+                    showMessage("Failed to load following list: " + e.getMessage());
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (getView() != null) {
+            Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

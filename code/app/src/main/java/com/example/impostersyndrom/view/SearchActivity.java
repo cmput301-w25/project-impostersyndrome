@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.impostersyndrom.R;
@@ -17,6 +18,7 @@ import com.example.impostersyndrom.controller.UserListAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +48,7 @@ public class SearchActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
 
         // Set up adapter for ListView
-        adapter = new UserListAdapter(this, userList);
+        adapter = new UserListAdapter(this, userList, findViewById(android.R.id.content)); // Pass rootView
         userListView.setAdapter(adapter);
 
         searchInput.addTextChangedListener(new TextWatcher() {

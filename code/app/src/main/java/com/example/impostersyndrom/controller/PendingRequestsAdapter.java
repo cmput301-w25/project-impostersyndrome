@@ -10,13 +10,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.view.UserProfileActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,13 +28,15 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
     private final FirebaseFirestore db;
     private final String currentUserId;
     private final String currentUsername;
+    private final View rootView; // Root view for displaying Snackbar
     private static final String TAG = "PendingRequestsAdapter";
 
-    public PendingRequestsAdapter(Context context, List<String> users, String currentUsername) {
+    public PendingRequestsAdapter(Context context, List<String> users, String currentUsername, View rootView) {
         super(context, 0, users);
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         this.currentUsername = currentUsername;
+        this.rootView = rootView; // Initialize rootView
     }
 
     @Override
@@ -96,16 +101,16 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            showMessage("Error opening profile: " + e.getMessage());
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                        showMessage("User not found");
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
+                    showMessage("Error finding user");
                 });
     }
 
@@ -128,18 +133,18 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
                             db.collection("following").add(followData)
                                     .addOnSuccessListener(documentReference -> {
                                         removeRequest(senderUsername);
-                                        Toast.makeText(getContext(), "Follow request accepted!", Toast.LENGTH_SHORT).show();
+                                        showMessage("Follow request accepted!");
                                     })
-                                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Error following user", Toast.LENGTH_SHORT).show());
+                                    .addOnFailureListener(e -> showMessage("Error following user"));
                         }
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to accept request", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> showMessage("Failed to accept request"));
     }
 
     private void declineFollowRequest(String senderUsername) {
         removeRequest(senderUsername);
-        Toast.makeText(getContext(), "Follow request declined", Toast.LENGTH_SHORT).show();
+        showMessage("Follow request declined");
     }
 
     private void removeRequest(String senderUsername) {
@@ -154,6 +159,19 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
                     remove(senderUsername);
                     notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to remove request", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> showMessage("Failed to remove request"));
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

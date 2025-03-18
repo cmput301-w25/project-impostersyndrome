@@ -10,11 +10,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.FollowRequest;
 import com.example.impostersyndrom.view.UserProfileActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -25,12 +25,14 @@ public class UserListAdapter extends ArrayAdapter<String> {
     private FirebaseFirestore db;
     private String currentUserId;
     private String currentUsername;
+    private View rootView; // Root view for displaying Snackbar
     private static final String TAG = "UserListAdapter";
 
-    public UserListAdapter(Context context, List<String> users) {
+    public UserListAdapter(Context context, List<String> users, View rootView) {
         super(context, 0, users);
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        this.rootView = rootView; // Initialize rootView
 
         // Fetch current user's username
         db.collection("users").document(currentUserId)
@@ -96,9 +98,13 @@ public class UserListAdapter extends ArrayAdapter<String> {
 
                     } else {
                         Log.e("DEBUG", "No user found with username: " + receiverUsername);
+                        showMessage("No user found with username: " + receiverUsername);
                     }
                 })
-                .addOnFailureListener(e -> Log.e("DEBUG", "Error fetching user document", e));
+                .addOnFailureListener(e -> {
+                    Log.e("DEBUG", "Error fetching user document", e);
+                    showMessage("Error fetching user document: " + e.getMessage());
+                });
 
         return convertView;
     }
@@ -116,13 +122,14 @@ public class UserListAdapter extends ArrayAdapter<String> {
             getContext().startActivity(intent);
         } catch (Exception e) {
             Log.e(TAG, "Error starting UserProfileActivity", e);
-            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            showMessage("Error opening profile: " + e.getMessage());
         }
     }
 
     private void checkFollowStatus(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
         if (receiverId == null || receiverId.isEmpty()) {
             Log.e("DEBUG", "❌ receiverId is NULL or EMPTY! Follow status cannot be checked.");
+            showMessage("Error: Invalid receiver ID");
             return;
         }
 
@@ -158,10 +165,16 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                         unfollowButton.setVisibility(View.GONE);
                                     }
                                 })
-                                .addOnFailureListener(e -> Log.e("DEBUG", "⚠️ Error checking followers", e));
+                                .addOnFailureListener(e -> {
+                                    Log.e("DEBUG", "⚠️ Error checking followers", e);
+                                    showMessage("Error checking followers: " + e.getMessage());
+                                });
                     }
                 })
-                .addOnFailureListener(e -> Log.e("DEBUG", "⚠️ Error checking follow requests", e));
+                .addOnFailureListener(e -> {
+                    Log.e("DEBUG", "⚠️ Error checking follow requests", e);
+                    showMessage("Error checking follow requests: " + e.getMessage());
+                });
     }
 
     private void sendFollowRequest(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
@@ -175,6 +188,11 @@ public class UserListAdapter extends ArrayAdapter<String> {
                     followButton.setVisibility(View.GONE);
                     requestedButton.setVisibility(View.VISIBLE);
                     unfollowButton.setVisibility(View.GONE);
+                    showMessage("Follow request sent!");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("DEBUG", "Error sending follow request", e);
+                    showMessage("Error sending follow request: " + e.getMessage());
                 });
     }
 
@@ -190,8 +208,17 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                 .addOnSuccessListener(aVoid -> {
                                     followButton.setVisibility(View.VISIBLE);
                                     requestedButton.setVisibility(View.GONE);
+                                    showMessage("Follow request canceled!");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("DEBUG", "Error canceling follow request", e);
+                                    showMessage("Error canceling follow request: " + e.getMessage());
                                 });
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("DEBUG", "Error finding follow request", e);
+                    showMessage("Error finding follow request: " + e.getMessage());
                 });
     }
 
@@ -208,8 +235,30 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                     followButton.setVisibility(View.VISIBLE);
                                     requestedButton.setVisibility(View.GONE);
                                     unfollowButton.setVisibility(View.GONE);
+                                    showMessage("Unfollowed successfully!");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("DEBUG", "Error unfollowing user", e);
+                                    showMessage("Error unfollowing user: " + e.getMessage());
                                 });
                     }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("DEBUG", "Error finding follow relationship", e);
+                    showMessage("Error finding follow relationship: " + e.getMessage());
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

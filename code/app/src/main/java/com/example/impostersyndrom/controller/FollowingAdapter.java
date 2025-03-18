@@ -10,10 +10,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.view.UserProfileActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -24,13 +24,15 @@ public class FollowingAdapter extends ArrayAdapter<String> {
     private String currentUserId;
     private List<String> followingUsers;
     private TextView emptyMessage;
+    private View rootView; // Root view for displaying Snackbar
     private static final String TAG = "FollowingAdapter";
 
-    public FollowingAdapter(Context context, List<String> users, String currentUserId) {
+    public FollowingAdapter(Context context, List<String> users, String currentUserId, View rootView) {
         super(context, 0, users);
         db = FirebaseFirestore.getInstance();
         this.currentUserId = currentUserId;
         this.followingUsers = users;
+        this.rootView = rootView; // Initialize rootView
     }
 
     public void setEmptyMessageView(TextView emptyMessage) {
@@ -110,18 +112,18 @@ public class FollowingAdapter extends ArrayAdapter<String> {
                                                     })
                                                     .addOnFailureListener(e -> {
                                                         Log.e(TAG, "Error deleting follow document", e);
-                                                        Toast.makeText(getContext(), "Error unfollowing", Toast.LENGTH_SHORT).show();
+                                                        showMessage("Error unfollowing");
                                                     });
                                         } else {
                                             Log.e(TAG, "No matching follow document found");
-                                            Toast.makeText(getContext(), "Error: No match found", Toast.LENGTH_SHORT).show();
+                                            showMessage("Error: No match found");
                                         }
                                     })
                                     .addOnFailureListener(e -> Log.e(TAG, "Error searching follow collection", e));
 
                         } else {
                             Log.e(TAG, "No user found with username: " + username);
-                            Toast.makeText(getContext(), "Error: User not found", Toast.LENGTH_SHORT).show();
+                            showMessage("Error: User not found");
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
@@ -153,16 +155,29 @@ public class FollowingAdapter extends ArrayAdapter<String> {
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            showMessage("Error opening profile: " + e.getMessage());
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                        showMessage("User not found");
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
+                    showMessage("Error finding user");
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }
