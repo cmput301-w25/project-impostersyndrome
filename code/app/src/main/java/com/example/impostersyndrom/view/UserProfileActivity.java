@@ -5,7 +5,6 @@ import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -13,6 +12,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ProfileDataManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -38,7 +38,7 @@ public class UserProfileActivity extends AppCompatActivity {
         username = getIntent().getStringExtra("username");
 
         if (userId == null && username == null) {
-            Toast.makeText(this, "Error: User information not provided", Toast.LENGTH_SHORT).show();
+            showMessage("Error: User information not provided");
             finish();
             return;
         }
@@ -92,12 +92,12 @@ public class UserProfileActivity extends AppCompatActivity {
                         userId = document.getId();
                         fetchUserData(userId);
                     } else {
-                        showErrorMessage("User not found");
+                        showMessage("User not found");
                         setDefaultProfileData();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showErrorMessage("Error finding user: " + e.getMessage());
+                    showMessage("Error finding user: " + e.getMessage());
                     setDefaultProfileData();
                 });
     }
@@ -114,7 +114,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                showErrorMessage(errorMessage);
+                showMessage(errorMessage);
             }
         });
 
@@ -168,9 +168,10 @@ public class UserProfileActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(false);
     }
 
-    private void showErrorMessage(String message) {
-        Log.e(TAG, message);
-        Toast.makeText(UserProfileActivity.this, message, Toast.LENGTH_SHORT).show();
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
         swipeRefreshLayout.setRefreshing(false);
     }
 }

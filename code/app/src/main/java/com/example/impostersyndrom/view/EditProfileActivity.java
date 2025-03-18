@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ImageHandler;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -142,7 +142,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading user data: ", e);
-                    Toast.makeText(this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to load profile data");
                 });
     }
 
@@ -156,16 +156,16 @@ public class EditProfileActivity extends AppCompatActivity {
                         // Clear the local image and set default
                         profileImage.setImageResource(R.drawable.default_person);
                         currentProfileImageUrl = null; // Reset the URL
-                        Toast.makeText(this, "Profile picture removed", Toast.LENGTH_SHORT).show();
+                        showMessage("Profile picture removed");
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to delete image from Storage: ", e);
-                        Toast.makeText(this, "Failed to remove profile picture", Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to remove profile picture");
                     });
         } else {
             // No image to remove, just set default locally
             profileImage.setImageResource(R.drawable.default_person);
-            Toast.makeText(this, "No profile picture to remove", Toast.LENGTH_SHORT).show();
+            showMessage("No profile picture to remove");
         }
     }
 
@@ -174,7 +174,7 @@ public class EditProfileActivity extends AppCompatActivity {
         String newBio = bioEditText.getText().toString().trim();
 
         if (newUsername.isEmpty()) {
-            Toast.makeText(this, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+            showMessage("Username cannot be empty");
             return;
         }
 
@@ -200,7 +200,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 @Override
                 public void onImageUploadFailure(Exception e) {
                     Log.e(TAG, "Failed to upload image: ", e);
-                    Toast.makeText(EditProfileActivity.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to upload profile picture");
                 }
             });
         } else {
@@ -222,12 +222,18 @@ public class EditProfileActivity extends AppCompatActivity {
         db.collection("users").document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    showMessage("Profile updated successfully");
                     finish(); // Close the activity
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating profile: ", e);
-                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to update profile");
                 });
+    }
+
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 }
