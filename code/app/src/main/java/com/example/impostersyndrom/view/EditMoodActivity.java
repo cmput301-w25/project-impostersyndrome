@@ -10,7 +10,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.graphics.Color;
 import android.view.MenuInflater;
 import android.widget.PopupMenu;
@@ -26,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ImageHandler;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -125,7 +125,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openCamera(cameraLauncher);
                     } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Camera permission required");
                     }
                 });
 
@@ -135,7 +135,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openGallery(galleryLauncher);
                     } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Gallery permission required");
                     }
                 });
 
@@ -231,7 +231,7 @@ public class EditMoodActivity extends AppCompatActivity {
 
                 @Override
                 public void onImageUploadFailure(Exception e) {
-                    Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to upload image: " + e.getMessage());
                 }
             });
             return;
@@ -282,10 +282,10 @@ public class EditMoodActivity extends AppCompatActivity {
         db.collection("moods").document(moodId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(EditMoodActivity.this, "Mood updated!", Toast.LENGTH_SHORT).show();
+                    showMessage("Mood updated successfully");
                     finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(EditMoodActivity.this, "Failed to update mood", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> showMessage("Failed to update mood: " + e.getMessage()));
     }
 
     @Override
@@ -342,7 +342,7 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId()); // Store selection
-                Toast.makeText(EditMoodActivity.this, "Group Selection: " + selectedGroup, Toast.LENGTH_SHORT).show();
+                showMessage("Group selected: " + selectedGroup);
                 return true;
             }
             return false;
@@ -380,7 +380,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     Log.d("EditMoodActivity", "Image marked for removal but not yet deleted.");
                     imageUrl = null;
                     imageHandler.clearImage();
-                    Toast.makeText(this, "Image removed (pending submission)", Toast.LENGTH_SHORT).show();
+                    showMessage("Image removed (Pending)");
                 } else {
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("imageUrl", null);
@@ -391,10 +391,16 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 imageHandler.clearImage();
                 imageUrl = null;
-                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
+                showMessage("Image removed");
             }
             return false;
         });
         popup.show();
+    }
+
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 }

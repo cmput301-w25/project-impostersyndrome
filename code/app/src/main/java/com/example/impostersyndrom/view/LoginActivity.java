@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.MoodDataCache;
 import com.example.impostersyndrom.model.User;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -96,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
                 User.getInstance().setUserId(userId);
-                showToast("Login Successful!");
+
 
                 // Pre-fetch mood data before navigating to MainActivity
                 prefetchMoodData(userId);
@@ -160,14 +161,5 @@ public class LoginActivity extends AppCompatActivity {
      */
     private boolean isValidEmail(String email) {
         return !TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
-    /**
-     * Displays a toast message.
-     *
-     * @param message The message to display.
-     */
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

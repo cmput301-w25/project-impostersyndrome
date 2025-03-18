@@ -17,7 +17,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +34,7 @@ import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.MoodFilter;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (userId == null) {
-            showToast("User ID is missing!");
+            showMessage("User ID is missing!");
             redirectToLogin();
             return;
         }
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
-        showToast("Logged out successfully!");
+        showMessage("Logged out successfully!");
         redirectToLogin();
     }
 
@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             });
         } else {
-            showToast("No moods found!");
+            showMessage("No moods found!");
         }
     }
 
@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                showToast("Failed to fetch moods: " + errorMessage);
+                showMessage("Failed to fetch moods: " + errorMessage);
             }
         });
     }
@@ -399,28 +399,19 @@ public class MainActivity extends AppCompatActivity {
             moodDataManager.deleteMood(moodDoc.getId(), new MoodDataManager.OnMoodDeletedListener() {
                 @Override
                 public void onMoodDeleted() {
-                    showToast("Mood deleted!");
+                    showMessage("Mood deleted!");
                     fetchMoods(userId); // Refresh the list after deletion
                 }
 
                 @Override
                 public void onError(String errorMessage) {
-                    showToast("Failed to delete mood: " + errorMessage);
+                    showMessage("Failed to delete mood: " + errorMessage);
                 }
             });
             bottomSheetDialog.dismiss();
         });
 
         bottomSheetDialog.show();
-    }
-
-    /**
-     * Displays a toast message.
-     *
-     * @param message The message to display.
-     */
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -439,5 +430,11 @@ public class MainActivity extends AppCompatActivity {
         emojiDrawables.add(R.drawable.emoji_shame);
         emojiDrawables.add(R.drawable.emoji_surprised);
         return emojiDrawables;
+    }
+
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 }

@@ -27,6 +27,7 @@ import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.User;
+import com.google.android.material.snackbar.Snackbar;
 
 
 import java.text.SimpleDateFormat;
@@ -88,7 +89,7 @@ public class AddMoodActivity extends AppCompatActivity {
                         // Permission granted, launch camera intent
                         imageHandler.openCamera(cameraLauncher);
                     } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Camera permission required");
                     }
                 }
         );
@@ -100,7 +101,7 @@ public class AddMoodActivity extends AppCompatActivity {
                         // Permission granted, launch gallery intent
                         imageHandler.openGallery(galleryLauncher);
                     } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Storage permission required");
                     }
                 }
         );
@@ -180,7 +181,7 @@ public class AddMoodActivity extends AppCompatActivity {
 
                     @Override
                     public void onImageUploadFailure(Exception e) {
-                        Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to upload image: " + e.getMessage());
                     }
                 });
             } else {
@@ -199,13 +200,13 @@ public class AddMoodActivity extends AppCompatActivity {
         moodDataManager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
             @Override
             public void onMoodAdded() {
-                Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
+                showMessage("Mood saved!");
                 navigateToMainActivity();
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(AddMoodActivity.this, "Failed to save mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                showMessage("Failed to save mood: " + errorMessage);
             }
         });
     }
@@ -255,7 +256,7 @@ public class AddMoodActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
-                Toast.makeText(AddMoodActivity.this, "Group Status Saved!", Toast.LENGTH_SHORT).show();
+                showMessage("Group Status Saved!");
                 return true;
             }
             return false;
@@ -302,5 +303,11 @@ public class AddMoodActivity extends AppCompatActivity {
         });
 
         popup.show();
+    }
+
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 }
