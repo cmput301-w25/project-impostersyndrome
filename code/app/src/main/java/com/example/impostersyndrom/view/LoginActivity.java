@@ -54,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
         loginPassword = findViewById(R.id.login_password);
         loginProgressBar = findViewById(R.id.loginProgressBar);
 
+        // Ensure password toggle is set up initially and disable error icon
+        layoutPassword.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+        layoutPassword.setErrorIconDrawable(null); // Prevent the red "!" from appearing
+
         // Set click listeners for buttons
         findViewById(R.id.loginBtn).setOnClickListener(v -> loginUser());
         findViewById(R.id.forgotPassword).setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
@@ -82,9 +86,13 @@ public class LoginActivity extends AppCompatActivity {
         // Validate password input
         if (passwordText.isEmpty()) {
             layoutPassword.setError("Password is required");
+            layoutPassword.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE); // Ensure toggle remains
+            layoutPassword.setErrorIconDrawable(null); // Prevent red "!" mark
             return;
         } else {
             layoutPassword.setError(null);
+            layoutPassword.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE); // Ensure toggle remains
+            layoutPassword.setErrorIconDrawable(null); // Prevent red "!" mark
         }
 
         // Show progress bar and disable login button during login process
@@ -105,6 +113,8 @@ public class LoginActivity extends AppCompatActivity {
                 loginProgressBar.setVisibility(View.GONE);
                 findViewById(R.id.loginBtn).setEnabled(true);
                 layoutPassword.setError("Wrong password. Try again or click Forgot password to reset it.");
+                layoutPassword.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE); // Keep the eye icon
+                layoutPassword.setErrorIconDrawable(null); // Prevent red "!" mark
             }
         });
     }
