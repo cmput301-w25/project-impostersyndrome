@@ -1,5 +1,5 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -46,7 +46,6 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="5dp"
                 android:contentDescription="Filter Moods" />
-
         </RelativeLayout>
 
         <!-- Thin divider line -->
@@ -55,48 +54,24 @@
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />
 
-        <!-- Tab Headers for My Moods & Following -->
-        <LinearLayout
+        <!-- TabLayout for My Moods & Following -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/myMoodsButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="My Moods"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_unfollow"
-                android:padding="12dp" />
-
-            <Button
-                android:id="@+id/followingButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Following"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_unfollow"
-                android:padding="12dp" />
-        </LinearLayout>
+            android:background="@android:color/black"
+            app:tabTextColor="@android:color/white"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabIndicatorColor="@android:color/white"
+            app:tabMode="fixed" />
     </LinearLayout>
 
-    <!-- Content area for mood posts -->
-    <ListView
-        android:id="@+id/moodListView"
+    <!-- ViewPager2 for tab content -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="8dp"
-        android:padding="8dp" />
+        android:layout_weight="1" />
 
     <!-- Thin divider line above navigation -->
     <View
@@ -113,7 +88,6 @@
         android:orientation="horizontal"
         android:weightSum="5">
 
-        <!-- Home Button -->
         <ImageButton
             android:id="@+id/homeButton"
             android:layout_width="0dp"
@@ -124,7 +98,6 @@
             android:src="@drawable/home"
             android:contentDescription="Home" />
 
-        <!-- Search Button -->
         <ImageButton
             android:id="@+id/searchButton"
             android:layout_width="0dp"
@@ -135,7 +108,6 @@
             android:src="@drawable/search"
             android:contentDescription="Search" />
 
-        <!-- Add Mood Button -->
         <ImageButton
             android:id="@+id/addMoodButton"
             android:layout_width="0dp"
@@ -146,7 +118,6 @@
             android:src="@drawable/add"
             android:contentDescription="Add Mood" />
 
-        <!-- Heart Button -->
         <ImageButton
             android:id="@+id/heartButton"
             android:layout_width="0dp"
@@ -157,7 +128,6 @@
             android:src="@drawable/heart"
             android:contentDescription="Favorites" />
 
-        <!-- Profile Button -->
         <ImageButton
             android:id="@+id/profileButton"
             android:layout_width="0dp"
