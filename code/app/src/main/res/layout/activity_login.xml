@@ -7,10 +7,27 @@
     android:padding="20dp"
     android:background="#000000">
 
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="48dp"
+        android:src="@mipmap/ic_launcher"
+        android:contentDescription="App Logo" />
+
     <TextView
-        android:text="@string/sign_in"
+        android:text="ImposterSyndrome"
         android:textSize="28sp"
         android:textStyle="bold"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:text="Welcome back!"
+        android:textSize="18sp"
         android:textColor="#ffffff"
         android:gravity="center"
         android:layout_width="wrap_content"
@@ -62,7 +79,34 @@
         android:id="@+id/loginBtn"
         android:text="@string/sign_in"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:text="Or continue with"
+        android:layout_marginTop="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/googleSignInButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Google"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:icon="@drawable/ic_google">
+        </com.google.android.material.button.MaterialButton>
+
+
+    </LinearLayout>
 
     <!-- Progress Bar (Initially Hidden) -->
     <ProgressBar
@@ -87,7 +131,7 @@
 
     <TextView
         android:id="@+id/newUserSignUp"
-        android:text="@string/new_user_sign_up"
+        android:text="Dont have an account? Sign up"
         android:textColor="#ffffff"
         android:textStyle="bold"
         android:layout_width="wrap_content"
