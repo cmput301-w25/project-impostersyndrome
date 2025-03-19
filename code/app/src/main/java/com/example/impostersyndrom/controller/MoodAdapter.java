@@ -14,104 +14,75 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.MoodItem;
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-/**
- * MoodAdapter is a custom ArrayAdapter for displaying mood entries in a ListView or RecyclerView.
- * It binds mood data from Firestore documents to the corresponding views in the layout.
- *
- * @author Ali Zain
- */
-public class MoodAdapter extends ArrayAdapter {
-    private Context context; // Context of the adapter
-    private List moodDocs; // List of Firestore documents containing mood data
+public class MoodAdapter extends ArrayAdapter<MoodItem> {
+    private final boolean showUsername; // Flag to show/hide username
 
-    /**
-     * Constructor for MoodAdapter.
-     *
-     * @param context  The context of the adapter.
-     * @param moodDocs The list of Firestore documents containing mood data.
-     */
-    public MoodAdapter(Context context, List moodDocs) {
-        super(context, R.layout.item_mood, moodDocs);
-        this.context = context;
-        this.moodDocs = moodDocs;
+    public MoodAdapter(Context context, List<MoodItem> moods, boolean showUsername) {
+        super(context, 0, moods);
+        this.showUsername = showUsername;
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        // Inflate the layout if convertView is null
         if (convertView == null) {
-            LayoutInflater inflater = LayoutInflater.from(context);
-            convertView = inflater.inflate(R.layout.item_mood, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_mood, parent, false);
         }
 
-        // Get the mood document at the current position
-        DocumentSnapshot moodDoc = (DocumentSnapshot) moodDocs.get(position);
-        Map data = moodDoc.getData();
+        MoodItem moodItem = getItem(position);
 
-        if (data != null) {
-            // Extract mood data from the document
-            String emoji = (String) data.get("emotionalState");
-            Timestamp timestamp = (Timestamp) data.get("timestamp");
-            String reason = (String) data.get("reason");
-            String group = (String) data.get("group"); // Retrieve group from Firestore
-            int color = data.get("color") != null ? ((Long) data.get("color")).intValue() : Color.WHITE;
+        TextView usernameView = convertView.findViewById(R.id.usernameView);
+        TextView timeView = convertView.findViewById(R.id.timeView);
+        TextView reasonView = convertView.findViewById(R.id.reasonView);
+        ImageView emojiView = convertView.findViewById(R.id.emojiView);
+        View rootLayout = convertView.findViewById(R.id.rootLayout);
 
-            // Initialize views
-            ImageView emojiView = convertView.findViewById(R.id.emojiView);
-            TextView timeView = convertView.findViewById(R.id.timeView);
-            TextView reasonView = convertView.findViewById(R.id.reasonView);
-            TextView groupView = convertView.findViewById(R.id.groupView); // Group TextView
-            View rootLayout = convertView.findViewById(R.id.rootLayout);
+        if (moodItem != null) {
+            // ✅ Show username only if "Following" tab is selected
+            if (showUsername) {
+                usernameView.setText(moodItem.getUsername());
+                usernameView.setVisibility(View.VISIBLE);
+            } else {
+                usernameView.setVisibility(View.GONE);
+            }
 
-            // Set the custom emoji image
-            if (emoji != null) {
-                int emojiResId = context.getResources().getIdentifier(emoji, "drawable", context.getPackageName());
+            // ✅ Set timestamp
+            Timestamp timestamp = moodItem.getTimestamp();
+            if (timestamp != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault());
+                timeView.setText(sdf.format(timestamp.toDate()));
+            } else {
+                timeView.setText("Unknown time");
+            }
+
+            // ✅ Set reason
+            reasonView.setText(moodItem.getReason());
+
+            // ✅ Fix Emoji Loading
+            String emojiKey = moodItem.getEmotionalState();
+            int emojiResId = getContext().getResources().getIdentifier(emojiKey, "drawable", getContext().getPackageName());
+            if (emojiResId != 0) {
                 emojiView.setImageResource(emojiResId);
             }
 
-            // Set the time
-            Date date = timestamp != null ? timestamp.toDate() : null;
-            timeView.setText(date != null ?
-                    new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(date) :
-                    "Unknown time");
+            // ✅ Set background color dynamically
+            int color = moodItem.getColor();
+            GradientDrawable background = new GradientDrawable();
+            background.setShape(GradientDrawable.RECTANGLE);
+            background.setCornerRadius(50); // Rounded corners
+            background.setColor(color);
+            background.setStroke(2, Color.BLACK); // Border
 
-            // Set the reason
-            reasonView.setText(reason != null ? reason : "No reason provided");
-
-            // Set the group
-            //groupView.setText(group != null ? group : "No group provided");
-
-            // Apply rounded background color
-            setRoundedBackground(rootLayout, color);
+            rootLayout.setBackground(background);
         }
 
         return convertView;
-    }
-
-    /**
-     * Sets a rounded background with dynamic color for a view.
-     *
-     * @param view  The view to apply the background to.
-     * @param color The color to set as the background.
-     */
-    private void setRoundedBackground(View view, int color) {
-        GradientDrawable gradientDrawable = new GradientDrawable();
-        gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50); // Rounded corners (50dp radius)
-        gradientDrawable.setColor(color); // Set the background color
-        gradientDrawable.setStroke(2, Color.BLACK); // Set the border (2dp width, black color)
-
-        // Set the GradientDrawable as the background
-        view.setBackground(gradientDrawable);
     }
 }
