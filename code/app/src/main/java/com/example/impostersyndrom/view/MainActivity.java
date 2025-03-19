@@ -34,6 +34,7 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -371,13 +372,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToMoodDetail(DocumentSnapshot moodDoc) {
-        Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
-        intent.putExtra("emoji", moodDoc.getString("emotionalState"));
-        intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
-        intent.putExtra("reason", moodDoc.getString("reason"));
-        intent.putExtra("imageUrl", moodDoc.getString("imageUrl"));
-        startActivity(intent);
+        if (moodDoc == null || !moodDoc.exists()) {
+            showToast("Mood details unavailable.");
+            return;
+        }
+
+        Map<String, Object> data = moodDoc.getData();
+        if (data != null) {
+            Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
+            intent.putExtra("emoji", (String) data.getOrDefault("emotionalState", ""));
+            intent.putExtra("timestamp", (Timestamp) data.getOrDefault("timestamp", null));
+            intent.putExtra("reason", (String) data.getOrDefault("reason", "No reason provided"));
+            intent.putExtra("group", (String) data.getOrDefault("group", "No group"));
+            intent.putExtra("color", ((Long) data.getOrDefault("color", 0L)).intValue());
+            intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
+            intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
+
+            // ✅ Pass the current tab state
+            intent.putExtra("isMyMoods", isMyMoods);
+
+            startActivity(intent);
+        } else {
+            showToast("Error loading mood details.");
+        }
     }
+
 
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
