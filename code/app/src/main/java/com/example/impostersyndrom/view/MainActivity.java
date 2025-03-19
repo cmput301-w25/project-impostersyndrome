@@ -32,6 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -151,21 +152,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs, boolean showUsername) {
-        List<MoodItem> moodItems = new ArrayList<>();
+        // Create a list with the exact size needed
+        final List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
         final int[] completedQueries = {0};
 
-        for (DocumentSnapshot moodDoc : moodDocs) {
+        for (int i = 0; i < moodDocs.size(); i++) {
+            final int position = i;  // Create a final copy for the callback
+            DocumentSnapshot moodDoc = moodDocs.get(i);
             String moodUserId = moodDoc.getString("userId");
-            if (moodUserId == null) continue;
+            if (moodUserId == null) {
+                completedQueries[0]++;
+                continue;
+            }
 
             db.collection("users").document(moodUserId)
                     .get()
                     .addOnSuccessListener(userDoc -> {
                         String username = userDoc.getString("username");
-                        moodItems.add(new MoodItem(moodDoc, showUsername ? "@" + username : ""));
+                        // Add the mood item at the SAME index as in the original list
+                        moodItems.set(position, new MoodItem(moodDoc, showUsername ? "@" + username : ""));
 
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
+                            // Remove any null entries that might exist if some queries failed
+                            moodItems.removeIf(item -> item == null);
+
                             if (moodItems.isEmpty()) {
                                 showToast("No valid moods to display");
                                 moodListView.setAdapter(null);
@@ -174,18 +185,19 @@ public class MainActivity extends AppCompatActivity {
                                 moodListView.setAdapter(moodAdapter);
 
                                 // Handle clicks
-                                moodListView.setOnItemClickListener((parent, view, position, id) -> {
-                                    DocumentSnapshot selectedMood = moodDocs.get(position);
+                                moodListView.setOnItemClickListener((parent, view, pos, id) -> {
+                                    // Find the corresponding document
+                                    DocumentSnapshot selectedMood = moodDocs.get(pos);
                                     navigateToMoodDetail(selectedMood);
                                 });
 
                                 // Handle long press (only for My Moods)
-                                moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
-                                    if (isMyMoods) { // Only allow long press if viewing "My Moods"
-                                        DocumentSnapshot selectedMood = moodDocs.get(position);
+                                moodListView.setOnItemLongClickListener((parent, view, pos, id) -> {
+                                    if (isMyMoods) {
+                                        DocumentSnapshot selectedMood = moodDocs.get(pos);
                                         showBottomSheetDialog(selectedMood);
                                     }
-                                    return true; // Consume event
+                                    return true;
                                 });
                             }
                         }
