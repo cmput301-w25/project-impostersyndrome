@@ -207,9 +207,9 @@ public class MoodDetailActivity extends AppCompatActivity {
      */
     private void setupBackButton() {
         backButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MoodDetailActivity.this, MainActivity.class);
-            intent.putExtra("userId", getIntent().getStringExtra("userId")); // Pass userId back
-            startActivity(intent);
+            Intent intent = new Intent();
+            intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
+            setResult(RESULT_OK, intent);
             finish();
         });
     }

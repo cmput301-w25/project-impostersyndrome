@@ -47,7 +47,6 @@
                 android:layout_marginEnd="5dp"
                 android:contentDescription="Filter Moods" />
 
-            <!-- Remove the filter button as requested -->
         </RelativeLayout>
 
         <!-- Thin divider line -->
@@ -56,36 +55,37 @@
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />
 
-        <!-- Tab Headers -->
+        <!-- Tab Headers for My Moods & Following -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="2">
 
-            <TextView
-                android:id="@+id/myMoodsTab"
+            <Button
+                android:id="@+id/myMoodsButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="My Moods"
-                android:textColor="@android:color/white"
                 android:textSize="18sp"
-                android:padding="12dp"
-                android:gravity="center" />
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_unfollow"
+                android:padding="12dp" />
 
-            <TextView
-                android:id="@+id/followingTab"
+            <Button
+                android:id="@+id/followingButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Following"
-                android:textColor="@android:color/white"
                 android:textSize="18sp"
-                android:padding="12dp"
-                android:gravity="center" />
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_unfollow"
+                android:padding="12dp" />
         </LinearLayout>
-
     </LinearLayout>
 
     <!-- Content area for mood posts -->
