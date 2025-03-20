@@ -26,6 +26,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
+import com.example.impostersyndrom.spotify.SpotifyManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -38,17 +39,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import okhttp3.Credentials;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.Header;
-import retrofit2.http.POST;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -69,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     // Spotify Authentication
     private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
     private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
-    private String accessToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
         // Pass userId to fragments via Intent
         getIntent().putExtra("userId", userId);
 
+        // Initialize SpotifyManager
+        SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
+
         // Set up ViewPager and TabLayout
         setupViewPager();
 
@@ -104,62 +96,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up navigation drawer with user information
         setupNavigationDrawer();
-
-        // Fetch Spotify access token
-        fetchSpotifyAccessToken();
-    }
-
-    // Retrofit service for Spotify authentication
-    interface SpotifyAuthService {
-        @FormUrlEncoded
-        @POST("api/token")
-        Call<SpotifyAuthResponse> getAccessToken(
-                @Header("Authorization") String authorization,
-                @Field("grant_type") String grantType
-        );
-    }
-
-    // Data class for Spotify authentication response
-    public static class SpotifyAuthResponse {
-        String access_token;
-        String token_type;
-        int expires_in;
-        String error;
-        String error_description;
-    }
-
-    private void fetchSpotifyAccessToken() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://accounts.spotify.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        SpotifyAuthService authService = retrofit.create(SpotifyAuthService.class);
-        String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
-        Call<SpotifyAuthResponse> call = authService.getAccessToken(credentials, "client_credentials");
-
-        call.enqueue(new Callback<SpotifyAuthResponse>() {
-            @Override
-            public void onResponse(Call<SpotifyAuthResponse> call, Response<SpotifyAuthResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    accessToken = response.body().access_token;
-                    Log.d("MainActivity", "Spotify access token fetched: " + accessToken);
-                } else {
-                    Log.e("MainActivity", "Spotify auth failed: " + response.code() + " - " + response.message());
-                    showToast("Failed to authenticate with Spotify");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<SpotifyAuthResponse> call, Throwable t) {
-                Log.e("MainActivity", "Spotify auth error: " + t.getMessage());
-                showToast("Error authenticating with Spotify");
-            }
-        });
-    }
-
-    public String getSpotifyAccessToken() {
-        return accessToken;
     }
 
     private void initializeViews() {
@@ -378,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
-            intent.putExtra("accessToken", accessToken); // Pass the access token to MoodDetailActivity
+            intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");

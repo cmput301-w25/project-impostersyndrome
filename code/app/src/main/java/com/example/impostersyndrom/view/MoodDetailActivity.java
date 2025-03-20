@@ -19,20 +19,18 @@ import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.network.SpotifyApiService;
 import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
+import com.example.impostersyndrom.spotify.MoodAudioMapper;
+import com.example.impostersyndrom.spotify.SpotifyManager;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MoodDetailActivity extends AppCompatActivity {
 
@@ -49,7 +47,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     private ImageButton backButton;
     private Button recommendSongButton;
     private TextView recommendedSongTextView;
-    private LinearLayout recommendationRectangle; // Added for visibility control
+    private LinearLayout recommendationRectangle;
 
     // Mood Data
     private String emoji;
@@ -62,37 +60,12 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     // Spotify Integration
     private String accessToken;
-    private SpotifyApiService spotifyApiService;
+    private SpotifyManager spotifyManager;
+    private MoodAudioMapper moodAudioMapper;
 
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
     private int currentTrackIndex = -1;
-
-    // Mood to audio features mapping
-    private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
-
-    static {
-        MOOD_TO_AUDIO_FEATURES.put("emoji_happy", new MoodAudioFeatures("dance-pop", 0.85f, 0.75f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_confused", new MoodAudioFeatures("indie-pop", 0.5f, 0.45f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_disgust", new MoodAudioFeatures("punk-rock", 0.25f, 0.65f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_angry", new MoodAudioFeatures("metal", 0.15f, 0.95f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_sad", new MoodAudioFeatures("acoustic", 0.15f, 0.25f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_fear", new MoodAudioFeatures("dark-ambient", 0.2f, 0.6f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_shame", new MoodAudioFeatures("folk", 0.2f, 0.15f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_surprised", new MoodAudioFeatures("dance-pop", 0.75f, 0.9f));
-    }
-
-    private static class MoodAudioFeatures {
-        String genre;
-        float valence;
-        float energy;
-
-        MoodAudioFeatures(String genre, float valence, float energy) {
-            this.genre = genre;
-            this.valence = valence;
-            this.energy = energy;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,18 +89,9 @@ public class MoodDetailActivity extends AppCompatActivity {
         accessToken = getIntent().getStringExtra("accessToken");
         Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
 
-        try {
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("https://api.spotify.com/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-            spotifyApiService = retrofit.create(SpotifyApiService.class);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to initialize Retrofit: " + e.getMessage(), e);
-            recommendedSongTextView.setText("Error initializing Spotify service.");
-            recommendationRectangle.setVisibility(View.VISIBLE);
-            return;
-        }
+        // Initialize SpotifyManager and MoodAudioMapper
+        spotifyManager = SpotifyManager.getInstance();
+        moodAudioMapper = new MoodAudioMapper();
 
         setupUI();
         setupBackButton();
@@ -304,26 +268,16 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void fetchSongRecommendation() {
-        MoodAudioFeatures features = MOOD_TO_AUDIO_FEATURES.getOrDefault(emoji,
-                new MoodAudioFeatures("pop", 0.5f, 0.5f));
-        String authHeader = "Bearer " + accessToken;
+        String genre = moodAudioMapper.getGenre(emoji);
+        float valence = moodAudioMapper.getValence(emoji);
+        float energy = moodAudioMapper.getEnergy(emoji);
 
-        Log.d(TAG, "Fetching recommendation with genre: " + features.genre +
-                ", valence: " + features.valence + ", energy: " + features.energy);
+        Log.d(TAG, "Fetching recommendation with genre: " + genre +
+                ", valence: " + valence + ", energy: " + energy);
 
-        Call<SpotifyRecommendationResponse> call = spotifyApiService.getRecommendations(
-                authHeader,
-                features.genre,
-                "3t5xRXzsuZmMDkQzgY2RtW",
-                features.valence,
-                features.energy,
-                10
-        );
-
-        call.enqueue(new Callback<SpotifyRecommendationResponse>() {
+        spotifyManager.fetchRecommendations(genre, valence, energy, 10, new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
-                Log.d(TAG, "Recommendation API response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
                     recommendedTracks.clear();
                     recommendedTracks.addAll(response.body().tracks);
@@ -338,7 +292,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     if (response.code() == 401) {
                         showToast("Spotify session expired. Please reopen this mood.");
                     } else {
-                        fetchSongUsingSearch(features.genre);
+                        fetchSongUsingSearch(genre);
                     }
                 }
             }
@@ -368,14 +322,9 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void fetchSongUsingSearch(String genre) {
-        String authHeader = "Bearer " + accessToken;
-        String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 10);
-
-        call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
+        spotifyManager.searchTracks(genre, 10, new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
-                Log.d(TAG, "Search API response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
                     recommendedTracks.clear();
                     recommendedTracks.addAll(response.body().tracks.items);
