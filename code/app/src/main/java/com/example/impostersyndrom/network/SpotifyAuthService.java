@@ -1,5 +1,7 @@
 package com.example.impostersyndrom.network;
 
+import com.example.impostersyndrom.spotify.SpotifyAuthResponse;
+
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

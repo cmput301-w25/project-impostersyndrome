@@ -1,4 +1,4 @@
-package com.example.impostersyndrom.network;
+package com.example.impostersyndrom.spotify;
 
 public class SpotifyAuthResponse {
     public String access_token;
