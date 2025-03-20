@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     private ImageButton backButton;
     private Button recommendSongButton;
     private TextView recommendedSongTextView;
+    private LinearLayout recommendationRectangle; // Added for visibility control
 
     // Mood Data
     private String emoji;
@@ -64,7 +66,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
-    private int currentTrackIndex = -1; // Start before the first track
+    private int currentTrackIndex = -1;
 
     // Mood to audio features mapping
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
@@ -123,6 +125,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize Retrofit: " + e.getMessage(), e);
             recommendedSongTextView.setText("Error initializing Spotify service.");
+            recommendationRectangle.setVisibility(View.VISIBLE);
             return;
         }
 
@@ -143,10 +146,11 @@ public class MoodDetailActivity extends AppCompatActivity {
             backButton = findViewById(R.id.backButton);
             recommendSongButton = findViewById(R.id.recommendSongButton);
             recommendedSongTextView = findViewById(R.id.recommendedSongTextView);
+            recommendationRectangle = findViewById(R.id.recommendationRectangle);
 
             if (emojiView == null || timeView == null || reasonView == null || emojiDescView == null ||
                     groupView == null || emojiRectangle == null || imageUrlView == null || backButton == null ||
-                    recommendSongButton == null || recommendedSongTextView == null) {
+                    recommendSongButton == null || recommendedSongTextView == null || recommendationRectangle == null) {
                 Log.e(TAG, "One or more views not found in layout.");
                 return false;
             }
@@ -283,29 +287,23 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void showNextRecommendation() {
+        Log.d(TAG, "showNextRecommendation called, currentTrackIndex: " + currentTrackIndex + ", track size: " + recommendedTracks.size());
         if (accessToken == null || accessToken.isEmpty()) {
             recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
+            recommendationRectangle.setVisibility(View.VISIBLE);
             showToast("Spotify authentication required.");
             return;
         }
 
-        // If tracks are not fetched yet or we've run out, fetch new ones
         if (recommendedTracks.isEmpty() || currentTrackIndex >= recommendedTracks.size() - 1) {
             fetchSongRecommendation();
         } else {
-            // Move to the next track
             currentTrackIndex++;
             displayCurrentTrack();
         }
     }
 
     private void fetchSongRecommendation() {
-        if (accessToken == null || accessToken.isEmpty()) {
-            recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
-            showToast("Spotify authentication required.");
-            return;
-        }
-
         MoodAudioFeatures features = MOOD_TO_AUDIO_FEATURES.getOrDefault(emoji,
                 new MoodAudioFeatures("pop", 0.5f, 0.5f));
         String authHeader = "Bearer " + accessToken;
@@ -319,21 +317,23 @@ public class MoodDetailActivity extends AppCompatActivity {
                 "3t5xRXzsuZmMDkQzgY2RtW",
                 features.valence,
                 features.energy,
-                10 // Increased limit to 10
+                10
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
+                Log.d(TAG, "Recommendation API response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
-                    recommendedTracks.clear(); // Clear previous tracks
+                    recommendedTracks.clear();
                     recommendedTracks.addAll(response.body().tracks);
-                    currentTrackIndex = 0; // Start at the first track
+                    currentTrackIndex = 0;
+                    Log.d(TAG, "Fetched " + recommendedTracks.size() + " tracks");
                     displayCurrentTrack();
-                    Log.d(TAG, "Fetched " + recommendedTracks.size() + " recommendations");
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);
+                    recommendationRectangle.setVisibility(View.VISIBLE);
                     Log.e(TAG, errorMessage);
                     if (response.code() == 401) {
                         showToast("Spotify session expired. Please reopen this mood.");
@@ -346,38 +346,46 @@ public class MoodDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
                 recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
+                recommendationRectangle.setVisibility(View.VISIBLE);
                 Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
             }
         });
     }
 
     private void displayCurrentTrack() {
+        Log.d(TAG, "displayCurrentTrack called, index: " + currentTrackIndex + ", tracks size: " + recommendedTracks.size());
         if (currentTrackIndex >= 0 && currentTrackIndex < recommendedTracks.size()) {
             SpotifyRecommendationResponse.Track track = recommendedTracks.get(currentTrackIndex);
-            String recommendedSong = "Recommended Song " + (currentTrackIndex + 1) + ": " + track.name + " by " + track.artists.get(0).name;
+            String recommendedSong = track.name + " by " + track.artists.get(0).name;
             recommendedSongTextView.setText(recommendedSong);
-            recommendedSongTextView.setVisibility(View.VISIBLE);
+            recommendationRectangle.setVisibility(View.VISIBLE);
             Log.d(TAG, "Displayed: " + recommendedSong);
+        } else {
+            Log.e(TAG, "Invalid track index or empty track list");
+            recommendedSongTextView.setText("No recommendation available");
+            recommendationRectangle.setVisibility(View.VISIBLE);
         }
     }
 
     private void fetchSongUsingSearch(String genre) {
         String authHeader = "Bearer " + accessToken;
         String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 10); // Also fetch 10
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 10);
 
         call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
+                Log.d(TAG, "Search API response code: " + response.code());
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
-                    recommendedTracks.clear(); // Clear previous tracks
+                    recommendedTracks.clear();
                     recommendedTracks.addAll(response.body().tracks.items);
-                    currentTrackIndex = 0; // Start at the first track
-                    displayCurrentTrack();
+                    currentTrackIndex = 0;
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
+                    displayCurrentTrack();
                 } else {
                     String errorMessage = "No songs found: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);
+                    recommendationRectangle.setVisibility(View.VISIBLE);
                     Log.e(TAG, errorMessage);
                 }
             }
@@ -385,6 +393,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<SpotifyApiService.SearchResponse> call, Throwable t) {
                 recommendedSongTextView.setText("Error searching for songs: " + t.getMessage());
+                recommendationRectangle.setVisibility(View.VISIBLE);
                 Log.e(TAG, "Search error: " + t.getMessage());
             }
         });
