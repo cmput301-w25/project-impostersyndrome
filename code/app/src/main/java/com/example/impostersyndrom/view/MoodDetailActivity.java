@@ -25,8 +25,11 @@ import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -65,7 +68,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
-    private int currentTrackIndex = -1;
+    private Set<String> shownTrackIds = new HashSet<>(); // Tracks shown in this session
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,7 +254,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void showNextRecommendation() {
-        Log.d(TAG, "showNextRecommendation called, currentTrackIndex: " + currentTrackIndex + ", track size: " + recommendedTracks.size());
+        Log.d(TAG, "showNextRecommendation called, shown tracks: " + shownTrackIds.size() + ", total tracks: " + recommendedTracks.size());
         if (accessToken == null || accessToken.isEmpty()) {
             recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
             recommendationRectangle.setVisibility(View.VISIBLE);
@@ -259,11 +262,11 @@ public class MoodDetailActivity extends AppCompatActivity {
             return;
         }
 
-        if (recommendedTracks.isEmpty() || currentTrackIndex >= recommendedTracks.size() - 1) {
+        // If all tracks have been shown or no tracks are available, fetch a new batch
+        if (recommendedTracks.isEmpty() || shownTrackIds.size() >= recommendedTracks.size()) {
             fetchSongRecommendation();
         } else {
-            currentTrackIndex++;
-            displayCurrentTrack();
+            displayRandomUnshownTrack();
         }
     }
 
@@ -275,15 +278,15 @@ public class MoodDetailActivity extends AppCompatActivity {
         Log.d(TAG, "Fetching recommendation with genre: " + genre +
                 ", valence: " + valence + ", energy: " + energy);
 
-        spotifyManager.fetchRecommendations(genre, valence, energy, 10, new Callback<SpotifyRecommendationResponse>() {
+        spotifyManager.fetchRecommendations(genre, valence, energy, new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
                     recommendedTracks.clear();
+                    shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks);
-                    currentTrackIndex = 0;
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " tracks");
-                    displayCurrentTrack();
+                    displayRandomUnshownTrack();
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);
@@ -306,31 +309,46 @@ public class MoodDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void displayCurrentTrack() {
-        Log.d(TAG, "displayCurrentTrack called, index: " + currentTrackIndex + ", tracks size: " + recommendedTracks.size());
-        if (currentTrackIndex >= 0 && currentTrackIndex < recommendedTracks.size()) {
-            SpotifyRecommendationResponse.Track track = recommendedTracks.get(currentTrackIndex);
-            String recommendedSong = track.name + " by " + track.artists.get(0).name;
-            recommendedSongTextView.setText(recommendedSong);
-            recommendationRectangle.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Displayed: " + recommendedSong);
-        } else {
-            Log.e(TAG, "Invalid track index or empty track list");
-            recommendedSongTextView.setText("No recommendation available");
-            recommendationRectangle.setVisibility(View.VISIBLE);
+    private void displayRandomUnshownTrack() {
+        // Filter out tracks that have already been shown
+        List<SpotifyRecommendationResponse.Track> unshownTracks = new ArrayList<>();
+        for (SpotifyRecommendationResponse.Track track : recommendedTracks) {
+            if (!shownTrackIds.contains(track.id)) {
+                unshownTracks.add(track);
+            }
         }
+
+        if (unshownTracks.isEmpty()) {
+            // All tracks have been shown; fetch a new batch
+            fetchSongRecommendation();
+            return;
+        }
+
+        // Randomly select one of the unshown tracks
+        Random random = new Random();
+        int randomIndex = random.nextInt(unshownTracks.size());
+        SpotifyRecommendationResponse.Track selectedTrack = unshownTracks.get(randomIndex);
+
+        // Display the selected track
+        String recommendedSong = selectedTrack.name + " by " + selectedTrack.artists.get(0).name;
+        recommendedSongTextView.setText(recommendedSong);
+        recommendationRectangle.setVisibility(View.VISIBLE);
+        Log.d(TAG, "Displayed: " + recommendedSong);
+
+        // Mark the track as shown
+        shownTrackIds.add(selectedTrack.id);
     }
 
     private void fetchSongUsingSearch(String genre) {
-        spotifyManager.searchTracks(genre, 10, new Callback<SpotifyApiService.SearchResponse>() {
+        spotifyManager.searchTracks(genre, new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
                     recommendedTracks.clear();
+                    shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks.items);
-                    currentTrackIndex = 0;
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
-                    displayCurrentTrack();
+                    displayRandomUnshownTrack();
                 } else {
                     String errorMessage = "No songs found: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);

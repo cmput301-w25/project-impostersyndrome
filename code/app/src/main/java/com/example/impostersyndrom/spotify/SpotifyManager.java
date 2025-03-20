@@ -5,8 +5,6 @@ import android.util.Log;
 import com.example.impostersyndrom.network.SpotifyApiService;
 import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
 
-import java.util.List;
-
 import okhttp3.Credentials;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,7 +31,7 @@ public class SpotifyManager {
     private Retrofit apiRetrofit;
     private SpotifyApiService spotifyApiService;
 
-    // Inner interface for auth (moved from MainActivity)
+    // Inner interface for auth
     interface SpotifyAuthService {
         @FormUrlEncoded
         @POST("api/token")
@@ -103,7 +101,7 @@ public class SpotifyManager {
         return accessToken;
     }
 
-    public void fetchRecommendations(String genre, float valence, float energy, int limit, Callback<SpotifyRecommendationResponse> callback) {
+    public void fetchRecommendations(String genre, float valence, float energy, Callback<SpotifyRecommendationResponse> callback) {
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e(TAG, "Access token is null or empty");
             return;
@@ -116,7 +114,7 @@ public class SpotifyManager {
                 "3t5xRXzsuZmMDkQzgY2RtW", // Seed artist ID
                 valence,
                 energy,
-                limit
+                20 // Increased limit to 20
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
@@ -134,7 +132,7 @@ public class SpotifyManager {
         });
     }
 
-    public void searchTracks(String genre, int limit, Callback<SpotifyApiService.SearchResponse> callback) {
+    public void searchTracks(String genre, Callback<SpotifyApiService.SearchResponse> callback) {
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e(TAG, "Access token is null or empty");
             return;
@@ -142,7 +140,7 @@ public class SpotifyManager {
 
         String authHeader = "Bearer " + accessToken;
         String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", limit);
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 20); // Increased limit to 20
 
         call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
             @Override

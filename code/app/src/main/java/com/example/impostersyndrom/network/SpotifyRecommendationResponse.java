@@ -9,6 +9,9 @@ public class SpotifyRecommendationResponse {
     public List<Track> tracks;
 
     public static class Track {
+        @SerializedName("id")
+        public String id;
+
         @SerializedName("name")
         public String name;
 
