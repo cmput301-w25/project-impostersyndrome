@@ -100,11 +100,7 @@ public class MainActivity extends AppCompatActivity {
         myMoodsButton = findViewById(R.id.myMoodsButton);
         followingButton = findViewById(R.id.followingButton);
         moodListView = findViewById(R.id.moodListView);
-        ImageButton addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
-        ImageButton filterButton = findViewById(R.id.filterButton);
-        ImageButton searchButton = findViewById(R.id.searchButton);
-        ImageButton heartButton = findViewById(R.id.heartButton);
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
         innerNavigationView = findViewById(R.id.innerNavigationView);
@@ -280,13 +276,26 @@ public class MainActivity extends AppCompatActivity {
         for (String followedUserId : followingIds) {
             db.collection("moods")
                     .whereEqualTo("userId", followedUserId)
-                    .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(3)
+                    .orderBy("timestamp", Query.Direction.DESCENDING) // ✅ Get all first
                     .get()
                     .addOnSuccessListener(snapshot -> {
-                        allMoods.addAll(snapshot.getDocuments());
+                        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
 
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                            // ✅ Only add moods that are NOT explicitly private
+                            Boolean isPrivate = doc.contains("privateMood") ? doc.getBoolean("privateMood") : false;
+                            if (!isPrivate) {
+                                filteredMoods.add(doc);
+                            }
+
+                            // ✅ Stop adding after 3 moods per user
+                            if (filteredMoods.size() == 3) break;
+                        }
+
+                        allMoods.addAll(filteredMoods);
                         completedQueries[0]++;
+
+                        // ✅ Once all queries finish, sort and display
                         if (completedQueries[0] == followingIds.size()) {
                             allMoods.sort((m1, m2) -> {
                                 Timestamp t1 = m1.getTimestamp("timestamp");
@@ -294,11 +303,6 @@ public class MainActivity extends AppCompatActivity {
                                 if (t1 == null || t2 == null) return 0;
                                 return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
                             });
-
-                            for (DocumentSnapshot mood : allMoods) {
-                                Timestamp timestamp = mood.getTimestamp("timestamp");
-                                System.out.println("Mood Timestamp: " + timestamp);
-                            }
 
                             setupMoodAdapter(allMoods, true);
                         }
@@ -312,11 +316,13 @@ public class MainActivity extends AppCompatActivity {
                                 if (t1 == null || t2 == null) return 0;
                                 return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
                             });
+
                             setupMoodAdapter(allMoods, true);
                         }
                     });
         }
     }
+
 
     private void showFilterDialog() {
         Dialog filterDialog = new Dialog(this);
