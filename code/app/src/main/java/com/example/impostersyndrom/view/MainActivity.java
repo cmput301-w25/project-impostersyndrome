@@ -2,6 +2,9 @@ package com.example.impostersyndrom.view;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -396,6 +399,15 @@ public class MainActivity extends AppCompatActivity {
     public void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // Set edge-to-edge display
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove grey background
+            bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            );
+        }
 
         TextView editMood = bottomSheetView.findViewById(R.id.editMoodOption);
         TextView deleteMood = bottomSheetView.findViewById(R.id.deleteMoodOption);
@@ -431,7 +443,10 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: Changed customSheetView to bottomSheetView
+
+
+        bottomSheetDialog.setContentView(bottomSheetView); 
+
         bottomSheetDialog.show();
     }
 

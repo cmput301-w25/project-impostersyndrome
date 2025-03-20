@@ -85,6 +85,7 @@
                                 android:maxLength="200"
                                 android:padding="8dp"
                                 android:singleLine="true"
+                                android:textColor="@color/black"
                                 android:textColorHint="#546E7A" />
                         </FrameLayout>
 
