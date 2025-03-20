@@ -21,10 +21,11 @@ import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -61,8 +62,9 @@ public class MoodDetailActivity extends AppCompatActivity {
     private String accessToken;
     private SpotifyApiService spotifyApiService;
 
-    // Randomizer
-    private Random random = new Random();
+    // Recommendation Tracking
+    private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
+    private int currentTrackIndex = -1; // Start before the first track
 
     // Mood to audio features mapping
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
@@ -276,7 +278,24 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     private void setupRecommendSongButton() {
         if (recommendSongButton != null) {
-            recommendSongButton.setOnClickListener(v -> fetchSongRecommendation());
+            recommendSongButton.setOnClickListener(v -> showNextRecommendation());
+        }
+    }
+
+    private void showNextRecommendation() {
+        if (accessToken == null || accessToken.isEmpty()) {
+            recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
+            showToast("Spotify authentication required.");
+            return;
+        }
+
+        // If tracks are not fetched yet or we've run out, fetch new ones
+        if (recommendedTracks.isEmpty() || currentTrackIndex >= recommendedTracks.size() - 1) {
+            fetchSongRecommendation();
+        } else {
+            // Move to the next track
+            currentTrackIndex++;
+            displayCurrentTrack();
         }
     }
 
@@ -300,20 +319,18 @@ public class MoodDetailActivity extends AppCompatActivity {
                 "3t5xRXzsuZmMDkQzgY2RtW",
                 features.valence,
                 features.energy,
-                5 // Increased limit to 5 for variety
+                10 // Increased limit to 10
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
-                    // Pick a random track from the list
-                    int trackIndex = random.nextInt(response.body().tracks.size());
-                    SpotifyRecommendationResponse.Track track = response.body().tracks.get(trackIndex);
-                    String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
-                    recommendedSongTextView.setText(recommendedSong);
-                    recommendedSongTextView.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Recommendation fetched: " + recommendedSong);
+                    recommendedTracks.clear(); // Clear previous tracks
+                    recommendedTracks.addAll(response.body().tracks);
+                    currentTrackIndex = 0; // Start at the first track
+                    displayCurrentTrack();
+                    Log.d(TAG, "Fetched " + recommendedTracks.size() + " recommendations");
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);
@@ -328,28 +345,36 @@ public class MoodDetailActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
-//                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
+                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
                 Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
             }
         });
     }
 
+    private void displayCurrentTrack() {
+        if (currentTrackIndex >= 0 && currentTrackIndex < recommendedTracks.size()) {
+            SpotifyRecommendationResponse.Track track = recommendedTracks.get(currentTrackIndex);
+            String recommendedSong = "Recommended Song " + (currentTrackIndex + 1) + ": " + track.name + " by " + track.artists.get(0).name;
+            recommendedSongTextView.setText(recommendedSong);
+            recommendedSongTextView.setVisibility(View.VISIBLE);
+            Log.d(TAG, "Displayed: " + recommendedSong);
+        }
+    }
+
     private void fetchSongUsingSearch(String genre) {
         String authHeader = "Bearer " + accessToken;
         String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 5); // Also fetch 5 for variety
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 10); // Also fetch 10
 
         call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
-                    // Pick a random track from the search results
-                    int trackIndex = random.nextInt(response.body().tracks.items.size());
-                    SpotifyRecommendationResponse.Track track = response.body().tracks.items.get(trackIndex);
-                    String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
-                    recommendedSongTextView.setText(recommendedSong);
-                    recommendedSongTextView.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Search recommendation fetched: " + recommendedSong);
+                    recommendedTracks.clear(); // Clear previous tracks
+                    recommendedTracks.addAll(response.body().tracks.items);
+                    currentTrackIndex = 0; // Start at the first track
+                    displayCurrentTrack();
+                    Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
                 } else {
                     String errorMessage = "No songs found: " + response.code() + " - " + response.message();
                     recommendedSongTextView.setText(errorMessage);
