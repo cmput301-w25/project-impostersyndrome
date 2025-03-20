@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,7 +34,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MoodDetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "ochtayMoodDetailActivity";
+    private static final String TAG = "MoodDetailActivity";
 
     // UI Components
     private ImageView emojiView;
@@ -59,6 +60,9 @@ public class MoodDetailActivity extends AppCompatActivity {
     // Spotify Integration
     private String accessToken;
     private SpotifyApiService spotifyApiService;
+
+    // Randomizer
+    private Random random = new Random();
 
     // Mood to audio features mapping
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
@@ -296,14 +300,16 @@ public class MoodDetailActivity extends AppCompatActivity {
                 "3t5xRXzsuZmMDkQzgY2RtW",
                 features.valence,
                 features.energy,
-                1
+                5 // Increased limit to 5 for variety
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
-                    SpotifyRecommendationResponse.Track track = response.body().tracks.get(0);
+                    // Pick a random track from the list
+                    int trackIndex = random.nextInt(response.body().tracks.size());
+                    SpotifyRecommendationResponse.Track track = response.body().tracks.get(trackIndex);
                     String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
                     recommendedSongTextView.setText(recommendedSong);
                     recommendedSongTextView.setVisibility(View.VISIBLE);
@@ -322,7 +328,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
-                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
+//                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
                 Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
             }
         });
@@ -331,13 +337,15 @@ public class MoodDetailActivity extends AppCompatActivity {
     private void fetchSongUsingSearch(String genre) {
         String authHeader = "Bearer " + accessToken;
         String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 1);
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 5); // Also fetch 5 for variety
 
         call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
-                    SpotifyRecommendationResponse.Track track = response.body().tracks.items.get(0);
+                    // Pick a random track from the search results
+                    int trackIndex = random.nextInt(response.body().tracks.items.size());
+                    SpotifyRecommendationResponse.Track track = response.body().tracks.items.get(trackIndex);
                     String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
                     recommendedSongTextView.setText(recommendedSong);
                     recommendedSongTextView.setVisibility(View.VISIBLE);
