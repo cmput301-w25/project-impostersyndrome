@@ -30,7 +30,7 @@
                 app:tint="@color/white"/>
         </RelativeLayout>
 
-        <!-- Content rectangle -->
+        <!-- Mood rectangle -->
         <LinearLayout
             android:id="@+id/emojiRectangle"
             android:layout_width="match_parent"
@@ -124,6 +124,21 @@
                 android:backgroundTint="@android:color/holo_blue_light"
                 android:textColor="@android:color/white"
                 android:padding="8dp"/>
+        </LinearLayout>
+
+        <!-- Recommendation rectangle -->
+        <LinearLayout
+            android:id="@+id/recommendationRectangle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/edit_text_background"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:elevation="8dp"
+            android:outlineProvider="background"
+            android:clipToOutline="true"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/recommendedSongTextView"
@@ -131,8 +146,9 @@
                 android:layout_height="wrap_content"
                 android:text="Fetching recommendation..."
                 android:textSize="16sp"
-                android:padding="8dp"
-                android:visibility="gone" />
+                android:textColor="@color/white"
+                android:gravity="center"/>
         </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
