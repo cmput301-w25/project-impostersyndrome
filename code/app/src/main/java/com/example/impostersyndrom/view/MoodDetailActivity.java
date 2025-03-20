@@ -72,14 +72,14 @@ public class MoodDetailActivity extends AppCompatActivity {
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
 
     static {
-        MOOD_TO_AUDIO_FEATURES.put("emoji_happy", new MoodAudioFeatures("pop", 0.8f, 0.7f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_confused", new MoodAudioFeatures("indie-pop", 0.4f, 0.3f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_disgust", new MoodAudioFeatures("rock", 0.3f, 0.5f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_angry", new MoodAudioFeatures("metal", 0.2f, 0.9f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_sad", new MoodAudioFeatures("acoustic", 0.2f, 0.3f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_fear", new MoodAudioFeatures("ambient", 0.3f, 0.4f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_shame", new MoodAudioFeatures("folk", 0.3f, 0.2f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_surprised", new MoodAudioFeatures("dance-pop", 0.7f, 0.8f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_happy", new MoodAudioFeatures("dance-pop", 0.85f, 0.75f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_confused", new MoodAudioFeatures("indie-pop", 0.5f, 0.45f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_disgust", new MoodAudioFeatures("punk-rock", 0.25f, 0.65f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_angry", new MoodAudioFeatures("metal", 0.15f, 0.95f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_sad", new MoodAudioFeatures("acoustic", 0.15f, 0.25f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_fear", new MoodAudioFeatures("dark-ambient", 0.2f, 0.6f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_shame", new MoodAudioFeatures("folk", 0.2f, 0.15f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_surprised", new MoodAudioFeatures("dance-pop", 0.75f, 0.9f));
     }
 
     private static class MoodAudioFeatures {
