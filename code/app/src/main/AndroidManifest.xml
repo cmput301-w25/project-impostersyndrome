@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.CAMERA" android:required="true"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ImposterSyndrom"
         tools:targetApi="31">
+
         <activity android:name=".view.EditProfileActivity" />
         <activity
             android:name=".view.UserProfileActivity"
@@ -33,40 +35,51 @@
         <activity
             android:name=".view.LoginActivity"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".view.RegisterActivity"
-            android:exported="false" /> <!-- MainActivity (Launcher Activity) -->
+            android:exported="false" />
+
+        <!-- MainActivity -->
         <activity
             android:name=".view.MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
+            <!-- Intent-filter to handle Spotify Redirect URI -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="ImposterSyndrome"
+                    android:host="callback" />
             </intent-filter>
-        </activity> <!-- EmojiSelectionActivity -->
+        </activity>
+
+        <!-- EmojiSelectionActivity -->
         <activity
             android:name=".view.EmojiSelectionActivity"
-            android:exported="false" /> <!-- Not exported since it's only used internally -->
+            android:exported="false" />
+
         <!-- AddMoodActivity -->
         <activity
             android:name=".view.AddMoodActivity"
             android:exported="false" />
+
+        <!-- MoodDetailActivity -->
         <activity
             android:name=".view.MoodDetailActivity"
-            android:exported="false"
-            />
+            android:exported="false" />
 
-        <activity android:name=".view.EditMoodActivity"/>
-        <activity android:name=".view.EditEmojiActivity"/>
-        <activity android:name=".view.SearchActivity" android:exported="true"/>
+        <activity android:name=".view.EditMoodActivity" />
+        <activity android:name=".view.EditEmojiActivity" />
+        <activity
+            android:name=".view.SearchActivity"
+            android:exported="true" />
         <activity android:name=".view.FollowingActivity" />
 
         <provider
