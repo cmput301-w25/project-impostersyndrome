@@ -55,7 +55,6 @@
                     android:layout_alignParentEnd="true"
                     android:layout_marginEnd="5dp"
                     android:contentDescription="Filter Moods" />
-
             </RelativeLayout>
 
             <!-- Thin divider line -->
@@ -64,33 +63,24 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray" />
 
-        <!-- TabLayout for My Moods & Following -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/black"
-            app:tabTextColor="@android:color/white"
-            app:tabSelectedTextColor="@android:color/white"
-            app:tabIndicatorColor="@android:color/white"
-            app:tabMode="fixed" />
-    </LinearLayout>
+            <!-- TabLayout for My Moods & Following -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/black"
+                app:tabTextColor="@android:color/white"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabMode="fixed" />
+        </LinearLayout>
 
-    <!-- ViewPager2 for tab content -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-        <!-- Content area for mood posts -->
-        <ListView
-            android:id="@+id/moodListView"
+        <!-- ViewPager2 for tab content -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="8dp"
-            android:padding="8dp" />
+            android:layout_weight="1" />
 
         <!-- Thin divider line above navigation -->
         <View
@@ -211,8 +201,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            app:menu="@menu/nav_menu"
-            android:background="#F5E6DA" />
+            android:background="#F5E6DA"
+            app:menu="@menu/nav_menu" />
 
         <!-- Divider -->
         <View
