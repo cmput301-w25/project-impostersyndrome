@@ -17,13 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MoodAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
@@ -34,7 +29,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -48,20 +42,14 @@ public class MainActivity extends AppCompatActivity {
 
     // UI Components
     private ListView moodListView;
-    private ImageButton addMoodButton;
     private ImageButton profileButton;
-    private ImageButton filterButton;
     private ImageButton menuButton;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
     private LinearLayout logoutContainer;
     private TextView userEmailTextView;
-    private ImageButton searchButton;
-    private ImageButton heartButton;
-
-    private ImageButton addMoodButton, logoutButton, filterButton, searchButton, heartButton;
-    private TextView myMoodsButton, followingButton;
-
+    private TextView myMoodsButton;
+    private TextView followingButton;
 
     // Data
     private MoodAdapter moodAdapter;
@@ -69,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String userId;
     private FirebaseFirestore db;
-    private boolean isMyMoods = true; // To track which tab is active
+    private boolean isMyMoods = true;
     private boolean filterByRecentWeek = false;
     private String selectedEmotionalState = "";
     private MoodFilter moodFilter;
@@ -87,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         initializeViews();
         moodDataManager = new MoodDataManager();
 
-
         // Initialize utilities
         moodFilter = new MoodFilter();
 
@@ -102,10 +89,8 @@ public class MainActivity extends AppCompatActivity {
         // Set up button click listeners
         setupButtonListeners();
 
-
         // Set up navigation drawer with user information
         setupNavigationDrawer();
-    }
 
         // Load initial data
         fetchMyMoods();
@@ -115,25 +100,19 @@ public class MainActivity extends AppCompatActivity {
         myMoodsButton = findViewById(R.id.myMoodsButton);
         followingButton = findViewById(R.id.followingButton);
         moodListView = findViewById(R.id.moodListView);
-        addMoodButton = findViewById(R.id.addMoodButton);
+        ImageButton addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
-        filterButton = findViewById(R.id.filterButton);
-        searchButton = findViewById(R.id.searchButton);
-        heartButton = findViewById(R.id.heartButton);
+        ImageButton filterButton = findViewById(R.id.filterButton);
+        ImageButton searchButton = findViewById(R.id.searchButton);
+        ImageButton heartButton = findViewById(R.id.heartButton);
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
-
-        // New navigation components
         innerNavigationView = findViewById(R.id.innerNavigationView);
         logoutContainer = findViewById(R.id.logoutContainer);
         userEmailTextView = findViewById(R.id.userEmailTextView);
     }
 
-    /**
-     * Sets up the navigation drawer with user information.
-     */
     private void setupNavigationDrawer() {
-        // Set up user email in the drawer header
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
             if (email != null) {
@@ -141,18 +120,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Set up navigation item click listener for the inner navigation view
         innerNavigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-
-            // Handle navigation item clicks
-            // Add your navigation handling code here
-
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
-        // Setup the logout button
         logoutContainer.setOnClickListener(v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
             logoutUser();
@@ -170,37 +143,40 @@ public class MainActivity extends AppCompatActivity {
             fetchMyMoods();
         });
 
+        ImageButton addMoodButton = findViewById(R.id.addMoodButton);
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
 
         profileButton.setOnClickListener(v -> navigateToProfile());
+
+        ImageButton filterButton = findViewById(R.id.filterButton);
         filterButton.setOnClickListener(v -> showFilterDialog());
+
+        ImageButton searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class); // Replace with your actual Search Activity class
+            startActivity(intent);
+        });
+
+        ImageButton heartButton = findViewById(R.id.heartButton);
         heartButton.setOnClickListener(v -> {
-            // Navigate to FollowingActivity when the heart button is clicked
             Intent intent = new Intent(MainActivity.this, FollowingActivity.class);
             startActivity(intent);
         });
+
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
-    /**
-     * Navigates to the ProfileActivity.
-     */
     private void navigateToProfile() {
         Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
         startActivity(intent);
     }
 
-    /**
-     * Method for toggling the navigation drawer
-      */
     private void toggleNavigationDrawer() {
         if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.openDrawer(GravityCompat.START);
         }
     }
-    /**
-     * Navigates to EmojiSelectionActivity.
-     */
+
     private void navigateToEmojiSelection() {
         Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
         intent.putExtra("userId", userId);
@@ -218,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
                     setupMoodAdapter(moodDocs, false);
                 })
                 .addOnFailureListener(e -> showToast("Failed to fetch your moods: " + e.getMessage()));
-
     }
 
     private void fetchFollowingMoods() {
@@ -246,12 +221,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs, boolean showUsername) {
-        // Create a list with the exact size needed
         final List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
         final int[] completedQueries = {0};
 
         for (int i = 0; i < moodDocs.size(); i++) {
-            final int position = i;  // Create a final copy for the callback
+            final int position = i;
             DocumentSnapshot moodDoc = moodDocs.get(i);
             String moodUserId = moodDoc.getString("userId");
             if (moodUserId == null) {
@@ -263,12 +237,10 @@ public class MainActivity extends AppCompatActivity {
                     .get()
                     .addOnSuccessListener(userDoc -> {
                         String username = userDoc.getString("username");
-                        // Add the mood item at the SAME index as in the original list
                         moodItems.set(position, new MoodItem(moodDoc, showUsername ? "@" + username : ""));
 
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
-                            // Remove any null entries that might exist if some queries failed
                             moodItems.removeIf(item -> item == null);
 
                             if (moodItems.isEmpty()) {
@@ -278,14 +250,11 @@ public class MainActivity extends AppCompatActivity {
                                 moodAdapter = new MoodAdapter(MainActivity.this, moodItems, showUsername);
                                 moodListView.setAdapter(moodAdapter);
 
-                                // Handle clicks
                                 moodListView.setOnItemClickListener((parent, view, pos, id) -> {
-                                    // Find the corresponding document
                                     DocumentSnapshot selectedMood = moodDocs.get(pos);
                                     navigateToMoodDetail(selectedMood);
                                 });
 
-                                // Handle long press (only for My Moods)
                                 moodListView.setOnItemLongClickListener((parent, view, pos, id) -> {
                                     if (isMyMoods) {
                                         DocumentSnapshot selectedMood = moodDocs.get(pos);
@@ -304,7 +273,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void fetchLatestMoodsFromFollowedUsers(List<String> followingIds) {
         List<DocumentSnapshot> allMoods = new ArrayList<>();
         final int[] completedQueries = {0};
@@ -313,30 +281,25 @@ public class MainActivity extends AppCompatActivity {
             db.collection("moods")
                     .whereEqualTo("userId", followedUserId)
                     .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(3)  // ✅ Fetch max 3 moods per user
+                    .limit(3)
                     .get()
                     .addOnSuccessListener(snapshot -> {
                         allMoods.addAll(snapshot.getDocuments());
 
                         completedQueries[0]++;
                         if (completedQueries[0] == followingIds.size()) {
-                            // ✅ FINAL Global Sorting After Fetching ALL Users' Moods
                             allMoods.sort((m1, m2) -> {
                                 Timestamp t1 = m1.getTimestamp("timestamp");
                                 Timestamp t2 = m2.getTimestamp("timestamp");
-
-                                if (t1 == null || t2 == null) return 0; // Prevent crashes
-
-                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime()); // ✅ Sort latest first
+                                if (t1 == null || t2 == null) return 0;
+                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
                             });
 
-                            // ✅ Debugging: Print out sorted timestamps to check order
                             for (DocumentSnapshot mood : allMoods) {
                                 Timestamp timestamp = mood.getTimestamp("timestamp");
                                 System.out.println("Mood Timestamp: " + timestamp);
                             }
 
-                            // ✅ Send properly sorted list to UI
                             setupMoodAdapter(allMoods, true);
                         }
                     })
@@ -346,12 +309,9 @@ public class MainActivity extends AppCompatActivity {
                             allMoods.sort((m1, m2) -> {
                                 Timestamp t1 = m1.getTimestamp("timestamp");
                                 Timestamp t2 = m2.getTimestamp("timestamp");
-
                                 if (t1 == null || t2 == null) return 0;
-
-                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime()); // ✅ Sort latest first
+                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
                             });
-
                             setupMoodAdapter(allMoods, true);
                         }
                     });
@@ -439,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onMoodDeleted() {
                     showToast("Mood deleted!");
-                    onResume(); // Refresh the list after deletion
+                    onResume();
                 }
 
                 @Override
@@ -450,13 +410,8 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.setContentView(bottomSheetView);  // ✅ Corrected to bottomSheetView
         bottomSheetDialog.show();
-    }
-    private void navigateToEmojiSelection() {
-        Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
-        intent.putExtra("userId", userId);
-        startActivity(intent);
     }
 
     private void applyFilter(String emotionalState) {
@@ -480,16 +435,12 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("color", ((Long) data.getOrDefault("color", 0L)).intValue());
             intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
-
-            // ✅ Pass the current tab state
             intent.putExtra("isMyMoods", isMyMoods);
-
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");
         }
     }
-
 
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
