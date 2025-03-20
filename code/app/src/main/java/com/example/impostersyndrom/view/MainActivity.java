@@ -390,6 +390,8 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
             intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
             intent.putExtra("group", (String) moodDoc.get("group"));
+            boolean isPrivateMood = moodDoc.contains("privateMood") && (Boolean) moodDoc.get("privateMood");
+            intent.putExtra("privateMood", isPrivateMood);
             startActivity(intent);
             bottomSheetDialog.dismiss();
         });
