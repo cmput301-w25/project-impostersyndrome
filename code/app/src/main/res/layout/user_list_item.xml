@@ -17,7 +17,7 @@
         android:layout_height="48dp"
         android:layout_marginEnd="12dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/nopfp"
+        android:src="@drawable/default_person"
         app:shapeAppearanceOverlay="@style/CircleImageView" />
 
     <!-- Username -->

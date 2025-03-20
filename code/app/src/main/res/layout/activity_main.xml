@@ -1,171 +1,266 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@android:color/black">
+    android:fitsSystemWindows="true">
 
-    <!-- Header with App Name and Tabs -->
+    <!-- Main content -->
     <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@android:color/black">
 
-        <!-- Top Bar with Menu and App Name -->
-        <RelativeLayout
+        <!-- Header with App Name and Tabs -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Top Bar with Menu and App Name -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:padding="8dp">
+
+                <ImageButton
+                    android:id="@+id/menuButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_menu"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="Menu" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IS"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:layout_centerInParent="true" />
+
+                <ImageButton
+                    android:id="@+id/filterButton"
+                    android:layout_width="50dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_filter"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="Filter Moods" />
+
+            </RelativeLayout>
+
+            <!-- Thin divider line -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- Tab Headers for My Moods & Following -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/myMoodsButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="My Moods"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/button_unfollow"
+                    android:padding="12dp" />
+
+                <Button
+                    android:id="@+id/followingButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Following"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/button_unfollow"
+                    android:padding="12dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Content area for mood posts -->
+        <ListView
+            android:id="@+id/moodListView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="8dp"
+            android:padding="8dp" />
+
+        <!-- Thin divider line above navigation -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <!-- Bottom Navigation Bar -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:padding="8dp">
+            android:background="@android:color/black"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="5">
 
+            <!-- Home Button -->
             <ImageButton
-                android:id="@+id/menuButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_menu"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:contentDescription="Menu" />
+                android:id="@+id/homeButton"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:src="@drawable/home"
+                android:contentDescription="Home" />
+
+            <!-- Search Button -->
+            <ImageButton
+                android:id="@+id/searchButton"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:src="@drawable/search"
+                android:contentDescription="Search" />
+
+            <!-- Add Mood Button -->
+            <ImageButton
+                android:id="@+id/addMoodButton"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:src="@drawable/add"
+                android:contentDescription="Add Mood" />
+
+            <!-- Heart Button -->
+            <ImageButton
+                android:id="@+id/heartButton"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:src="@drawable/heart"
+                android:contentDescription="Favorites" />
+
+            <!-- Profile Button -->
+            <ImageButton
+                android:id="@+id/profileButton"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:scaleType="centerInside"
+                android:src="@drawable/white_profile"
+                android:contentDescription="Profile" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Custom Navigation View with logout at bottom -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="#F5E6DA"
+        android:fitsSystemWindows="true">
+
+        <!-- Header Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="#C8A97E">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="IS"
                 android:textSize="24sp"
-                android:textStyle="bold"
                 android:textColor="@android:color/white"
-                android:layout_centerInParent="true" />
+                android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/filterButton"
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_filter"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="5dp"
-                android:contentDescription="Filter Moods" />
+            <TextView
+                android:id="@+id/userEmailTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="user@example.com"
+                android:textSize="14sp"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
 
-        </RelativeLayout>
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F5E6DA" />
 
-        <!-- Thin divider line -->
+        <!-- Menu items section -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/innerNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:menu="@menu/nav_menu"
+            android:background="#F5E6DA" />
+
+        <!-- Divider -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@android:color/darker_gray" />
 
-        <!-- Tab Headers for My Moods & Following -->
+        <!-- Logout Button -->
         <LinearLayout
+            android:id="@+id/logoutContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#F5E6DA"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:weightSum="2">
+            android:padding="16dp">
 
-            <Button
-                android:id="@+id/myMoodsButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="My Moods"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_unfollow"
-                android:padding="12dp" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="Logout"
+                android:src="@drawable/ic_logout" />
 
-            <Button
-                android:id="@+id/followingButton"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Following"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_unfollow"
-                android:padding="12dp" />
+                android:layout_marginStart="16dp"
+                android:text="Logout"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Content area for mood posts -->
-    <ListView
-        android:id="@+id/moodListView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="8dp"
-        android:padding="8dp" />
-
-    <!-- Thin divider line above navigation -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray" />
-
-    <!-- Bottom Navigation Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@android:color/black"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="5">
-
-        <!-- Home Button -->
-        <ImageButton
-            android:id="@+id/homeButton"
-            android:layout_width="0dp"
-            android:layout_height="35dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            android:src="@drawable/home"
-            android:contentDescription="Home" />
-
-        <!-- Search Button -->
-        <ImageButton
-            android:id="@+id/searchButton"
-            android:layout_width="0dp"
-            android:layout_height="35dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            android:src="@drawable/search"
-            android:contentDescription="Search" />
-
-        <!-- Add Mood Button -->
-        <ImageButton
-            android:id="@+id/addMoodButton"
-            android:layout_width="0dp"
-            android:layout_height="35dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            android:src="@drawable/add"
-            android:contentDescription="Add Mood" />
-
-        <!-- Heart Button -->
-        <ImageButton
-            android:id="@+id/heartButton"
-            android:layout_width="0dp"
-            android:layout_height="35dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            android:src="@drawable/heart"
-            android:contentDescription="Favorites" />
-
-        <!-- Profile Button -->
-        <ImageButton
-            android:id="@+id/profileButton"
-            android:layout_width="0dp"
-            android:layout_height="35dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            android:src="@drawable/white_profile"
-            android:contentDescription="Profile" />
-    </LinearLayout>
-</LinearLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

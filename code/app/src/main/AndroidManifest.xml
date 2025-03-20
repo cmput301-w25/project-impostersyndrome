@@ -20,6 +20,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ImposterSyndrom"
         tools:targetApi="31">
+        <activity android:name=".view.EditProfileActivity" />
+        <activity
+            android:name=".view.UserProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.ProfileActivity"
+            android:exported="false" />
         <activity
             android:name=".view.ForgotPasswordActivity"
             android:exported="false" />
