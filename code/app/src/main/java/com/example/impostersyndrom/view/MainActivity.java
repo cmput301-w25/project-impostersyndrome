@@ -135,8 +135,6 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         SpotifyAuthService authService = retrofit.create(SpotifyAuthService.class);
-
-        // Create the Authorization header with Base64-encoded client_id:client_secret
         String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
         Call<SpotifyAuthResponse> call = authService.getAccessToken(credentials, "client_credentials");
 
@@ -147,22 +145,15 @@ public class MainActivity extends AppCompatActivity {
                     accessToken = response.body().access_token;
                     Log.d("MainActivity", "Spotify access token fetched: " + accessToken);
                 } else {
-                    SpotifyAuthResponse errorResponse = response.body();
-                    String errorMessage = "Spotify auth failed: " + response.code();
-                    if (errorResponse != null && errorResponse.error != null) {
-                        errorMessage += " - " + errorResponse.error + ": " + errorResponse.error_description;
-                    } else {
-                        errorMessage += " - " + response.message();
-                    }
-                    Log.e("MainActivity", errorMessage);
-                    showToast("Failed to authenticate with Spotify: " + response.message());
+                    Log.e("MainActivity", "Spotify auth failed: " + response.code() + " - " + response.message());
+                    showToast("Failed to authenticate with Spotify");
                 }
             }
 
             @Override
             public void onFailure(Call<SpotifyAuthResponse> call, Throwable t) {
                 Log.e("MainActivity", "Spotify auth error: " + t.getMessage());
-                showToast("Error authenticating with Spotify: " + t.getMessage());
+                showToast("Error authenticating with Spotify");
             }
         });
     }

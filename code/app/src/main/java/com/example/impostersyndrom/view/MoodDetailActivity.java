@@ -1,17 +1,11 @@
 package com.example.impostersyndrom.view;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -31,20 +25,15 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import okhttp3.Credentials;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
-import retrofit2.http.Header;
-import retrofit2.http.POST;
 
 public class MoodDetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "MoodDetailActivity";
+    private static final String TAG = "ochtayMoodDetailActivity";
 
     // UI Components
     private ImageView emojiView;
@@ -56,6 +45,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     private ImageView imageUrlView;
     private ImageButton backButton;
     private Button recommendSongButton;
+    private TextView recommendedSongTextView;
 
     // Mood Data
     private String emoji;
@@ -70,27 +60,20 @@ public class MoodDetailActivity extends AppCompatActivity {
     private String accessToken;
     private SpotifyApiService spotifyApiService;
 
-    // Spotify Authentication (for refreshing token)
-    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
-    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
-
     // Mood to audio features mapping
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
 
     static {
-        // Valence (0.0 to 1.0): Higher = happier, lower = sadder
-        // Energy (0.0 to 1.0): Higher = more energetic, lower = more relaxed
         MOOD_TO_AUDIO_FEATURES.put("emoji_happy", new MoodAudioFeatures("pop", 0.8f, 0.7f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_confused", new MoodAudioFeatures("chill", 0.4f, 0.3f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_confused", new MoodAudioFeatures("indie-pop", 0.4f, 0.3f));
         MOOD_TO_AUDIO_FEATURES.put("emoji_disgust", new MoodAudioFeatures("rock", 0.3f, 0.5f));
         MOOD_TO_AUDIO_FEATURES.put("emoji_angry", new MoodAudioFeatures("metal", 0.2f, 0.9f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_sad", new MoodAudioFeatures("sad", 0.2f, 0.3f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_sad", new MoodAudioFeatures("acoustic", 0.2f, 0.3f));
         MOOD_TO_AUDIO_FEATURES.put("emoji_fear", new MoodAudioFeatures("ambient", 0.3f, 0.4f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_shame", new MoodAudioFeatures("acoustic", 0.3f, 0.2f));
-        MOOD_TO_AUDIO_FEATURES.put("emoji_surprised", new MoodAudioFeatures("dance", 0.7f, 0.8f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_shame", new MoodAudioFeatures("folk", 0.3f, 0.2f));
+        MOOD_TO_AUDIO_FEATURES.put("emoji_surprised", new MoodAudioFeatures("dance-pop", 0.7f, 0.8f));
     }
 
-    // Class to hold audio features for each mood
     private static class MoodAudioFeatures {
         String genre;
         float valence;
@@ -103,91 +86,88 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
-    // Retrofit service for Spotify authentication
-    interface SpotifyAuthService {
-        @FormUrlEncoded
-        @POST("api/token")
-        Call<SpotifyAuthResponse> getAccessToken(
-                @Header("Authorization") String authorization,
-                @Field("grant_type") String grantType
-        );
-    }
-
-    // Data class for Spotify authentication response
-    public static class SpotifyAuthResponse {
-        String access_token;
-        String token_type;
-        int expires_in;
-        String error;
-        String error_description;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mood_detail);
+        try {
+            setContentView(R.layout.activity_mood_detail);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set content view: " + e.getMessage(), e);
+            showToast("Error loading layout: " + e.getMessage());
+            finish();
+            return;
+        }
 
-        // Initialize UI components
-        initializeViews();
+        if (!initializeViews()) {
+            showToast("Error initializing views.");
+            finish();
+            return;
+        }
 
-        // Retrieve data from Intent
         retrieveIntentData();
-
-        // Get Spotify access token from Intent
         accessToken = getIntent().getStringExtra("accessToken");
+        Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
 
-        // Initialize Retrofit for Spotify Web API
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.spotify.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        spotifyApiService = retrofit.create(SpotifyApiService.class);
+        try {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://api.spotify.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            spotifyApiService = retrofit.create(SpotifyApiService.class);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to initialize Retrofit: " + e.getMessage(), e);
+            recommendedSongTextView.setText("Error initializing Spotify service.");
+            return;
+        }
 
-        // Set up UI with mood data
         setupUI();
-
-        // Set up back button click listener
         setupBackButton();
-
-        // Set up recommend song button listener
         setupRecommendSongButton();
     }
 
-    /**
-     * Initializes all UI components.
-     */
-    private void initializeViews() {
-        emojiView = findViewById(R.id.emojiView);
-        timeView = findViewById(R.id.timeView);
-        reasonView = findViewById(R.id.reasonView);
-        emojiDescView = findViewById(R.id.emojiDescription);
-        groupView = findViewById(R.id.groupView);
-        emojiRectangle = findViewById(R.id.emojiRectangle);
-        imageUrlView = findViewById(R.id.imageUrlView);
-        backButton = findViewById(R.id.backButton);
-        recommendSongButton = findViewById(R.id.recommendSongButton);
+    private boolean initializeViews() {
+        try {
+            emojiView = findViewById(R.id.emojiView);
+            timeView = findViewById(R.id.timeView);
+            reasonView = findViewById(R.id.reasonView);
+            emojiDescView = findViewById(R.id.emojiDescription);
+            groupView = findViewById(R.id.groupView);
+            emojiRectangle = findViewById(R.id.emojiRectangle);
+            imageUrlView = findViewById(R.id.imageUrlView);
+            backButton = findViewById(R.id.backButton);
+            recommendSongButton = findViewById(R.id.recommendSongButton);
+            recommendedSongTextView = findViewById(R.id.recommendedSongTextView);
+
+            if (emojiView == null || timeView == null || reasonView == null || emojiDescView == null ||
+                    groupView == null || emojiRectangle == null || imageUrlView == null || backButton == null ||
+                    recommendSongButton == null || recommendedSongTextView == null) {
+                Log.e(TAG, "One or more views not found in layout.");
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Error initializing views: " + e.getMessage(), e);
+            return false;
+        }
     }
 
-    /**
-     * Retrieves mood data from the Intent.
-     */
     private void retrieveIntentData() {
         Intent intent = getIntent();
+        if (intent == null) {
+            Log.e(TAG, "Intent is null.");
+            return;
+        }
         emoji = intent.getStringExtra("emoji");
-        timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
+        timestamp = intent.getParcelableExtra("timestamp");
         reason = intent.getStringExtra("reason");
         group = intent.getStringExtra("group");
         color = intent.getIntExtra("color", Color.WHITE);
         emojiDescription = intent.getStringExtra("emojiDescription");
         imageUrl = intent.getStringExtra("imageUrl");
 
-        // Log received data for debugging
         logMoodData();
     }
 
-    /**
-     * Logs mood data for debugging purposes.
-     */
     private void logMoodData() {
         Log.d(TAG, "Emoji: " + emoji);
         Log.d(TAG, "Reason: " + reason);
@@ -196,9 +176,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         Log.d(TAG, "Image URL: " + (imageUrl != null ? imageUrl : "null"));
     }
 
-    /**
-     * Sets up the UI with mood data.
-     */
     private void setupUI() {
         setEmojiImage();
         setTimestamp();
@@ -209,11 +186,8 @@ public class MoodDetailActivity extends AppCompatActivity {
         setRoundedBackground();
     }
 
-    /**
-     * Sets the custom emoji image.
-     */
     private void setEmojiImage() {
-        if (emoji != null) {
+        if (emoji != null && emojiView != null) {
             int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
             if (emojiResId != 0) {
                 emojiView.setImageResource(emojiResId);
@@ -223,60 +197,60 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Sets the formatted timestamp.
-     */
     private void setTimestamp() {
+        if (timeView == null) return;
         if (timestamp != null) {
-            String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
-            timeView.setText(formattedTime);
+            try {
+                String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
+                timeView.setText(formattedTime);
+            } catch (Exception e) {
+                Log.e(TAG, "Error formatting timestamp: " + e.getMessage());
+                timeView.setText("Invalid time");
+            }
         } else {
             timeView.setText("Unknown time");
         }
     }
 
-    /**
-     * Sets the mood reason.
-     */
     private void setReason() {
-        reasonView.setText(reason != null ? reason : "No reason provided");
+        if (reasonView != null) {
+            reasonView.setText(reason != null ? reason : "No reason provided");
+        }
     }
 
-    /**
-     * Sets the group context.
-     */
     private void setGroup() {
-        groupView.setText(group != null ? group : "No group provided");
+        if (groupView != null) {
+            groupView.setText(group != null ? group : "No group provided");
+        }
     }
 
-    /**
-     * Sets the emoji description.
-     */
     private void setEmojiDescription() {
-        emojiDescView.setText(emojiDescription != null ? emojiDescription : "No emoji");
+        if (emojiDescView != null) {
+            emojiDescView.setText(emojiDescription != null ? emojiDescription : "No emoji");
+        }
     }
 
-    /**
-     * Loads the image from the URL using Glide.
-     */
     private void loadImage() {
+        if (imageUrlView == null) return;
         if (imageUrl != null && !imageUrl.isEmpty()) {
             imageUrlView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Loading image from URL: " + imageUrl);
-
-            Glide.with(this)
-                    .load(imageUrl)
-                    .into(imageUrlView);
+            try {
+                Glide.with(this)
+                        .load(imageUrl)
+                        .into(imageUrlView);
+            } catch (Exception e) {
+                Log.e(TAG, "Glide failed to load image: " + e.getMessage());
+                imageUrlView.setVisibility(View.GONE);
+            }
         } else {
             Log.d(TAG, "No image URL provided, hiding ImageView");
             imageUrlView.setVisibility(View.GONE);
         }
     }
 
-    /**
-     * Applies a rounded background to the emoji rectangle.
-     */
     private void setRoundedBackground() {
+        if (emojiRectangle == null) return;
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
         gradientDrawable.setCornerRadius(50);
@@ -285,98 +259,44 @@ public class MoodDetailActivity extends AppCompatActivity {
         emojiRectangle.setBackground(gradientDrawable);
     }
 
-    /**
-     * Sets up the back button click listener.
-     */
     private void setupBackButton() {
-        backButton.setOnClickListener(v -> {
-            Intent intent = new Intent();
-            intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
-            setResult(RESULT_OK, intent);
-            finish();
-        });
-    }
-
-    /**
-     * Sets up the recommend song button click listener.
-     */
-    private void setupRecommendSongButton() {
-        recommendSongButton.setOnClickListener(v -> fetchSongRecommendationWithRetry());
-    }
-
-    /**
-     * Fetches a song recommendation with retry logic if the access token is not yet available.
-     */
-    private void fetchSongRecommendationWithRetry() {
-        if (accessToken == null) {
-            showToast("Spotify authentication in progress. Retrying...");
-            fetchSpotifyAccessToken(); // Fetch a new token
-            new Handler(Looper.getMainLooper()).postDelayed(this::fetchSongRecommendation, 2000); // Wait 2 seconds before retrying
-        } else {
-            fetchSongRecommendation();
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                Intent intent = new Intent();
+                intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
+                setResult(RESULT_OK, intent);
+                finish();
+            });
         }
     }
 
-    /**
-     * Fetches a new Spotify access token if the current one is invalid or expired.
-     */
-    private void fetchSpotifyAccessToken() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://accounts.spotify.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        SpotifyAuthService authService = retrofit.create(SpotifyAuthService.class);
-
-        String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
-        Call<SpotifyAuthResponse> call = authService.getAccessToken(credentials, "client_credentials");
-
-        call.enqueue(new Callback<SpotifyAuthResponse>() {
-            @Override
-            public void onResponse(Call<SpotifyAuthResponse> call, Response<SpotifyAuthResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    accessToken = response.body().access_token;
-                    Log.d(TAG, "Spotify access token fetched: " + accessToken);
-                } else {
-                    SpotifyAuthResponse errorResponse = response.body();
-                    String errorMessage = "Spotify auth failed: " + response.code();
-                    if (errorResponse != null && errorResponse.error != null) {
-                        errorMessage += " - " + errorResponse.error + ": " + errorResponse.error_description;
-                    } else {
-                        errorMessage += " - " + response.message();
-                    }
-                    Log.e(TAG, errorMessage);
-                    showToast("Failed to authenticate with Spotify: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<SpotifyAuthResponse> call, Throwable t) {
-                Log.e(TAG, "Spotify auth error: " + t.getMessage());
-                showToast("Error authenticating with Spotify: " + t.getMessage());
-            }
-        });
+    private void setupRecommendSongButton() {
+        if (recommendSongButton != null) {
+            recommendSongButton.setOnClickListener(v -> fetchSongRecommendation());
+        }
     }
 
-    /**
-     * Fetches a song recommendation based on the mood's emotional state using Spotify Web API.
-     */
     private void fetchSongRecommendation() {
-        if (accessToken == null) {
-            showToast("Spotify authentication failed. Please try again later.");
+        if (accessToken == null || accessToken.isEmpty()) {
+            recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
+            showToast("Spotify authentication required.");
             return;
         }
 
-        // Get audio features for the mood
-        MoodAudioFeatures features = MOOD_TO_AUDIO_FEATURES.getOrDefault(emoji, new MoodAudioFeatures("pop", 0.5f, 0.5f));
+        MoodAudioFeatures features = MOOD_TO_AUDIO_FEATURES.getOrDefault(emoji,
+                new MoodAudioFeatures("pop", 0.5f, 0.5f));
         String authHeader = "Bearer " + accessToken;
+
+        Log.d(TAG, "Fetching recommendation with genre: " + features.genre +
+                ", valence: " + features.valence + ", energy: " + features.energy);
 
         Call<SpotifyRecommendationResponse> call = spotifyApiService.getRecommendations(
                 authHeader,
                 features.genre,
+                "3t5xRXzsuZmMDkQzgY2RtW",
                 features.valence,
                 features.energy,
-                1 // Limit to 1 recommendation
+                1
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
@@ -384,51 +304,57 @@ public class MoodDetailActivity extends AppCompatActivity {
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
                     SpotifyRecommendationResponse.Track track = response.body().tracks.get(0);
-                    String recommendedSong = track.name + " by " + track.artists.get(0).name;
-                    showRecommendationDialog(recommendedSong);
+                    String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
+                    recommendedSongTextView.setText(recommendedSong);
+                    recommendedSongTextView.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Recommendation fetched: " + recommendedSong);
                 } else {
-                    // Handle token expiry
-                    if (response.code() == 401) { // Unauthorized
-                        showToast("Spotify token expired. Refreshing...");
-                        fetchSpotifyAccessToken(); // Fetch a new token
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> fetchSongRecommendation(), 2000);
+                    String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
+                    recommendedSongTextView.setText(errorMessage);
+                    Log.e(TAG, errorMessage);
+                    if (response.code() == 401) {
+                        showToast("Spotify session expired. Please reopen this mood.");
                     } else {
-                        showToast("No songs found for this mood.");
-                        Log.e(TAG, "Spotify API error: " + response.message());
+                        fetchSongUsingSearch(features.genre);
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
-                showToast("Error fetching recommendation: " + t.getMessage());
-                Log.e(TAG, "Spotify API failure: " + t.getMessage());
+                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
+                Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
             }
         });
     }
 
-    /**
-     * Shows a dialog with the recommended song.
-     */
-    private void showRecommendationDialog(String songName) {
-        Dialog recommendationDialog = new Dialog(this);
-        recommendationDialog.setContentView(R.layout.dialog_song_recommendation);
+    private void fetchSongUsingSearch(String genre) {
+        String authHeader = "Bearer " + accessToken;
+        String query = "genre:" + genre;
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 1);
 
-        TextView songTextView = recommendationDialog.findViewById(R.id.recommendedSongTextView);
-        Button closeButton = recommendationDialog.findViewById(R.id.closeButton);
+        call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
+            @Override
+            public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
+                    SpotifyRecommendationResponse.Track track = response.body().tracks.items.get(0);
+                    String recommendedSong = "Recommended Song: " + track.name + " by " + track.artists.get(0).name;
+                    recommendedSongTextView.setText(recommendedSong);
+                    recommendedSongTextView.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Search recommendation fetched: " + recommendedSong);
+                } else {
+                    String errorMessage = "No songs found: " + response.code() + " - " + response.message();
+                    recommendedSongTextView.setText(errorMessage);
+                    Log.e(TAG, errorMessage);
+                }
+            }
 
-        songTextView.setText("Recommended Song: " + songName);
-
-        closeButton.setOnClickListener(v -> recommendationDialog.dismiss());
-
-        Window window = recommendationDialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            window.setBackgroundDrawableResource(android.R.color.transparent);
-            window.setGravity(Gravity.CENTER);
-        }
-
-        recommendationDialog.show();
+            @Override
+            public void onFailure(Call<SpotifyApiService.SearchResponse> call, Throwable t) {
+                recommendedSongTextView.setText("Error searching for songs: " + t.getMessage());
+                Log.e(TAG, "Search error: " + t.getMessage());
+            }
+        });
     }
 
     private void showToast(String message) {

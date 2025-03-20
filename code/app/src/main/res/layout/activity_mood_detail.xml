@@ -124,6 +124,15 @@
                 android:backgroundTint="@android:color/holo_blue_light"
                 android:textColor="@android:color/white"
                 android:padding="8dp"/>
+
+            <TextView
+                android:id="@+id/recommendedSongTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fetching recommendation..."
+                android:textSize="16sp"
+                android:padding="8dp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
