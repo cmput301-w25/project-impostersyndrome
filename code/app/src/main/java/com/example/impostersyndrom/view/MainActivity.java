@@ -183,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
         db.collection("moods")
                 .whereEqualTo("userId", userId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(10)
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     moodDocs = snapshot.getDocuments();
