@@ -32,6 +32,12 @@ public class MoodItem {
         return moodDoc != null && moodDoc.contains("timestamp") ? moodDoc.getTimestamp("timestamp") : null;
     }
 
+    public String getSocialSituation() {
+        String socialSituation = moodDoc != null && moodDoc.contains("group") ? moodDoc.getString("group") : null;
+        // If null or empty, default to "Unknown" to handle gracefully in the adapter
+        return (socialSituation == null || socialSituation.trim().isEmpty()) ? "Unknown" : socialSituation;
+    }
+
     public int getColor() {
         return moodDoc != null && moodDoc.contains("color")
                 ? moodDoc.getLong("color").intValue()

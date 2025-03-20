@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
         ImageButton searchButton = findViewById(R.id.searchButton);
         searchButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SearchActivity.class); // Replace with your actual Search Activity class
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
             startActivity(intent);
         });
 
@@ -410,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView);  // ✅ Corrected to bottomSheetView
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: Changed customSheetView to bottomSheetView
         bottomSheetDialog.show();
     }
 

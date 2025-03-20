@@ -42,6 +42,7 @@ public class MoodAdapter extends ArrayAdapter<MoodItem> {
         TextView timeView = convertView.findViewById(R.id.timeView);
         TextView reasonView = convertView.findViewById(R.id.reasonView);
         ImageView emojiView = convertView.findViewById(R.id.emojiView);
+        ImageView socialSituationIcon = convertView.findViewById(R.id.socialSituationIcon);
         View rootLayout = convertView.findViewById(R.id.rootLayout);
 
         if (moodItem != null) {
@@ -81,6 +82,39 @@ public class MoodAdapter extends ArrayAdapter<MoodItem> {
             background.setStroke(2, Color.BLACK); // Border
 
             rootLayout.setBackground(background);
+
+            // Reset the social situation icon state before setting the new value
+            socialSituationIcon.setImageDrawable(null); // Clear any previous drawable
+            socialSituationIcon.setVisibility(View.GONE); // Default to hidden
+
+            // Set social situation icon
+            String socialSituation = moodItem.getSocialSituation();
+            switch (socialSituation) {
+                case "Alone":
+                    socialSituationIcon.setImageResource(R.drawable.ic_alone);
+                    socialSituationIcon.setVisibility(View.VISIBLE);
+                    break;
+                case "With another person":
+                    socialSituationIcon.setImageResource(R.drawable.ic_with_one);
+                    socialSituationIcon.setVisibility(View.VISIBLE);
+                    break;
+                case "With several people":
+                    socialSituationIcon.setImageResource(R.drawable.ic_with_several);
+                    socialSituationIcon.setVisibility(View.VISIBLE);
+                    break;
+                case "With a crowd":
+                    socialSituationIcon.setImageResource(R.drawable.ic_crowd);
+                    socialSituationIcon.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    // For "Unknown" or any unexpected value, keep the icon hidden
+                    socialSituationIcon.setVisibility(View.GONE);
+                    break;
+            }
+        } else {
+            // If moodItem is null, ensure the icon is hidden
+            socialSituationIcon.setImageDrawable(null);
+            socialSituationIcon.setVisibility(View.GONE);
         }
 
         return convertView;
