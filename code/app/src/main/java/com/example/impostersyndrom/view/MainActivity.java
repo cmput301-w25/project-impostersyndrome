@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     // Spotify Authentication
-    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236"; // Replace with your Spotify Client ID
-    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59"; // Replace with your Spotify Client Secret
+    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
+    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
     private String accessToken;
 
     @Override
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
     // Retrofit service for Spotify authentication
     interface SpotifyAuthService {
         @FormUrlEncoded
-        @POST("token")
+        @POST("api/token")
         Call<SpotifyAuthResponse> getAccessToken(
                 @Header("Authorization") String authorization,
                 @Field("grant_type") String grantType
@@ -387,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
+            intent.putExtra("accessToken", accessToken); // Pass the access token to MoodDetailActivity
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");

@@ -113,6 +113,17 @@
                 android:contentDescription="Mood Image"
                 android:scaleType="fitCenter"
                 android:visibility="visible" />
+
+            <!-- Button to fetch song recommendation -->
+            <Button
+                android:id="@+id/recommendSongButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Recommend a Song"
+                android:backgroundTint="@android:color/holo_blue_light"
+                android:textColor="@android:color/white"
+                android:padding="8dp"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

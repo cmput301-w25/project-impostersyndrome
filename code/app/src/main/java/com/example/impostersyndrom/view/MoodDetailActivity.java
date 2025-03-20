@@ -31,24 +31,17 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import okhttp3.Credentials;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.Header;
+import retrofit2.http.POST;
 
-/**
- * MoodDetailActivity displays detailed information about a specific mood entry.
- * It provides a comprehensive view of a mood, including:
- * - Emoji representation
- * - Timestamp
- * - Mood reason
- * - Social group context
- * - Optional attached image
- * - Spotify song recommendation based on the mood
- *
- * @author Ali Zain
- */
 public class MoodDetailActivity extends AppCompatActivity {
 
     private static final String TAG = "MoodDetailActivity";
@@ -76,6 +69,10 @@ public class MoodDetailActivity extends AppCompatActivity {
     // Spotify Integration
     private String accessToken;
     private SpotifyApiService spotifyApiService;
+
+    // Spotify Authentication (for refreshing token)
+    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
+    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
 
     // Mood to audio features mapping
     private static final Map<String, MoodAudioFeatures> MOOD_TO_AUDIO_FEATURES = new HashMap<>();
@@ -106,6 +103,25 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Retrofit service for Spotify authentication
+    interface SpotifyAuthService {
+        @FormUrlEncoded
+        @POST("api/token")
+        Call<SpotifyAuthResponse> getAccessToken(
+                @Header("Authorization") String authorization,
+                @Field("grant_type") String grantType
+        );
+    }
+
+    // Data class for Spotify authentication response
+    public static class SpotifyAuthResponse {
+        String access_token;
+        String token_type;
+        int expires_in;
+        String error;
+        String error_description;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,13 +133,8 @@ public class MoodDetailActivity extends AppCompatActivity {
         // Retrieve data from Intent
         retrieveIntentData();
 
-        // Get Spotify access token from MainActivity
-        MainActivity mainActivity = (MainActivity) getParent();
-        if (mainActivity != null) {
-            accessToken = mainActivity.getSpotifyAccessToken();
-        } else {
-            accessToken = null;
-        }
+        // Get Spotify access token from Intent
+        accessToken = getIntent().getStringExtra("accessToken");
 
         // Initialize Retrofit for Spotify Web API
         Retrofit retrofit = new Retrofit.Builder()
@@ -297,27 +308,54 @@ public class MoodDetailActivity extends AppCompatActivity {
      * Fetches a song recommendation with retry logic if the access token is not yet available.
      */
     private void fetchSongRecommendationWithRetry() {
-        MainActivity mainActivity = (MainActivity) getParent();
-        if (mainActivity == null) {
-            showToast("Error: Cannot access Spotify authentication.");
-            return;
-        }
-
-        accessToken = mainActivity.getSpotifyAccessToken();
         if (accessToken == null) {
             showToast("Spotify authentication in progress. Retrying...");
-            // Retry after a short delay
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                accessToken = mainActivity.getSpotifyAccessToken();
-                if (accessToken != null) {
-                    fetchSongRecommendation();
-                } else {
-                    showToast("Spotify authentication failed. Please try again later.");
-                }
-            }, 2000); // Wait 2 seconds before retrying
+            fetchSpotifyAccessToken(); // Fetch a new token
+            new Handler(Looper.getMainLooper()).postDelayed(this::fetchSongRecommendation, 2000); // Wait 2 seconds before retrying
         } else {
             fetchSongRecommendation();
         }
+    }
+
+    /**
+     * Fetches a new Spotify access token if the current one is invalid or expired.
+     */
+    private void fetchSpotifyAccessToken() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://accounts.spotify.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        SpotifyAuthService authService = retrofit.create(SpotifyAuthService.class);
+
+        String credentials = Credentials.basic(CLIENT_ID, CLIENT_SECRET);
+        Call<SpotifyAuthResponse> call = authService.getAccessToken(credentials, "client_credentials");
+
+        call.enqueue(new Callback<SpotifyAuthResponse>() {
+            @Override
+            public void onResponse(Call<SpotifyAuthResponse> call, Response<SpotifyAuthResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    accessToken = response.body().access_token;
+                    Log.d(TAG, "Spotify access token fetched: " + accessToken);
+                } else {
+                    SpotifyAuthResponse errorResponse = response.body();
+                    String errorMessage = "Spotify auth failed: " + response.code();
+                    if (errorResponse != null && errorResponse.error != null) {
+                        errorMessage += " - " + errorResponse.error + ": " + errorResponse.error_description;
+                    } else {
+                        errorMessage += " - " + response.message();
+                    }
+                    Log.e(TAG, errorMessage);
+                    showToast("Failed to authenticate with Spotify: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SpotifyAuthResponse> call, Throwable t) {
+                Log.e(TAG, "Spotify auth error: " + t.getMessage());
+                showToast("Error authenticating with Spotify: " + t.getMessage());
+            }
+        });
     }
 
     /**
@@ -349,8 +387,15 @@ public class MoodDetailActivity extends AppCompatActivity {
                     String recommendedSong = track.name + " by " + track.artists.get(0).name;
                     showRecommendationDialog(recommendedSong);
                 } else {
-                    showToast("No songs found for this mood.");
-                    Log.e(TAG, "Spotify API error: " + response.message());
+                    // Handle token expiry
+                    if (response.code() == 401) { // Unauthorized
+                        showToast("Spotify token expired. Refreshing...");
+                        fetchSpotifyAccessToken(); // Fetch a new token
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> fetchSongRecommendation(), 2000);
+                    } else {
+                        showToast("No songs found for this mood.");
+                        Log.e(TAG, "Spotify API error: " + response.message());
+                    }
                 }
             }
 
