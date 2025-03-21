@@ -37,8 +37,10 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
         addMoodButton = findViewById(R.id.addMoodButton);
@@ -174,150 +175,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
         intent.putExtra("userId", userId);
         startActivity(intent);
-    }
-
-
-    private void fetchMyMoods() {
-        db.collection("moods")
-                .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    moodDocs = snapshot.getDocuments();
-                    setupMoodAdapter(moodDocs, false);
-                })
-                .addOnFailureListener(e -> showToast("Failed to fetch your moods: " + e.getMessage()));
-    }
-
-    private void fetchFollowingMoods() {
-        db.collection("following")
-                .whereEqualTo("followerId", userId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<String> followingIds = new ArrayList<>();
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        String followingId = doc.getString("followingId");
-                        if (followingId != null) {
-                            followingIds.add(followingId);
-                        }
-                    }
-
-                    if (followingIds.isEmpty()) {
-                        showToast("You're not following anyone!");
-                        moodListView.setAdapter(null);
-                        return;
-                    }
-
-                    fetchLatestMoodsFromFollowedUsers(followingIds);
-                })
-                .addOnFailureListener(e -> showToast("Failed to fetch following list: " + e.getMessage()));
-    }
-
-    private void setupMoodAdapter(List<DocumentSnapshot> moodDocs, boolean showUsername) {
-        final List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
-        final int[] completedQueries = {0};
-
-        for (int i = 0; i < moodDocs.size(); i++) {
-            final int position = i;
-            DocumentSnapshot moodDoc = moodDocs.get(i);
-            String moodUserId = moodDoc.getString("userId");
-            if (moodUserId == null) {
-                completedQueries[0]++;
-                continue;
-            }
-
-            db.collection("users").document(moodUserId)
-                    .get()
-                    .addOnSuccessListener(userDoc -> {
-                        String username = userDoc.getString("username");
-                        moodItems.set(position, new MoodItem(moodDoc, showUsername ? "@" + username : ""));
-
-                        completedQueries[0]++;
-                        if (completedQueries[0] == moodDocs.size()) {
-                            moodItems.removeIf(item -> item == null);
-
-                            if (moodItems.isEmpty()) {
-                                showToast("No valid moods to display");
-                                moodListView.setAdapter(null);
-                            } else {
-                                moodAdapter = new MoodAdapter(MainActivity.this, moodItems, showUsername);
-                                moodListView.setAdapter(moodAdapter);
-
-                                moodListView.setOnItemClickListener((parent, view, pos, id) -> {
-                                    DocumentSnapshot selectedMood = moodDocs.get(pos);
-                                    navigateToMoodDetail(selectedMood);
-                                });
-
-                                moodListView.setOnItemLongClickListener((parent, view, pos, id) -> {
-                                    if (isMyMoods) {
-                                        DocumentSnapshot selectedMood = moodDocs.get(pos);
-                                        showBottomSheetDialog(selectedMood);
-                                    }
-                                    return true;
-                                });
-                            }
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        showToast("Error fetching user details: " + e.getMessage());
-                        e.printStackTrace();
-                        completedQueries[0]++;
-                    });
-        }
-    }
-
-    private void fetchLatestMoodsFromFollowedUsers(List<String> followingIds) {
-        List<DocumentSnapshot> allMoods = new ArrayList<>();
-        final int[] completedQueries = {0};
-
-        for (String followedUserId : followingIds) {
-            db.collection("moods")
-                    .whereEqualTo("userId", followedUserId)
-                    .orderBy("timestamp", Query.Direction.DESCENDING) // ✅ Get all first
-                    .get()
-                    .addOnSuccessListener(snapshot -> {
-                        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
-
-                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                            // ✅ Only add moods that are NOT explicitly private
-                            Boolean isPrivate = doc.contains("privateMood") ? doc.getBoolean("privateMood") : false;
-                            if (!isPrivate) {
-                                filteredMoods.add(doc);
-                            }
-
-                            // ✅ Stop adding after 3 moods per user
-                            if (filteredMoods.size() == 3) break;
-                        }
-
-                        allMoods.addAll(filteredMoods);
-                        completedQueries[0]++;
-
-                        // ✅ Once all queries finish, sort and display
-                        if (completedQueries[0] == followingIds.size()) {
-                            allMoods.sort((m1, m2) -> {
-                                Timestamp t1 = m1.getTimestamp("timestamp");
-                                Timestamp t2 = m2.getTimestamp("timestamp");
-                                if (t1 == null || t2 == null) return 0;
-                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
-                            });
-
-                            setupMoodAdapter(allMoods, true);
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        completedQueries[0]++;
-                        if (completedQueries[0] == followingIds.size() && !allMoods.isEmpty()) {
-                            allMoods.sort((m1, m2) -> {
-                                Timestamp t1 = m1.getTimestamp("timestamp");
-                                Timestamp t2 = m2.getTimestamp("timestamp");
-                                if (t1 == null || t2 == null) return 0;
-                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
-                            });
-
-                            setupMoodAdapter(allMoods, true);
-                        }
-                    });
-        }
     }
 
     private void showFilterDialog() {
@@ -442,10 +299,6 @@ public class MainActivity extends AppCompatActivity {
             });
             bottomSheetDialog.dismiss();
         });
-
-
-
-        bottomSheetDialog.setContentView(bottomSheetView); 
 
         bottomSheetDialog.show();
     }
