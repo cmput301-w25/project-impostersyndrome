@@ -14,7 +14,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/left_arrow"
-        android:padding="16dp" />
+        android:contentDescription="Back"
+        android:padding="16dp"
+        android:background="@android:color/transparent" />
 
     <!-- ViewPager2 for swiping between Mood Details and Song Recommendation -->
     <androidx.viewpager2.widget.ViewPager2
@@ -23,4 +25,4 @@
         android:layout_height="match_parent"
         android:layout_margin="16dp" />
 
-</LinearLayout>
+    </LinearLayout>
