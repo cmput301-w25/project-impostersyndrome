@@ -397,22 +397,66 @@ public class MoodDetailActivity extends AppCompatActivity {
     private void setupBackButton() {
         if (backButton != null) {
             backButton.setOnClickListener(v -> {
-                Intent intent = new Intent();
-                intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
-                setResult(RESULT_OK, intent);
-                finish();
+                try {
+                    // Create a new Intent only if needed to return data
+                    boolean isMyMoods = getIntent().getBooleanExtra("isMyMoods", true);
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("isMyMoods", isMyMoods);
+                    setResult(RESULT_OK, resultIntent);
+
+                    // Safely finish this activity
+                    finish();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error handling back button: " + e.getMessage(), e);
+                    // Just finish the activity if there's an error
+                    finish();
+                }
             });
         }
     }
 
+    // Override the system back button to ensure proper handling
+    @Override
+    public void onBackPressed() {
+        try {
+            // Create a new Intent only if needed to return data
+            boolean isMyMoods = getIntent().getBooleanExtra("isMyMoods", true);
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("isMyMoods", isMyMoods);
+            setResult(RESULT_OK, resultIntent);
+
+            super.onBackPressed();
+        } catch (Exception e) {
+            Log.e(TAG, "Error handling back button: " + e.getMessage(), e);
+            super.onBackPressed();
+        }
+    }
+
     private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing toast: " + e.getMessage(), e);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        // Clear Glide requests to prevent resource leaks
-        Glide.with(this).clear((View) findViewById(android.R.id.content));
+        try {
+            // Clear any pending callbacks to prevent crashes
+            if (viewPager != null) {
+                viewPager.unregisterOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {});
+            }
+
+            // Clear Glide resources
+            View contentView = findViewById(android.R.id.content);
+            if (contentView != null) {
+                Glide.with(this).clear(contentView);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onDestroy: " + e.getMessage(), e);
+        } finally {
+            super.onDestroy();
+        }
     }
 }
