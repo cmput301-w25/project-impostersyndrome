@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_margin="8dp"
+    android:gravity="center_vertical"
+    android:background="@android:color/black">
+
+    <!-- Profile Picture -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/pfpView"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="12dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_person"
+        app:shapeAppearanceOverlay="@style/CircleImageView" />
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/usernameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="User Name"
+        android:textSize="18sp"
+        android:textColor="@android:color/white" />
+
+    <ImageButton
+        android:id="@+id/followButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:padding="6dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/follower"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/unfollowButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unfollow"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"
+        android:background="@drawable/search_bar_bg"
+        android:padding="6dp"
+        android:visibility="gone"/>  <!-- Initially Hidden -->
+
+    <!-- Requested Button -->
+    <Button
+        android:id="@+id/requestedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Requested"
+        android:textSize="14sp"
+        android:textColor="@android:color/white"
+        android:background="@drawable/search_bar_bg"
+        android:padding="6dp"
+        android:visibility="gone"/>  <!-- Initially Hidden -->
+
+</LinearLayout>

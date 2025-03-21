@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="@android:color/black"
+    app:cardElevation="8dp"
+    app:contentPadding="16dp">
+
+    <!-- Handle Line at the Top -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/darker_gray" />
+
+    <!-- Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/option_gallery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose from Gallery"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/option_remove"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remove Image"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:textColor="@color/red"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

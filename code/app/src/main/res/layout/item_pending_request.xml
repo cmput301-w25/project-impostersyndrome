@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="@android:color/black"
+    android:gravity="center_vertical"
+    android:layout_margin="8dp">
+
+    <!-- User Profile Picture -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/profileImage"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_person"
+        app:shapeAppearanceOverlay="@style/CircleImageView"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/usernameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Username"
+        android:textSize="16sp"
+        android:textColor="@android:color/white" />
+
+    <Button
+        android:id="@+id/acceptButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/button_follow"
+        android:padding="6dp"
+        android:text="Accept"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+    <ImageButton
+        android:id="@+id/rejectButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/clear"
+        android:padding="6dp"
+        android:layout_marginStart="8dp"
+        android:scaleType="centerCrop"
+        android:background="@android:color/transparent"/>
+</LinearLayout>
