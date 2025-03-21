@@ -198,6 +198,12 @@
                         android:focusable="true"
                         android:padding="8dp"
                         android:src="@drawable/person" />
+                    <Button
+                        android:id="@+id/attachLocationButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Attach Location"
+                        android:layout_marginTop="16dp"/>
 
 
                 </LinearLayout>

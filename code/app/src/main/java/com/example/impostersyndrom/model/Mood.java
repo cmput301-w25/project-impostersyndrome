@@ -36,6 +36,27 @@ public class Mood implements Serializable {
     private String group; // Group context (e.g., alone, with others)
     private int emojiDrawableId; // Resource ID of the emoji drawable
 
+    private Double latitude; // location coordinate
+    private Double longitude; // location coordinate
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+
     /**
      * Constructor for the Mood class.
      *
