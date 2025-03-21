@@ -6,14 +6,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
@@ -40,17 +37,8 @@ public class MoodDetailActivity extends AppCompatActivity {
     private static final String TAG = "MoodDetailActivity";
 
     // UI Components
-    private ImageView emojiView;
-    private TextView timeView;
-    private TextView reasonView;
-    private TextView emojiDescView;
-    private TextView groupView;
-    private View emojiRectangle;
-    private ImageView imageUrlView;
     private ImageButton backButton;
-    private Button recommendSongButton;
-    private TextView recommendedSongTextView;
-    private LinearLayout recommendationRectangle;
+    private ViewPager2 viewPager;
 
     // Mood Data
     private String emoji;
@@ -69,6 +57,9 @@ public class MoodDetailActivity extends AppCompatActivity {
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
     private Set<String> shownTrackIds = new HashSet<>(); // Tracks shown in this session
+
+    // Adapter for ViewPager2
+    private MoodCardAdapter cardAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,28 +87,16 @@ public class MoodDetailActivity extends AppCompatActivity {
         spotifyManager = SpotifyManager.getInstance();
         moodAudioMapper = new MoodAudioMapper();
 
-        setupUI();
+        setupViewPager();
         setupBackButton();
-        setupRecommendSongButton();
     }
 
     private boolean initializeViews() {
         try {
-            emojiView = findViewById(R.id.emojiView);
-            timeView = findViewById(R.id.timeView);
-            reasonView = findViewById(R.id.reasonView);
-            emojiDescView = findViewById(R.id.emojiDescription);
-            groupView = findViewById(R.id.groupView);
-            emojiRectangle = findViewById(R.id.emojiRectangle);
-            imageUrlView = findViewById(R.id.imageUrlView);
             backButton = findViewById(R.id.backButton);
-            recommendSongButton = findViewById(R.id.recommendSongButton);
-            recommendedSongTextView = findViewById(R.id.recommendedSongTextView);
-            recommendationRectangle = findViewById(R.id.recommendationRectangle);
+            viewPager = findViewById(R.id.viewPager);
 
-            if (emojiView == null || timeView == null || reasonView == null || emojiDescView == null ||
-                    groupView == null || emojiRectangle == null || imageUrlView == null || backButton == null ||
-                    recommendSongButton == null || recommendedSongTextView == null || recommendationRectangle == null) {
+            if (backButton == null || viewPager == null) {
                 Log.e(TAG, "One or more views not found in layout.");
                 return false;
             }
@@ -153,121 +132,111 @@ public class MoodDetailActivity extends AppCompatActivity {
         Log.d(TAG, "Image URL: " + (imageUrl != null ? imageUrl : "null"));
     }
 
-    private void setupUI() {
-        setEmojiImage();
-        setTimestamp();
-        setReason();
-        setGroup();
-        setEmojiDescription();
-        loadImage();
-        setRoundedBackground();
-    }
+    private void setupViewPager() {
+        cardAdapter = new MoodCardAdapter(this);
 
-    private void setEmojiImage() {
-        if (emoji != null && emojiView != null) {
-            int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
-            if (emojiResId != 0) {
-                emojiView.setImageResource(emojiResId);
+        // Set up listener for Mood Details Card
+        cardAdapter.setMoodDetailsListener(holder -> {
+            // Bind emoji image
+            if (emoji != null && holder.emojiView != null) {
+                int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
+                if (emojiResId != 0) {
+                    holder.emojiView.setImageResource(emojiResId);
+                } else {
+                    Log.e(TAG, "Could not find drawable resource for emoji: " + emoji);
+                }
+            }
+
+            // Bind timestamp
+            if (holder.timeView != null) {
+                if (timestamp != null) {
+                    try {
+                        String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
+                        holder.timeView.setText(formattedTime);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error formatting timestamp: " + e.getMessage());
+                        holder.timeView.setText("Invalid time");
+                    }
+                } else {
+                    holder.timeView.setText("Unknown time");
+                }
+            }
+
+            // Bind reason
+            if (holder.reasonView != null) {
+                holder.reasonView.setText(reason != null ? reason : "No reason provided");
+            }
+
+            // Bind group
+            if (holder.groupView != null) {
+                holder.groupView.setText(group != null ? group : "No group provided");
+            }
+
+            // Bind emoji description
+            if (holder.emojiDescView != null) {
+                holder.emojiDescView.setText(emojiDescription != null ? emojiDescription : "No emoji");
+            }
+
+            // Bind image
+            if (holder.imageUrlView != null) {
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    holder.imageUrlView.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Loading image from URL: " + imageUrl);
+                    try {
+                        Glide.with(this)
+                                .load(imageUrl)
+                                .into(holder.imageUrlView);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Glide failed to load image: " + e.getMessage());
+                        holder.imageUrlView.setVisibility(View.GONE);
+                    }
+                } else {
+                    Log.d(TAG, "No image URL provided, hiding ImageView");
+                    holder.imageUrlView.setVisibility(View.GONE);
+                }
+            }
+
+            // Set rounded background
+            if (holder.emojiRectangle != null) {
+                GradientDrawable gradientDrawable = new GradientDrawable();
+                gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+                gradientDrawable.setCornerRadius(50);
+                gradientDrawable.setColor(color);
+                gradientDrawable.setStroke(2, Color.BLACK);
+                holder.emojiRectangle.setBackground(gradientDrawable);
+            }
+        });
+
+        // Set up listener for Song Recommendation Card
+        cardAdapter.setSongRecommendationListener(holder -> {
+            // Fetch initial song recommendation if none are loaded
+            if (recommendedTracks.isEmpty()) {
+                fetchSongRecommendation();
             } else {
-                Log.e(TAG, "Could not find drawable resource for emoji: " + emoji);
+                displayRandomUnshownTrack(holder);
             }
-        }
-    }
 
-    private void setTimestamp() {
-        if (timeView == null) return;
-        if (timestamp != null) {
-            try {
-                String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
-                timeView.setText(formattedTime);
-            } catch (Exception e) {
-                Log.e(TAG, "Error formatting timestamp: " + e.getMessage());
-                timeView.setText("Invalid time");
-            }
-        } else {
-            timeView.setText("Unknown time");
-        }
-    }
-
-    private void setReason() {
-        if (reasonView != null) {
-            reasonView.setText(reason != null ? reason : "No reason provided");
-        }
-    }
-
-    private void setGroup() {
-        if (groupView != null) {
-            groupView.setText(group != null ? group : "No group provided");
-        }
-    }
-
-    private void setEmojiDescription() {
-        if (emojiDescView != null) {
-            emojiDescView.setText(emojiDescription != null ? emojiDescription : "No emoji");
-        }
-    }
-
-    private void loadImage() {
-        if (imageUrlView == null) return;
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            imageUrlView.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Loading image from URL: " + imageUrl);
-            try {
-                Glide.with(this)
-                        .load(imageUrl)
-                        .into(imageUrlView);
-            } catch (Exception e) {
-                Log.e(TAG, "Glide failed to load image: " + e.getMessage());
-                imageUrlView.setVisibility(View.GONE);
-            }
-        } else {
-            Log.d(TAG, "No image URL provided, hiding ImageView");
-            imageUrlView.setVisibility(View.GONE);
-        }
-    }
-
-    private void setRoundedBackground() {
-        if (emojiRectangle == null) return;
-        GradientDrawable gradientDrawable = new GradientDrawable();
-        gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50);
-        gradientDrawable.setColor(color);
-        gradientDrawable.setStroke(2, Color.BLACK);
-        emojiRectangle.setBackground(gradientDrawable);
-    }
-
-    private void setupBackButton() {
-        if (backButton != null) {
-            backButton.setOnClickListener(v -> {
-                Intent intent = new Intent();
-                intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
-                setResult(RESULT_OK, intent);
-                finish();
+            // Set up Next button listener
+            holder.nextSongButton.setOnClickListener(v -> {
+                if (recommendedTracks.isEmpty() || shownTrackIds.size() >= recommendedTracks.size()) {
+                    fetchSongRecommendation();
+                } else {
+                    displayRandomUnshownTrack(holder);
+                }
             });
-        }
-    }
+        });
 
-    private void setupRecommendSongButton() {
-        if (recommendSongButton != null) {
-            recommendSongButton.setOnClickListener(v -> showNextRecommendation());
-        }
-    }
+        // Configure ViewPager2
+        viewPager.setAdapter(cardAdapter);
+        viewPager.setOffscreenPageLimit(2); // Keep both pages in memory
 
-    private void showNextRecommendation() {
-        Log.d(TAG, "showNextRecommendation called, shown tracks: " + shownTrackIds.size() + ", total tracks: " + recommendedTracks.size());
-        if (accessToken == null || accessToken.isEmpty()) {
-            recommendedSongTextView.setText("Spotify authentication required. Please try again later.");
-            recommendationRectangle.setVisibility(View.VISIBLE);
-            showToast("Spotify authentication required.");
-            return;
-        }
-
-        // If all tracks have been shown or no tracks are available, fetch a new batch
-        if (recommendedTracks.isEmpty() || shownTrackIds.size() >= recommendedTracks.size()) {
-            fetchSongRecommendation();
-        } else {
-            displayRandomUnshownTrack();
-        }
+        // Add card-like effect
+        viewPager.setPageTransformer((page, position) -> {
+            float offset = position * -0.2f;
+            page.setTranslationX(offset * page.getWidth());
+            page.setScaleY(1 - (0.1f * Math.abs(position)));
+            page.setAlpha(1 - (0.3f * Math.abs(position)));
+        });
     }
 
     private void fetchSongRecommendation() {
@@ -286,11 +255,9 @@ public class MoodDetailActivity extends AppCompatActivity {
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " tracks");
-                    displayRandomUnshownTrack();
+                    displayRandomUnshownTrack(null);
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
-                    recommendedSongTextView.setText(errorMessage);
-                    recommendationRectangle.setVisibility(View.VISIBLE);
                     Log.e(TAG, errorMessage);
                     if (response.code() == 401) {
                         showToast("Spotify session expired. Please reopen this mood.");
@@ -302,14 +269,12 @@ public class MoodDetailActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
-                recommendedSongTextView.setText("Error fetching recommendation: " + t.getMessage());
-                recommendationRectangle.setVisibility(View.VISIBLE);
                 Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
             }
         });
     }
 
-    private void displayRandomUnshownTrack() {
+    private void displayRandomUnshownTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
         // Filter out tracks that have already been shown
         List<SpotifyRecommendationResponse.Track> unshownTracks = new ArrayList<>();
         for (SpotifyRecommendationResponse.Track track : recommendedTracks) {
@@ -329,11 +294,12 @@ public class MoodDetailActivity extends AppCompatActivity {
         int randomIndex = random.nextInt(unshownTracks.size());
         SpotifyRecommendationResponse.Track selectedTrack = unshownTracks.get(randomIndex);
 
-        // Display the selected track
-        String recommendedSong = selectedTrack.name + " by " + selectedTrack.artists.get(0).name;
-        recommendedSongTextView.setText(recommendedSong);
-        recommendationRectangle.setVisibility(View.VISIBLE);
-        Log.d(TAG, "Displayed: " + recommendedSong);
+        // Update the Song Recommendation Card if holder is provided
+        if (holder != null) {
+            holder.songNameTextView.setText(selectedTrack.name);
+            holder.artistNameTextView.setText(selectedTrack.artists.get(0).name);
+            Log.d(TAG, "Displayed: " + selectedTrack.name + " by " + selectedTrack.artists.get(0).name);
+        }
 
         // Mark the track as shown
         shownTrackIds.add(selectedTrack.id);
@@ -348,22 +314,29 @@ public class MoodDetailActivity extends AppCompatActivity {
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks.items);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
-                    displayRandomUnshownTrack();
+                    displayRandomUnshownTrack(null);
                 } else {
                     String errorMessage = "No songs found: " + response.code() + " - " + response.message();
-                    recommendedSongTextView.setText(errorMessage);
-                    recommendationRectangle.setVisibility(View.VISIBLE);
                     Log.e(TAG, errorMessage);
                 }
             }
 
             @Override
             public void onFailure(Call<SpotifyApiService.SearchResponse> call, Throwable t) {
-                recommendedSongTextView.setText("Error searching for songs: " + t.getMessage());
-                recommendationRectangle.setVisibility(View.VISIBLE);
                 Log.e(TAG, "Search error: " + t.getMessage());
             }
         });
+    }
+
+    private void setupBackButton() {
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> {
+                Intent intent = new Intent();
+                intent.putExtra("isMyMoods", getIntent().getBooleanExtra("isMyMoods", true));
+                setResult(RESULT_OK, intent);
+                finish();
+            });
+        }
     }
 
     private void showToast(String message) {

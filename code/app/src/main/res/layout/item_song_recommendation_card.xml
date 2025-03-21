@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    android:layout_margin="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:padding="16dp"
+            android:background="#FFFFFF">
+
+               `     <!-- Title -->
+                <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recommended Song"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000000" />
+
+                    <!-- Song Name -->
+                <TextView
+                android:id="@+id/songNameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Song Name"
+                android:textSize="16sp"
+                android:textColor="#000000" />
+
+                    <!-- Artist Name -->
+                <TextView
+                android:id="@+id/artistNameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Artist Name"
+                android:textSize="14sp"
+                android:textColor="#666666" />
+
+                    <!-- Next Button -->
+                <Button
+                android:id="@+id/nextSongButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="16dp"
+                android:text="Next Song"
+                android:backgroundTint="#6200EE"
+                android:textColor="#FFFFFF" />
+
+            </LinearLayout>
+    </androidx.cardview.widget.CardView>

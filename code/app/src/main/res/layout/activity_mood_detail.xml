@@ -1,154 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:fillViewport="true"
-    android:background="@color/black">
+    android:orientation="vertical"
+    android:background="@color/black"
+    tools:context=".view.MoodDetailActivity">
 
-    <LinearLayout
-        android:id="@+id/rootLayout"
-        android:layout_width="match_parent"
+    <!-- Back Button -->
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="24dp">
+        android:src="@drawable/left_arrow"
+        android:padding="16dp" />
 
-        <!-- Header with navigation buttons -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp">
+    <!-- ViewPager2 for swiping between Mood Details and Song Recommendation -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp" />
 
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_alignParentStart="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/left_arrow"
-                app:tint="@color/white"/>
-        </RelativeLayout>
-
-        <!-- Mood rectangle -->
-        <LinearLayout
-            android:id="@+id/emojiRectangle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/edit_text_background"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:elevation="8dp"
-            android:outlineProvider="background"
-            android:clipToOutline="true">
-
-            <!-- Emoji -->
-            <ImageView
-                android:id="@+id/emojiView"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:contentDescription="Emoji" />
-
-            <!-- Emoji Description -->
-            <TextView
-                android:id="@+id/emojiDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:textColor="@color/white"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Time TextView -->
-            <TextView
-                android:id="@+id/timeView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Reason TextView -->
-            <TextView
-                android:id="@+id/reasonView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Group/Context TextView -->
-            <TextView
-                android:id="@+id/groupView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Image from URL -->
-            <ImageView
-                android:id="@+id/imageUrlView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="120dp"
-                android:maxHeight="250dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:layout_marginHorizontal="8dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="Mood Image"
-                android:scaleType="fitCenter"
-                android:visibility="visible" />
-
-            <!-- Button to fetch song recommendation -->
-            <Button
-                android:id="@+id/recommendSongButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Recommend a Song"
-                android:backgroundTint="@android:color/holo_blue_light"
-                android:textColor="@android:color/white"
-                android:padding="8dp"/>
-        </LinearLayout>
-
-        <!-- Recommendation rectangle -->
-        <LinearLayout
-            android:id="@+id/recommendationRectangle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/edit_text_background"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:elevation="8dp"
-            android:outlineProvider="background"
-            android:clipToOutline="true"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/recommendedSongTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Fetching recommendation..."
-                android:textSize="16sp"
-                android:textColor="@color/white"
-                android:gravity="center"/>
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>
