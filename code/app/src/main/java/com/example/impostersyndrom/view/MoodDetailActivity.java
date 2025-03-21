@@ -1,8 +1,10 @@
 package com.example.impostersyndrom.view;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +59,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
     private Set<String> shownTrackIds = new HashSet<>(); // Tracks shown in this session
+    private SpotifyRecommendationResponse.Track currentTrack; // Track currently displayed
 
     // Adapter for ViewPager2
     private MoodCardAdapter cardAdapter;
@@ -226,6 +229,14 @@ public class MoodDetailActivity extends AppCompatActivity {
                     displayRandomUnshownTrack(holder);
                 }
             });
+
+            // Set up Play on Spotify button listener
+            if (currentTrack != null) {
+                String trackUri = "spotify:track:" + currentTrack.id;
+                holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
+            } else {
+                holder.playOnSpotifyButton.setEnabled(false); // Disable button if no track is available
+            }
         });
 
         // Configure ViewPager2
@@ -233,14 +244,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         viewPager.setOffscreenPageLimit(2); // Keep both pages in memory
         viewPager.setBackgroundColor(Color.BLACK); // Match the black background
         viewPager.setUserInputEnabled(true); // Ensure swiping is enabled
-
-        // Temporarily remove the PageTransformer to debug swiping
-        // viewPager.setPageTransformer((page, position) -> {
-        //     page.setTranslationX(-position * page.getWidth());
-        //     page.setAlpha(1.0f);
-        //     page.setScaleY(1.0f);
-        //     page.setScaleX(1.0f);
-        // });
+        
 
         // Add a listener to log page changes
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -307,11 +311,19 @@ public class MoodDetailActivity extends AppCompatActivity {
         int randomIndex = random.nextInt(unshownTracks.size());
         SpotifyRecommendationResponse.Track selectedTrack = unshownTracks.get(randomIndex);
 
+        // Update the current track
+        currentTrack = selectedTrack;
+
         // Update the Song Recommendation Card if holder is provided
         if (holder != null) {
             holder.songNameTextView.setText(selectedTrack.name);
             holder.artistNameTextView.setText(selectedTrack.artists.get(0).name);
             Log.d(TAG, "Displayed: " + selectedTrack.name + " by " + selectedTrack.artists.get(0).name);
+
+            // Update the Play on Spotify button with the current track's URI
+            String trackUri = "spotify:track:" + selectedTrack.id;
+            holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
+            holder.playOnSpotifyButton.setEnabled(true);
         }
 
         // Mark the track as shown
@@ -339,6 +351,28 @@ public class MoodDetailActivity extends AppCompatActivity {
                 Log.e(TAG, "Search error: " + t.getMessage());
             }
         });
+    }
+
+    private void playTrackOnSpotify(String trackUri) {
+        // Create an Intent to open Spotify with the track URI
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(trackUri));
+        intent.putExtra(Intent.EXTRA_REFERRER, Uri.parse("android-app://" + getPackageName()));
+
+        // Check if Spotify is installed
+        PackageManager packageManager = getPackageManager();
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent);
+        } else {
+            // Spotify is not installed, open the Play Store to install it
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
+            } catch (android.content.ActivityNotFoundException e) {
+                // Play Store not available, open the web browser
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
+            }
+            showToast("Spotify is not installed. Redirecting to install...");
+        }
     }
 
     private void setupBackButton() {

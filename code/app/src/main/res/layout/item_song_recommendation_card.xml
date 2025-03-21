@@ -51,16 +51,35 @@
                     android:textColor="#666666"
                     android:gravity="center" />
 
-                <!-- Next Button -->
-                <Button
-                    android:id="@+id/nextSongButton"
-                    android:layout_width="wrap_content"
+                <!-- Button Container -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_marginTop="16dp"
-                    android:text="Next Song"
-                    android:backgroundTint="#6200EE"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Next Button -->
+                    <Button
+                        android:id="@+id/nextSongButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="Next Song"
+                        android:backgroundTint="#6200EE"
+                        android:textColor="#FFFFFF" />
+
+                    <!-- Play on Spotify Button -->
+                    <Button
+                        android:id="@+id/playOnSpotifyButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Play on Spotify"
+                        android:backgroundTint="#1DB954"
                     android:textColor="#FFFFFF" />
+
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
