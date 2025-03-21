@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ImageHandler;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -60,6 +61,7 @@ public class EditMoodActivity extends AppCompatActivity {
     private String imageURL; // URL of the mood image
     private boolean hasSubmittedChanges = false; // Tracks if changes have been submitted
     private String originalImageUrl; // Original image URL before editing
+    private boolean isPrivateMood = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,7 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+        SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
 
         // Retrieve passed mood data
         Intent intent = getIntent();
@@ -86,6 +89,14 @@ public class EditMoodActivity extends AppCompatActivity {
         imageUrl = intent.getStringExtra("imageUrl");
         originalImageUrl = imageUrl;
         int color = intent.getIntExtra("color", 0);
+        isPrivateMood = intent.getBooleanExtra("privateMood", false);
+
+        // Set initial privacy switch state
+        privacySwitch.setChecked(isPrivateMood);
+        privacySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isPrivateMood = isChecked;
+            String status = isPrivateMood ? "Private" : "Public";
+        });
 
         // Set the correct emoji image
         editEmoji.setImageResource(EditEmojiResources.getEmojiResource(emoji));
@@ -215,6 +226,7 @@ public class EditMoodActivity extends AppCompatActivity {
         updates.put("emotionalState", emoji);
         updates.put("emojiDescription", EditEmojiResources.getReadableMood(emoji));
         updates.put("color", EditEmojiResources.getMoodColor(emoji));
+        updates.put("privateMood", isPrivateMood);
 
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);

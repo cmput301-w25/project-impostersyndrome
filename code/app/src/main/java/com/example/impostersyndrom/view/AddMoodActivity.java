@@ -27,6 +27,7 @@ import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.User;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<String> galleryPermissionLauncher;
+    private boolean isPrivateMood = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +67,7 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
+        SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
 
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
@@ -106,6 +109,12 @@ public class AddMoodActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        privacySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isPrivateMood = isChecked;
+            String status = isPrivateMood ? "Private" : "Public";
+            Toast.makeText(this, "Mood set to " + status, Toast.LENGTH_SHORT).show();
+        });
 
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -169,6 +178,7 @@ public class AddMoodActivity extends AppCompatActivity {
             mood.setReason(addReasonEdit.getText().toString().trim());
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
+            mood.setPrivateMood(isPrivateMood);
 
             if (imageHandler.hasImage()) {
                 imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {

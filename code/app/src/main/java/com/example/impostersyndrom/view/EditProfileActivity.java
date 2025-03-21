@@ -1,8 +1,12 @@
 package com.example.impostersyndrom.view;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -76,8 +80,18 @@ public class EditProfileActivity extends AppCompatActivity {
     private void showBottomSheetDialog() {
         // Create the bottom sheet dialog
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-        bottomSheetDialog.setContentView(R.layout.bottom_sheet_image_picker);
 
+        // Inflate the bottom sheet layout
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_picker, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // Set edge-to-edge display
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove grey background
+            bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            );
+        }
         // Choose from Gallery option
         bottomSheetDialog.findViewById(R.id.option_gallery)
                 .setOnClickListener(v -> {
