@@ -15,6 +15,7 @@ import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +30,8 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
+import com.example.impostersyndrom.model.MoodFilter;
+import com.example.impostersyndrom.model.MoodItem;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -64,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("MainActivity", "onCreate called");
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -300,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: Changed customSheetView to bottomSheetView
         bottomSheetDialog.show();
     }
 
