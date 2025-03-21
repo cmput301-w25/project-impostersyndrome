@@ -44,11 +44,16 @@
             android:name=".view.RegisterActivity"
             android:exported="false" />
 
-        <!-- MainActivity -->
+        <!-- MainActivity with two intent filters -->
         <activity
             android:name=".view.MainActivity"
             android:exported="true"
             android:launchMode="singleTask">
+            <!-- Intent-filter for launcher (app icon) -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <!-- Intent-filter to handle Spotify Redirect URI -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
