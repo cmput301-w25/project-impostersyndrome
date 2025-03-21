@@ -1,7 +1,6 @@
 package com.example.impostersyndrom.view;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -233,6 +232,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             // Set up Play on Spotify button listener
             if (currentTrack != null) {
                 String trackUri = "spotify:track:" + currentTrack.id;
+                Log.d(TAG, "Setting track URI for Play on Spotify button: " + trackUri);
                 holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
             } else {
                 holder.playOnSpotifyButton.setEnabled(false); // Disable button if no track is available
@@ -244,7 +244,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         viewPager.setOffscreenPageLimit(2); // Keep both pages in memory
         viewPager.setBackgroundColor(Color.BLACK); // Match the black background
         viewPager.setUserInputEnabled(true); // Ensure swiping is enabled
-        
 
         // Add a listener to log page changes
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -313,6 +312,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
         // Update the current track
         currentTrack = selectedTrack;
+        Log.d(TAG, "Selected track ID: " + selectedTrack.id);
 
         // Update the Song Recommendation Card if holder is provided
         if (holder != null) {
@@ -322,6 +322,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
             // Update the Play on Spotify button with the current track's URI
             String trackUri = "spotify:track:" + selectedTrack.id;
+            Log.d(TAG, "Setting track URI for Play on Spotify button: " + trackUri);
             holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
             holder.playOnSpotifyButton.setEnabled(true);
         }
@@ -354,24 +355,42 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void playTrackOnSpotify(String trackUri) {
-        // Create an Intent to open Spotify with the track URI
+        Log.d(TAG, "playTrackOnSpotify called with URI: " + trackUri);
+
+        // First, try the Spotify URI scheme (spotify:track:TRACK_ID)
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(trackUri));
+        intent.setPackage("com.spotify.music"); // Explicitly target Spotify
         intent.putExtra(Intent.EXTRA_REFERRER, Uri.parse("android-app://" + getPackageName()));
 
-        // Check if Spotify is installed
-        PackageManager packageManager = getPackageManager();
-        if (intent.resolveActivity(packageManager) != null) {
+        try {
+            Log.d(TAG, "Attempting to launch Spotify with URI scheme...");
             startActivity(intent);
-        } else {
-            // Spotify is not installed, open the Play Store to install it
+            Log.d(TAG, "Spotify URI intent launched successfully.");
+        } catch (android.content.ActivityNotFoundException e) {
+            Log.e(TAG, "Failed to launch Spotify with URI scheme: " + e.getMessage());
+            // Fallback to web URL
+            String trackId = trackUri.replace("spotify:track:", "");
+            String webUrl = "https://open.spotify.com/track/" + trackId;
+            Log.d(TAG, "Falling back to web URL: " + webUrl);
+
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
             try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
-            } catch (android.content.ActivityNotFoundException e) {
-                // Play Store not available, open the web browser
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
+                startActivity(webIntent);
+                Log.d(TAG, "Web URL intent launched successfully.");
+            } catch (android.content.ActivityNotFoundException ex) {
+                Log.e(TAG, "No app available to handle web URL: " + ex.getMessage());
+                showToast("Spotify is not installed. Redirecting to install...");
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
+                } catch (android.content.ActivityNotFoundException ex2) {
+                    Log.e(TAG, "Play Store not available: " + ex2.getMessage());
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
+                }
             }
-            showToast("Spotify is not installed. Redirecting to install...");
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected error while launching Spotify: " + e.getMessage());
+            showToast("An error occurred while trying to play the track.");
         }
     }
 
@@ -388,5 +407,12 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Clear Glide requests to prevent resource leaks
+        Glide.with(this).clear((View) findViewById(android.R.id.content));
     }
 }
