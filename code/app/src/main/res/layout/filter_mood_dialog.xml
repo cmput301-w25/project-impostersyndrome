@@ -62,4 +62,30 @@
         android:layout_below="@id/emotionalStateLabel"
         android:padding="8dp" />
 
+    <!-- Reason Label -->
+    <TextView
+        android:id="@+id/reasonLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reason"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_below="@id/emotionalStateSpinner"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Reason Input -->
+    <EditText
+        android:id="@+id/reasonInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/reasonLabel"
+        android:padding="12dp"
+        android:background="@drawable/filter_reason_background"
+        android:textColor="@android:color/white"
+        android:hint="Enter reason to filter"
+        android:textColorHint="#808080"
+        android:inputType="text"
+        android:layout_marginTop="4dp" />
+
 </RelativeLayout>
