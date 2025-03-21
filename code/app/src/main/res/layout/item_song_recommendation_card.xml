@@ -3,57 +3,76 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
-    android:layout_margin="8dp">
+    android:background="@android:color/transparent"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardElevation="0dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center_vertical"
-            android:padding="16dp"
-            android:background="#FFFFFF">
+    <!-- Center the card content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
 
-               `     <!-- Title -->
-                <TextView
+    <!-- Song Recommendation Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Recommended Song"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#000000" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                    <!-- Song Name -->
+                <!-- Title -->
                 <TextView
-                android:id="@+id/songNameTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Song Name"
-                android:textSize="16sp"
-                android:textColor="#000000" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Recommended Song"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:gravity="center" />
 
-                    <!-- Artist Name -->
+                <!-- Song Name -->
                 <TextView
-                android:id="@+id/artistNameTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Artist Name"
-                android:textSize="14sp"
-                android:textColor="#666666" />
+                    android:id="@+id/songNameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Song Name"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:gravity="center" />
 
-                    <!-- Next Button -->
+                <!-- Artist Name -->
+                <TextView
+                    android:id="@+id/artistNameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Artist Name"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:gravity="center" />
+
+                <!-- Next Button -->
                 <Button
-                android:id="@+id/nextSongButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="16dp"
-                android:text="Next Song"
-                android:backgroundTint="#6200EE"
-                android:textColor="#FFFFFF" />
+                    android:id="@+id/nextSongButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:text="Next Song"
+                    android:backgroundTint="#6200EE"
+                    android:textColor="#FFFFFF" />
 
             </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
