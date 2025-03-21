@@ -60,6 +60,7 @@ public class EditMoodActivity extends AppCompatActivity {
     private String imageURL; // URL of the mood image
     private boolean hasSubmittedChanges = false; // Tracks if changes have been submitted
     private String originalImageUrl; // Original image URL before editing
+    private boolean imageRemoved = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -395,20 +396,10 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                // Immediately delete the image from Firebase Storage if it exists
-                if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
-                    StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
-                    imageRef.delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("Firebase Storage", "Image permanently deleted immediately");
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("Firebase Storage", "Failed to delete image immediately", e);
-                            });
-                }
-                // Clear the image from the UI and update Firestore immediately
+                // Do not attempt deletion here; simply update the UI and mark the image as removed.
                 imageHandler.clearImage();
                 imageUrl = null;
+                imageRemoved = true; // Mark that the user removed the image
                 db.collection("moods").document(moodId)
                         .update("imageUrl", null)
                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
