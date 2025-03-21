@@ -59,6 +59,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
     private Set<String> shownTrackIds = new HashSet<>(); // Tracks shown in this session
     private SpotifyRecommendationResponse.Track currentTrack; // Track currently displayed
+    private boolean isFetchingRecommendations = false; // Track if a fetch is in progress
 
     // Adapter for ViewPager2
     private MoodCardAdapter cardAdapter;
@@ -90,6 +91,12 @@ public class MoodDetailActivity extends AppCompatActivity {
         moodAudioMapper = new MoodAudioMapper();
 
         setupViewPager();
+
+        // Preload song recommendations as soon as the activity is created
+        if (recommendedTracks.isEmpty() && !isFetchingRecommendations) {
+            fetchSongRecommendation();
+        }
+
         setupBackButton();
     }
 
@@ -213,11 +220,18 @@ public class MoodDetailActivity extends AppCompatActivity {
         // Set up listener for Song Recommendation Card
         cardAdapter.setSongRecommendationListener(holder -> {
             Log.d(TAG, "Binding Song Recommendation Card");
-            // Fetch initial song recommendation if none are loaded
-            if (recommendedTracks.isEmpty()) {
-                fetchSongRecommendation();
-            } else {
+            // If recommendations are already fetched, display a track
+            if (!recommendedTracks.isEmpty()) {
                 displayRandomUnshownTrack(holder);
+            } else if (isFetchingRecommendations) {
+                // Show loading state while fetching
+                holder.songNameTextView.setText("Loading song...");
+                holder.artistNameTextView.setText("");
+                holder.albumArtImageView.setImageResource(R.drawable.ic_music_note);
+                holder.playOnSpotifyButton.setEnabled(false);
+            } else {
+                // If no fetch is in progress and no tracks are available, fetch now
+                fetchSongRecommendation();
             }
 
             // Set up Next button listener
@@ -234,6 +248,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                 String trackUri = "spotify:track:" + currentTrack.id;
                 Log.d(TAG, "Setting track URI for Play on Spotify button: " + trackUri);
                 holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
+                holder.playOnSpotifyButton.setEnabled(true);
             } else {
                 holder.playOnSpotifyButton.setEnabled(false); // Disable button if no track is available
             }
@@ -263,29 +278,40 @@ public class MoodDetailActivity extends AppCompatActivity {
         Log.d(TAG, "Fetching recommendation with genre: " + genre +
                 ", valence: " + valence + ", energy: " + energy);
 
+        isFetchingRecommendations = true;
+        // Notify the adapter to update the UI to show loading state
+        cardAdapter.notifyItemChanged(1);
+
         spotifyManager.fetchRecommendations(genre, valence, energy, new Callback<SpotifyRecommendationResponse>() {
             @Override
             public void onResponse(Call<SpotifyRecommendationResponse> call, Response<SpotifyRecommendationResponse> response) {
+                isFetchingRecommendations = false;
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
                     recommendedTracks.clear();
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " tracks");
-                    displayRandomUnshownTrack(null);
+                    // Update the Song Recommendation Card
+                    cardAdapter.notifyItemChanged(1);
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
-                    Log.e(TAG, "errorMessage");
+                    Log.e(TAG, errorMessage);
                     if (response.code() == 401) {
                         showToast("Spotify session expired. Please reopen this mood.");
                     } else {
                         fetchSongUsingSearch(genre);
                     }
+                    // Update the UI to reflect the error state
+                    cardAdapter.notifyItemChanged(1);
                 }
             }
 
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
+                isFetchingRecommendations = false;
                 Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
+                // Update the UI to reflect the error state
+                cardAdapter.notifyItemChanged(1);
             }
         });
     }
@@ -351,24 +377,35 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void fetchSongUsingSearch(String genre) {
+        isFetchingRecommendations = true;
+        // Notify the adapter to update the UI to show loading state
+        cardAdapter.notifyItemChanged(1);
+
         spotifyManager.searchTracks(genre, new Callback<SpotifyApiService.SearchResponse>() {
             @Override
             public void onResponse(Call<SpotifyApiService.SearchResponse> call, Response<SpotifyApiService.SearchResponse> response) {
+                isFetchingRecommendations = false;
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
                     recommendedTracks.clear();
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
                     recommendedTracks.addAll(response.body().tracks.items);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
-                    displayRandomUnshownTrack(null);
+                    // Update the Song Recommendation Card
+                    cardAdapter.notifyItemChanged(1);
                 } else {
                     String errorMessage = "No songs found: " + response.code() + " - " + response.message();
                     Log.e(TAG, errorMessage);
+                    // Update the UI to reflect the error state
+                    cardAdapter.notifyItemChanged(1);
                 }
             }
 
             @Override
             public void onFailure(Call<SpotifyApiService.SearchResponse> call, Throwable t) {
+                isFetchingRecommendations = false;
                 Log.e(TAG, "Search error: " + t.getMessage());
+                // Update the UI to reflect the error state
+                cardAdapter.notifyItemChanged(1);
             }
         });
     }
