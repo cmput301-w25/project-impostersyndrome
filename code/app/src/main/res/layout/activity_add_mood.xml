@@ -85,6 +85,7 @@
                                 android:maxLength="200"
                                 android:padding="8dp"
                                 android:singleLine="true"
+                                android:textColor="@color/black"
                                 android:textColorHint="#546E7A" />
                         </FrameLayout>
 
@@ -144,6 +145,15 @@
                             android:focusable="true"
                             android:padding="8dp"
                             android:src="@drawable/person" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/privacySwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:text="Private"
+                            android:textColor="@color/white"
+                            android:checked="false" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

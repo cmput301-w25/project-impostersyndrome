@@ -127,7 +127,7 @@
                                 android:maxLength="20"
                                 android:padding="8dp"
                                 android:singleLine="true"
-                                android:textColor="#D3D3D3"
+                                android:textColor="@color/black"
                                 android:textColorHint="#D3D3D3"/>
 
                             <!-- Image Preview - positioned below reason field -->
@@ -204,6 +204,15 @@
                         android:layout_height="wrap_content"
                         android:text="Attach Location"
                         android:layout_marginTop="16dp"/>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/privacySwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Private"
+                        android:textColor="@color/white"
+                        android:checked="false" />
 
 
                 </LinearLayout>

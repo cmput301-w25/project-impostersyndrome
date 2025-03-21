@@ -24,7 +24,7 @@ import java.util.List;
 public class SearchActivity extends AppCompatActivity {
     private EditText searchInput;
     private ListView userListView;
-    private ImageButton addMoodButton, homeButton, logoutButton, heartButton, clearSearch;
+    private ImageButton addMoodButton, homeButton, profileButton, heartButton, clearSearch;
     private FirebaseFirestore db;
     private List<String> userList = new ArrayList<>();
     private UserListAdapter adapter;
@@ -40,7 +40,7 @@ public class SearchActivity extends AppCompatActivity {
         userListView = findViewById(R.id.userListView);
         addMoodButton = findViewById(R.id.addMoodButton);
         homeButton = findViewById(R.id.homeButton);
-        logoutButton = findViewById(R.id.profileButton);
+        profileButton = findViewById(R.id.profileButton);
         clearSearch = findViewById(R.id.clearSearch);
         heartButton = findViewById(R.id.heartButton); // Initialize heart button
         db = FirebaseFirestore.getInstance();
@@ -96,14 +96,8 @@ public class SearchActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Log Out User when Logout Button is Pressed
-        logoutButton.setOnClickListener(v -> {
-            auth.signOut(); // Firebase logout
-            Toast.makeText(SearchActivity.this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(SearchActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear backstack
-            startActivity(intent);
-            finish();
+        profileButton.setOnClickListener(v -> {
+            startActivity(new Intent(SearchActivity.this, ProfileActivity.class));
         });
     }
 

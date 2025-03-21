@@ -32,6 +32,7 @@ import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.User;
+
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
@@ -40,6 +41,8 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.Task;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 
 import java.text.SimpleDateFormat;
@@ -59,10 +62,14 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<String> galleryPermissionLauncher;
+
     private FusedLocationProviderClient fusedLocationClient; // For fetching location
     private ActivityResultLauncher<String[]> locationPermissionLauncher; // For location permission request
     private Location currentLocation; // Stores the current location
     private boolean isLocationAttached = false; // Tracks if location is attached
+
+    private boolean isPrivateMood = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,11 +103,15 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton groupButton = findViewById(R.id.groupButton);
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
+
         Button attachLocationButton = findViewById(R.id.attachLocationButton); // Replace with your button's ID
         attachLocationButton.setOnClickListener(v -> {
             Log.d("AddMoodActivity", "Attach Location button clicked");
             showLocationPrompt();
         });
+
+        SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
+
 
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
@@ -139,6 +150,12 @@ public class AddMoodActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        privacySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isPrivateMood = isChecked;
+            String status = isPrivateMood ? "Private" : "Public";
+            Toast.makeText(this, "Mood set to " + status, Toast.LENGTH_SHORT).show();
+        });
 
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -212,6 +229,7 @@ public class AddMoodActivity extends AppCompatActivity {
             mood.setReason(addReasonEdit.getText().toString().trim());
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
+            mood.setPrivateMood(isPrivateMood);
 
             if (isLocationAttached && currentLocation != null) {
                 mood.setLatitude(currentLocation.getLatitude());

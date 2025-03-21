@@ -27,10 +27,10 @@
         android:padding="8dp">
 
         <TextView
-            android:id="@+id/editMoodOption"
+            android:id="@+id/option_gallery"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Edit Mood"
+            android:text="Choose from Gallery"
             android:textSize="18sp"
             android:padding="12dp"
             android:textColor="@color/white"
@@ -44,10 +44,10 @@
             android:background="@android:color/darker_gray" />
 
         <TextView
-            android:id="@+id/deleteMoodOption"
+            android:id="@+id/option_remove"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Delete Mood"
+            android:text="Remove Image"
             android:textSize="18sp"
             android:padding="12dp"
             android:textColor="@color/red"
