@@ -18,7 +18,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="320dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="160dp"
+            android:layout_marginTop="100dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="10dp"
             app:cardBackgroundColor="#FFFFFF">
@@ -47,7 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Song Name"
+
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#212121"
@@ -61,7 +61,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Artist Name"
+
                     android:textSize="14sp"
                     android:textColor="#757575"
                     android:gravity="center"
