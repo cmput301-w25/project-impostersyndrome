@@ -137,6 +137,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
         // Set up listener for Mood Details Card
         cardAdapter.setMoodDetailsListener(holder -> {
+            Log.d(TAG, "Binding Mood Details Card");
             // Bind emoji image
             if (emoji != null && holder.emojiView != null) {
                 int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
@@ -209,6 +210,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
         // Set up listener for Song Recommendation Card
         cardAdapter.setSongRecommendationListener(holder -> {
+            Log.d(TAG, "Binding Song Recommendation Card");
             // Fetch initial song recommendation if none are loaded
             if (recommendedTracks.isEmpty()) {
                 fetchSongRecommendation();
@@ -229,13 +231,24 @@ public class MoodDetailActivity extends AppCompatActivity {
         // Configure ViewPager2
         viewPager.setAdapter(cardAdapter);
         viewPager.setOffscreenPageLimit(2); // Keep both pages in memory
+        viewPager.setBackgroundColor(Color.BLACK); // Match the black background
+        viewPager.setUserInputEnabled(true); // Ensure swiping is enabled
 
-        // Add card-like effect
-        viewPager.setPageTransformer((page, position) -> {
-            float offset = position * -0.2f;
-            page.setTranslationX(offset * page.getWidth());
-            page.setScaleY(1 - (0.1f * Math.abs(position)));
-            page.setAlpha(1 - (0.3f * Math.abs(position)));
+        // Temporarily remove the PageTransformer to debug swiping
+        // viewPager.setPageTransformer((page, position) -> {
+        //     page.setTranslationX(-position * page.getWidth());
+        //     page.setAlpha(1.0f);
+        //     page.setScaleY(1.0f);
+        //     page.setScaleX(1.0f);
+        // });
+
+        // Add a listener to log page changes
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Log.d(TAG, "Page selected: " + position + " (0 = Mood Details, 1 = Song Recommendation)");
+            }
         });
     }
 
