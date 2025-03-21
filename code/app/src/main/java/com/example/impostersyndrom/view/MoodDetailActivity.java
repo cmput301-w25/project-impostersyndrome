@@ -274,7 +274,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     displayRandomUnshownTrack(null);
                 } else {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
-                    Log.e(TAG, errorMessage);
+                    Log.e(TAG, "errorMessage");
                     if (response.code() == 401) {
                         showToast("Spotify session expired. Please reopen this mood.");
                     } else {
@@ -319,6 +319,25 @@ public class MoodDetailActivity extends AppCompatActivity {
             holder.songNameTextView.setText(selectedTrack.name);
             holder.artistNameTextView.setText(selectedTrack.artists.get(0).name);
             Log.d(TAG, "Displayed: " + selectedTrack.name + " by " + selectedTrack.artists.get(0).name);
+
+            // Load the album cover image
+            if (selectedTrack.album != null && selectedTrack.album.images != null && !selectedTrack.album.images.isEmpty()) {
+                // Spotify typically provides images in descending order of size (e.g., 640x640, 300x300, 64x64)
+                // Use the second image (300x300) for better performance
+                String albumCoverUrl = selectedTrack.album.images.get(1).url;
+                Log.d(TAG, "Loading album cover from URL: " + albumCoverUrl);
+                Glide.with(this)
+                        .load(albumCoverUrl)
+                        .placeholder(R.drawable.ic_music_note) // Show placeholder while loading
+                        .error(R.drawable.ic_music_note) // Show placeholder if loading fails
+                        .into(holder.albumArtImageView);
+            } else {
+                Log.w(TAG, "No album cover available for track: " + selectedTrack.id);
+                // Clear the ImageView and show the placeholder
+                Glide.with(this)
+                        .load(R.drawable.ic_music_note)
+                        .into(holder.albumArtImageView);
+            }
 
             // Update the Play on Spotify button with the current track's URI
             String trackUri = "spotify:track:" + selectedTrack.id;
