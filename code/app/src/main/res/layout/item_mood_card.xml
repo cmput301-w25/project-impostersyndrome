@@ -8,14 +8,14 @@
     app:cardBackgroundColor="@android:color/transparent"
     app:cardElevation="0dp">
 
-        <LinearLayout
+    <LinearLayout
         android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center_horizontal"
         android:padding="24dp"
-        android:background="@color/black">  <!-- Set background to black -->
+        android:background="@color/black">
 
         <!-- Mood rectangle -->
         <LinearLayout
@@ -102,5 +102,5 @@
                 android:visibility="visible" />
         </LinearLayout>
 
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
