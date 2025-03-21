@@ -25,9 +25,9 @@ public class MoodAudioMapper {
         moodToAudioFeatures.put("emoji_confused", new MoodAudioFeatures("indie-pop", 0.5f, 0.45f));
         moodToAudioFeatures.put("emoji_disgust", new MoodAudioFeatures("punk-rock", 0.25f, 0.65f));
         moodToAudioFeatures.put("emoji_angry", new MoodAudioFeatures("metal", 0.15f, 0.95f));
-        moodToAudioFeatures.put("emoji_sad", new MoodAudioFeatures("acoustic", 0.15f, 0.25f));
+        moodToAudioFeatures.put("emoji_sad", new MoodAudioFeatures("sad-pop", 0.2f, 0.35f));
         moodToAudioFeatures.put("emoji_fear", new MoodAudioFeatures("dark-ambient", 0.2f, 0.6f));
-        moodToAudioFeatures.put("emoji_shame", new MoodAudioFeatures("folk", 0.2f, 0.15f));
+        moodToAudioFeatures.put("emoji_shame", new MoodAudioFeatures("acoustic", 0.25f, 0.15f));
         moodToAudioFeatures.put("emoji_surprised", new MoodAudioFeatures("dance-pop", 0.75f, 0.9f));
     }
 
