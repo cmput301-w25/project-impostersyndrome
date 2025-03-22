@@ -18,7 +18,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="320dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100dp"
+            android:layout_marginTop="50dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="10dp"
             app:cardBackgroundColor="#FFFFFF">
@@ -29,16 +29,16 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
-                <!-- Album Art Placeholder -->
+                <!-- Album Art -->
                 <ImageView
                     android:id="@+id/albumArtImageView"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:layout_gravity="center"
                     android:layout_marginBottom="16dp"
-                    android:background="#EEEEEE"
                     android:scaleType="centerCrop"
-
+                    android:clipToOutline="true"
+                    android:src="@drawable/ic_music_note"
                     android:contentDescription="Album artwork" />
 
                 <!-- Song Name with more emphasis -->
@@ -47,7 +47,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#212121"
@@ -61,7 +60,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-
                     android:textSize="14sp"
                     android:textColor="#757575"
                     android:gravity="center"
@@ -77,41 +75,54 @@
                     android:layout_marginBottom="16dp"
                     android:background="#E0E0E0" />
 
-                <!-- Button Container -->
+                <!-- Large Play Icon Button -->
+                <ImageButton
+                    android:id="@+id/playOnSpotifyButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/ic_play_circle"
+                    android:src="@android:drawable/ic_media_play"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Play on Spotify"
+                    android:padding="12dp" />
+
+                <!-- Navigation Button Container -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center">
 
-                    <!-- Next Button with icon -->
+                    <!-- Previous Song Button -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nextSongButton"
+                        android:id="@+id/prevSongButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:text="Next Song"
+                        android:text="Previous"
                         android:textAllCaps="false"
                         app:cornerRadius="12dp"
-
+                        app:icon="@android:drawable/ic_media_previous"
                         app:iconGravity="textStart"
                         android:backgroundTint="#6200EE"
                         android:textColor="#FFFFFF"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp" />
 
-                    <!-- Play on Spotify Button with icon -->
+                    <!-- Next Song Button -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/playOnSpotifyButton"
+                        android:id="@+id/nextSongButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="Play"
+                        android:text="Next"
                         android:textAllCaps="false"
                         app:cornerRadius="12dp"
-
+                        app:icon="@android:drawable/ic_media_next"
                         app:iconGravity="textStart"
-                        android:backgroundTint="#1DB954"
+                        android:backgroundTint="#6200EE"
                         android:textColor="#FFFFFF"
                         android:paddingStart="16dp"
                         android:paddingEnd="16dp" />
