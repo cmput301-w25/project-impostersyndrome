@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.impostersyndrom.R;
@@ -40,10 +41,8 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
+    private SwipeRefreshLayout swipeRefreshLayout; // Added for pull-to-refresh
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
@@ -95,11 +95,15 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up navigation drawer with user information
         setupNavigationDrawer();
+
+        // Set up swipe-to-refresh
+        setupSwipeRefresh();
     }
 
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout); // Initialize SwipeRefreshLayout
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -160,6 +164,15 @@ public class MainActivity extends AppCompatActivity {
         });
 
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
+    }
+
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.d("MainActivity", "Swipe to refresh triggered");
+            refreshCurrentFragment();
+            // Stop the refresh animation once data is loaded
+            swipeRefreshLayout.setRefreshing(false);
+        });
     }
 
     private void navigateToProfile() {
@@ -260,9 +273,8 @@ public class MainActivity extends AppCompatActivity {
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
-        // Set edge-to-edge display
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove grey background
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             );
@@ -366,8 +378,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d("MainActivity", "onResume called");
         refreshCurrentFragment();
-        // Force ViewPager to re-render
         viewPagerAdapter.notifyDataSetChanged();
-        viewPager.setCurrentItem(viewPager.getCurrentItem(), false); // Trigger re-render without animation
+        viewPager.setCurrentItem(viewPager.getCurrentItem(), false);
     }
 }
