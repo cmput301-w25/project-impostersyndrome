@@ -57,6 +57,8 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     // Recommendation Tracking
     private List<SpotifyRecommendationResponse.Track> recommendedTracks = new ArrayList<>();
+    private List<SpotifyRecommendationResponse.Track> shownTracksHistory = new ArrayList<>(); // Track history of shown tracks
+    private int currentTrackIndex = -1; // Index of the currently displayed track in history
     private Set<String> shownTrackIds = new HashSet<>(); // Tracks shown in this session
     private SpotifyRecommendationResponse.Track currentTrack; // Track currently displayed
     private boolean isFetchingRecommendations = false; // Track if a fetch is in progress
@@ -222,13 +224,15 @@ public class MoodDetailActivity extends AppCompatActivity {
             Log.d(TAG, "Binding Song Recommendation Card");
             // If recommendations are already fetched, display a track
             if (!recommendedTracks.isEmpty()) {
-                displayRandomUnshownTrack(holder);
+                displayTrackAtCurrentIndex(holder);
             } else if (isFetchingRecommendations) {
                 // Show loading state while fetching
                 holder.songNameTextView.setText("Loading song...");
                 holder.artistNameTextView.setText("");
                 holder.albumArtImageView.setImageResource(R.drawable.ic_music_note);
                 holder.playOnSpotifyButton.setEnabled(false);
+                holder.prevSongButton.setEnabled(false);
+                holder.nextSongButton.setEnabled(false);
             } else {
                 // If no fetch is in progress and no tracks are available, fetch now
                 fetchSongRecommendation();
@@ -239,8 +243,13 @@ public class MoodDetailActivity extends AppCompatActivity {
                 if (recommendedTracks.isEmpty() || shownTrackIds.size() >= recommendedTracks.size()) {
                     fetchSongRecommendation();
                 } else {
-                    displayRandomUnshownTrack(holder);
+                    displayNextTrack(holder);
                 }
+            });
+
+            // Set up Previous button listener
+            holder.prevSongButton.setOnClickListener(v -> {
+                displayPreviousTrack(holder);
             });
 
             // Set up Play on Spotify button listener
@@ -249,8 +258,13 @@ public class MoodDetailActivity extends AppCompatActivity {
                 Log.d(TAG, "Setting track URI for Play on Spotify button: " + trackUri);
                 holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
                 holder.playOnSpotifyButton.setEnabled(true);
+                // Enable navigation buttons based on history
+                holder.prevSongButton.setEnabled(currentTrackIndex > 0);
+                holder.nextSongButton.setEnabled(true);
             } else {
-                holder.playOnSpotifyButton.setEnabled(false); // Disable button if no track is available
+                holder.playOnSpotifyButton.setEnabled(false);
+                holder.prevSongButton.setEnabled(false);
+                holder.nextSongButton.setEnabled(false);
             }
         });
 
@@ -289,8 +303,12 @@ public class MoodDetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.isEmpty()) {
                     recommendedTracks.clear();
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
+                    shownTracksHistory.clear(); // Clear history for new batch
+                    currentTrackIndex = -1;
                     recommendedTracks.addAll(response.body().tracks);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " tracks");
+                    // Display the first track
+                    displayNextTrack(null);
                     // Update the Song Recommendation Card
                     cardAdapter.notifyItemChanged(1);
                 } else {
@@ -316,7 +334,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         });
     }
 
-    private void displayRandomUnshownTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
+    private void displayNextTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
         // Filter out tracks that have already been shown
         List<SpotifyRecommendationResponse.Track> unshownTracks = new ArrayList<>();
         for (SpotifyRecommendationResponse.Track track : recommendedTracks) {
@@ -336,21 +354,59 @@ public class MoodDetailActivity extends AppCompatActivity {
         int randomIndex = random.nextInt(unshownTracks.size());
         SpotifyRecommendationResponse.Track selectedTrack = unshownTracks.get(randomIndex);
 
-        // Update the current track
+        // Update history and current track
+        shownTrackIds.add(selectedTrack.id);
+        shownTracksHistory.add(selectedTrack);
+        currentTrackIndex = shownTracksHistory.size() - 1;
         currentTrack = selectedTrack;
         Log.d(TAG, "Selected track ID: " + selectedTrack.id);
 
-        // Update the Song Recommendation Card if holder is provided
-        if (holder != null) {
-            holder.songNameTextView.setText(selectedTrack.name);
-            holder.artistNameTextView.setText(selectedTrack.artists.get(0).name);
-            Log.d(TAG, "Displayed: " + selectedTrack.name + " by " + selectedTrack.artists.get(0).name);
+        // Update the UI
+        updateTrackDisplay(holder);
+    }
+
+    private void displayPreviousTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
+        if (currentTrackIndex <= 0) {
+            // No previous track to show
+            return;
+        }
+
+        // Move back in history
+        currentTrackIndex--;
+        currentTrack = shownTracksHistory.get(currentTrackIndex);
+        Log.d(TAG, "Showing previous track ID: " + currentTrack.id);
+
+        // Update the UI
+        updateTrackDisplay(holder);
+    }
+
+    private void displayTrackAtCurrentIndex(MoodCardAdapter.SongRecommendationViewHolder holder) {
+        if (currentTrackIndex >= 0 && currentTrackIndex < shownTracksHistory.size()) {
+            currentTrack = shownTracksHistory.get(currentTrackIndex);
+            Log.d(TAG, "Displaying track at index " + currentTrackIndex + ": " + currentTrack.id);
+            updateTrackDisplay(holder);
+        } else if (!shownTracksHistory.isEmpty()) {
+            // Fallback to the last track in history
+            currentTrackIndex = shownTracksHistory.size() - 1;
+            currentTrack = shownTracksHistory.get(currentTrackIndex);
+            updateTrackDisplay(holder);
+        } else {
+            // No history yet, fetch a new track
+            displayNextTrack(holder);
+        }
+    }
+
+    private void updateTrackDisplay(MoodCardAdapter.SongRecommendationViewHolder holder) {
+        if (holder != null && currentTrack != null) {
+            holder.songNameTextView.setText(currentTrack.name);
+            holder.artistNameTextView.setText(currentTrack.artists.get(0).name);
+            Log.d(TAG, "Displayed: " + currentTrack.name + " by " + currentTrack.artists.get(0).name);
 
             // Load the album cover image
-            if (selectedTrack.album != null && selectedTrack.album.images != null && !selectedTrack.album.images.isEmpty()) {
+            if (currentTrack.album != null && currentTrack.album.images != null && !currentTrack.album.images.isEmpty()) {
                 // Spotify typically provides images in descending order of size (e.g., 640x640, 300x300, 64x64)
                 // Use the second image (300x300) for better performance
-                String albumCoverUrl = selectedTrack.album.images.get(1).url;
+                String albumCoverUrl = currentTrack.album.images.get(1).url;
                 Log.d(TAG, "Loading album cover from URL: " + albumCoverUrl);
                 Glide.with(this)
                         .load(albumCoverUrl)
@@ -358,7 +414,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                         .error(R.drawable.ic_music_note) // Show placeholder if loading fails
                         .into(holder.albumArtImageView);
             } else {
-                Log.w(TAG, "No album cover available for track: " + selectedTrack.id);
+                Log.w(TAG, "No album cover available for track: " + currentTrack.id);
                 // Clear the ImageView and show the placeholder
                 Glide.with(this)
                         .load(R.drawable.ic_music_note)
@@ -366,14 +422,15 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
 
             // Update the Play on Spotify button with the current track's URI
-            String trackUri = "spotify:track:" + selectedTrack.id;
+            String trackUri = "spotify:track:" + currentTrack.id;
             Log.d(TAG, "Setting track URI for Play on Spotify button: " + trackUri);
             holder.playOnSpotifyButton.setOnClickListener(v -> playTrackOnSpotify(trackUri));
             holder.playOnSpotifyButton.setEnabled(true);
-        }
 
-        // Mark the track as shown
-        shownTrackIds.add(selectedTrack.id);
+            // Enable/disable navigation buttons based on history
+            holder.prevSongButton.setEnabled(currentTrackIndex > 0);
+            holder.nextSongButton.setEnabled(true);
+        }
     }
 
     private void fetchSongUsingSearch(String genre) {
@@ -388,8 +445,12 @@ public class MoodDetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && !response.body().tracks.items.isEmpty()) {
                     recommendedTracks.clear();
                     shownTrackIds.clear(); // Reset shown tracks for the new batch
+                    shownTracksHistory.clear(); // Clear history for new batch
+                    currentTrackIndex = -1;
                     recommendedTracks.addAll(response.body().tracks.items);
                     Log.d(TAG, "Fetched " + recommendedTracks.size() + " search results");
+                    // Display the first track
+                    displayNextTrack(null);
                     // Update the Song Recommendation Card
                     cardAdapter.notifyItemChanged(1);
                 } else {

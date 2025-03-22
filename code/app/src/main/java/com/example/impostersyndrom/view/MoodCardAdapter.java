@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton; // Add import for ImageButton
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -111,8 +112,9 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         TextView songNameTextView;
         TextView artistNameTextView;
         Button nextSongButton;
-        Button playOnSpotifyButton;
-        ImageView albumArtImageView; // Added for album cover
+        Button prevSongButton; // Add Previous Song button
+        ImageButton playOnSpotifyButton; // Change to ImageButton
+        ImageView albumArtImageView;
 
         interface OnBindSongRecommendationListener {
             void onBind(SongRecommendationViewHolder holder);
@@ -123,8 +125,9 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             songNameTextView = itemView.findViewById(R.id.songNameTextView);
             artistNameTextView = itemView.findViewById(R.id.artistNameTextView);
             nextSongButton = itemView.findViewById(R.id.nextSongButton);
+            prevSongButton = itemView.findViewById(R.id.prevSongButton);
             playOnSpotifyButton = itemView.findViewById(R.id.playOnSpotifyButton);
-            albumArtImageView = itemView.findViewById(R.id.albumArtImageView); // Initialize the ImageView
+            albumArtImageView = itemView.findViewById(R.id.albumArtImageView);
         }
     }
 }

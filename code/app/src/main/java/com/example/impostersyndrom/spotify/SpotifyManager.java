@@ -114,7 +114,7 @@ public class SpotifyManager {
                 "3t5xRXzsuZmMDkQzgY2RtW", // Seed artist ID
                 valence,
                 energy,
-                20 // Increased limit to 20
+                50
         );
 
         call.enqueue(new Callback<SpotifyRecommendationResponse>() {
@@ -140,7 +140,7 @@ public class SpotifyManager {
 
         String authHeader = "Bearer " + accessToken;
         String query = "genre:" + genre;
-        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 20); // Increased limit to 20
+        Call<SpotifyApiService.SearchResponse> call = spotifyApiService.searchTracks(authHeader, query, "track", 50);
 
         call.enqueue(new Callback<SpotifyApiService.SearchResponse>() {
             @Override
