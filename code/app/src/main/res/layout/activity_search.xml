@@ -109,7 +109,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/home"
+            android:src="@drawable/ic_home"
             android:contentDescription="Home" />
 
         <!-- Search Button -->
@@ -142,7 +142,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/heart"
+            android:src="@drawable/ic_heart"
             android:contentDescription="Favorites" />
 
         <!-- Profile Button -->
