@@ -88,49 +88,57 @@ public class FollowingMoodsFragment extends Fragment {
         List<DocumentSnapshot> allMoods = new ArrayList<>();
         final int[] completedQueries = {0};
 
+        if (followingIds == null || followingIds.isEmpty()) {
+            Log.d("FollowingMoodsFragment", "No followed users.");
+            setupMoodAdapter(Collections.emptyList());
+            return;
+        }
+
         for (String followedUserId : followingIds) {
             db.collection("moods")
                     .whereEqualTo("userId", followedUserId)
                     .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(3)
                     .get()
                     .addOnSuccessListener(snapshot -> {
-                        allMoods.addAll(snapshot.getDocuments());
+                        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
+
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                            Boolean isPrivate = doc.contains("privateMood") ? doc.getBoolean("privateMood") : false;
+                            if (!Boolean.TRUE.equals(isPrivate)) {
+                                filteredMoods.add(doc);
+                            }
+                            if (filteredMoods.size() == 3) break; // Max 3 per user
+                        }
+
+                        allMoods.addAll(filteredMoods);
                         completedQueries[0]++;
+
                         if (completedQueries[0] == followingIds.size()) {
-                            allMoods.sort((m1, m2) -> {
-                                Timestamp t1 = m1.getTimestamp("timestamp");
-                                Timestamp t2 = m2.getTimestamp("timestamp");
-                                if (t1 == null || t2 == null) return 0;
-                                return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
-                            });
-                            moodDocs = allMoods;
-                            Log.d("FollowingMoodsFragment", "Fetched " + moodDocs.size() + " moods");
-                            applyFilter(selectedEmotionalState); // Apply current filter
+                            finalizeFollowingMoods(allMoods);
                         }
                     })
                     .addOnFailureListener(e -> {
+                        Log.e("FollowingMoodsFragment", "Failed to fetch moods for user " + followedUserId + ": " + e.getMessage());
                         completedQueries[0]++;
+
                         if (completedQueries[0] == followingIds.size()) {
-                            if (!allMoods.isEmpty()) {
-                                allMoods.sort((m1, m2) -> {
-                                    Timestamp t1 = m1.getTimestamp("timestamp");
-                                    Timestamp t2 = m2.getTimestamp("timestamp");
-                                    if (t1 == null || t2 == null) return 0;
-                                    return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
-                                });
-                                moodDocs = allMoods;
-                                Log.d("FollowingMoodsFragment", "Fetched " + moodDocs.size() + " moods after partial failure");
-                                applyFilter(selectedEmotionalState); // Apply current filter
-                            } else {
-                                Log.e("FollowingMoodsFragment", "Failed to fetch moods: " + e.getMessage());
-                                moodListView.setAdapter(null);
-                                showToast("No moods fetched");
-                            }
+                            finalizeFollowingMoods(allMoods);
                         }
                     });
         }
     }
+
+    private void finalizeFollowingMoods(List<DocumentSnapshot> allMoods) {
+        allMoods.sort((m1, m2) -> {
+            Timestamp t1 = m1.getTimestamp("timestamp");
+            Timestamp t2 = m2.getTimestamp("timestamp");
+            if (t1 == null || t2 == null) return 0;
+            return Long.compare(t2.toDate().getTime(), t1.toDate().getTime());
+        });
+
+        setupMoodAdapter(allMoods);
+    }
+
 
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
