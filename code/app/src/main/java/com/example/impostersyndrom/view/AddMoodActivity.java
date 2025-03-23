@@ -7,6 +7,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -23,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
@@ -174,10 +176,26 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
+            Log.d("MoodSubmit", "Submit button clicked");
+
             mood.setReason(addReasonEdit.getText().toString().trim());
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
             mood.setPrivateMood(isPrivateMood);
+
+            boolean isOffline = NetworkUtils.isOffline(this);
+            Log.d("MoodSubmit", "Offline? " + isOffline);
+
+            if (isOffline) {
+                Toast.makeText(this, "You're offline. Your mood will be saved locally.", Toast.LENGTH_LONG).show();
+
+                // Skip image upload, save locally
+                mood.setImageUrl(null); // Avoid upload
+                moodDataManager.saveMoodOffline(this, mood);
+                Log.d("MoodSubmit", "Mood saved offline: " + mood.getReason());
+                navigateToMainActivity();
+                return;
+            }
 
             if (imageHandler.hasImage()) {
                 imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {

@@ -2,8 +2,10 @@ package com.example.impostersyndrom.view;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,8 +28,11 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.ConnectivityReceiver;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.EmojiUtils;
+import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
@@ -59,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private MoodDataManager moodDataManager;
     private String userId;
     private FirebaseFirestore db;
+    private ConnectivityReceiver connectivityReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -366,5 +372,42 @@ public class MainActivity extends AppCompatActivity {
         // Force ViewPager to re-render
         viewPagerAdapter.notifyDataSetChanged();
         viewPager.setCurrentItem(viewPager.getCurrentItem(), false); // Trigger re-render without animation
+    }
+
+    private void syncOfflineMoodsIfNeeded() {
+        if (!NetworkUtils.isOffline(this)) {
+            List<Mood> offlineMoods = new MoodDataManager().getOfflineMoods(this);
+            if (!offlineMoods.isEmpty()) {
+                MoodDataManager manager = new MoodDataManager();
+                for (Mood mood : offlineMoods) {
+                    manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
+                        @Override
+                        public void onMoodAdded() {
+                            Toast.makeText(MainActivity.this, "Offline mood synced!", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            Toast.makeText(MainActivity.this, "Failed to sync mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                manager.clearOfflineMoods(this);
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        connectivityReceiver = new ConnectivityReceiver();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(connectivityReceiver, filter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(connectivityReceiver);
     }
 }

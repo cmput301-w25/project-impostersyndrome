@@ -1,7 +1,11 @@
 package com.example.impostersyndrom.model;
 
 import android.util.Log;
+import android.content.Context;
+import android.content.SharedPreferences;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -162,4 +166,26 @@ public class MoodDataManager {
         void onMoodDeleted();
         void onError(String errorMessage);
     }
+
+    public void saveMoodOffline(Context context, Mood mood) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("moodList", "[]");
+        List<Mood> moodList = gson.fromJson(json, new TypeToken<List<Mood>>() {}.getType());
+        moodList.add(mood);
+        prefs.edit().putString("moodList", gson.toJson(moodList)).apply();
+    }
+
+    public List<Mood> getOfflineMoods(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("moodList", "[]");
+        return gson.fromJson(json, new TypeToken<List<Mood>>() {}.getType());
+    }
+
+    public void clearOfflineMoods(Context context) {
+        context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE)
+                .edit().remove("moodList").apply();
+    }
+
 }
