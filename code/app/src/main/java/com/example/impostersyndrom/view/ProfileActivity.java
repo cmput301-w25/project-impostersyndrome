@@ -30,7 +30,6 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView usernameText, followersCountText, followingCountText, bioText;
     private ImageButton backButton, homeButton, searchButton, addMoodButton, heartButton, profileButton, editButton;
     private ImageView profileImage;
-    private ImageView mood1, mood2, mood3;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProfileDataManager profileDataManager;
     private MoodDataManager moodDataManager;
@@ -64,7 +63,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         fetchUserData();
-        fetchRecentMoods();
         setupBottomNavigation();
         setupSwipeRefresh();
         backButton.setOnClickListener(v -> finish());
@@ -85,9 +83,6 @@ public class ProfileActivity extends AppCompatActivity {
         profileButton = findViewById(R.id.profileButton);
         editButton = findViewById(R.id.editButton);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-        mood1 = findViewById(R.id.mood1);
-        mood2 = findViewById(R.id.mood2);
-        mood3 = findViewById(R.id.mood3);
     }
 
     private void setupBottomNavigation() {
@@ -103,7 +98,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void setupSwipeRefresh() {
         swipeRefreshLayout.setOnRefreshListener(() -> {
             fetchUserData();
-            fetchRecentMoods();
+
         });
     }
 
@@ -158,50 +153,6 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchRecentMoods() {
-        // Query the moods collection for the user's most recent non-private moods
-        db.collection("moods")
-                .whereEqualTo("userId", userId)
-                .whereEqualTo("privateMood", false) // Only non-private moods
-                .orderBy("timestamp", Query.Direction.DESCENDING) // Most recent first
-                .limit(3) // Limit to 3 moods
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<DocumentSnapshot> moodDocs = queryDocumentSnapshots.getDocuments();
-                    displayRecentMoods(moodDocs);
-                    swipeRefreshLayout.setRefreshing(false);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching recent moods: " + e.getMessage());
-                    Toast.makeText(ProfileActivity.this, "Failed to load recent moods", Toast.LENGTH_SHORT).show();
-                    swipeRefreshLayout.setRefreshing(false);
-                });
-    }
-
-    private void displayRecentMoods(List<DocumentSnapshot> moodDocs) {
-        // Reset visibility of mood ImageViews
-        mood1.setVisibility(View.GONE);
-        mood2.setVisibility(View.GONE);
-        mood3.setVisibility(View.GONE);
-
-        // Map to convert emoji keys to drawable resources
-        List<ImageView> moodViews = new ArrayList<>();
-        moodViews.add(mood1);
-        moodViews.add(mood2);
-        moodViews.add(mood3);
-
-        for (int i = 0; i < moodDocs.size() && i < 3; i++) {
-            DocumentSnapshot moodDoc = moodDocs.get(i);
-            String emotionalState = moodDoc.getString("emotionalState");
-            if (emotionalState != null) {
-                int drawableId = EmojiUtils.getEmojiDrawableId(emotionalState);
-                if (drawableId != 0) {
-                    moodViews.get(i).setImageResource(drawableId);
-                    moodViews.get(i).setVisibility(View.VISIBLE);
-                }
-            }
-        }
-    }
 
     private void setProfileDataFromDocument(DocumentSnapshot document) {
         usernameText.setText(document.getString("username") != null ? document.getString("username") : "username");
@@ -221,9 +172,6 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage.setImageResource(R.drawable.default_person);
         followersCountText.setText("0");
         followingCountText.setText("0");
-        mood1.setVisibility(View.GONE);
-        mood2.setVisibility(View.GONE);
-        mood3.setVisibility(View.GONE);
         swipeRefreshLayout.setRefreshing(false);
     }
 
