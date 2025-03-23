@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -60,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
     private ProfileDataManager profileDataManager;
     private String userId;
     private FirebaseFirestore db;
+
+    private String savedReasonFilter = "";
+    private boolean savedRecentWeekFilter = false;
+    private int savedEmotionalStatePosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -242,7 +247,11 @@ public class MainActivity extends AppCompatActivity {
 
         CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
         Spinner emotionalStateSpinner = filterDialog.findViewById(R.id.emotionalStateSpinner);
+        EditText reasonInput = filterDialog.findViewById(R.id.reasonInput);
         ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
+
+        checkboxRecentWeek.setChecked(savedRecentWeekFilter);
+        reasonInput.setText(savedReasonFilter);
 
         List<String> emotionalStates = new ArrayList<>();
         emotionalStates.add("All Moods");
@@ -250,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
 
         EmojiSpinnerAdapter spinnerAdapter = new EmojiSpinnerAdapter(this, emotionalStates, getEmojiDrawables());
         emotionalStateSpinner.setAdapter(spinnerAdapter);
+        emotionalStateSpinner.setSelection(savedEmotionalStatePosition);
 
         Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
         if (currentFragment instanceof MyMoodsFragment) {
@@ -275,16 +285,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         tickButton.setOnClickListener(v -> {
+            // Save filter values
+            savedRecentWeekFilter = checkboxRecentWeek.isChecked();
+            savedReasonFilter = reasonInput.getText().toString().trim();
+            savedEmotionalStatePosition = emotionalStateSpinner.getSelectedItemPosition();
+
             boolean filterByRecentWeek = checkboxRecentWeek.isChecked();
             String selectedDescription = (String) emotionalStateSpinner.getSelectedItem();
             String selectedEmotionalState = selectedDescription.equals("All Moods") ? "" : EmojiUtils.getEmojiKey(selectedDescription);
+            String reasonFilter = reasonInput.getText().toString().trim();
 
             if (currentFragment instanceof MyMoodsFragment) {
                 ((MyMoodsFragment) currentFragment).setFilterByRecentWeek(filterByRecentWeek);
-                ((MyMoodsFragment) currentFragment).applyFilter(selectedEmotionalState);
+                ((MyMoodsFragment) currentFragment).applyFilter(selectedEmotionalState, reasonFilter);
             } else if (currentFragment instanceof FollowingMoodsFragment) {
                 ((FollowingMoodsFragment) currentFragment).setFilterByRecentWeek(filterByRecentWeek);
-                ((FollowingMoodsFragment) currentFragment).applyFilter(selectedEmotionalState);
+                ((FollowingMoodsFragment) currentFragment).applyFilter(selectedEmotionalState, reasonFilter);
             }
             filterDialog.dismiss();
         });

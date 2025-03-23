@@ -31,6 +31,7 @@ public class MyMoodsFragment extends Fragment {
     private List<DocumentSnapshot> moodDocs = new ArrayList<>();
     private boolean filterByRecentWeek = false;
     private String selectedEmotionalState = "";
+    private String selectedReason = "";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -143,6 +144,14 @@ public class MyMoodsFragment extends Fragment {
         setupMoodAdapter(filteredMoods);
     }
 
+    public void applyFilter(String emotionalState, String reason) {
+        this.selectedEmotionalState = emotionalState;
+        this.selectedReason = reason;
+        MoodFilter moodFilter = new MoodFilter();
+        List<DocumentSnapshot> filteredMoods = moodFilter.applyFilter(moodDocs, filterByRecentWeek, emotionalState, reason);
+        setupMoodAdapter(filteredMoods);
+    }
+
     public void setFilterByRecentWeek(boolean filterByRecentWeek) {
         this.filterByRecentWeek = filterByRecentWeek;
         applyFilter(selectedEmotionalState);
@@ -154,6 +163,10 @@ public class MyMoodsFragment extends Fragment {
 
     public String getSelectedEmotionalState() {
         return selectedEmotionalState;
+    }
+
+    public String getSelectedReason() {
+        return selectedReason;
     }
 
     private void showToast(String message) {
