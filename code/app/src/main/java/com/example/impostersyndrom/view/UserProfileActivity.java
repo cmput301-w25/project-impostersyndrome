@@ -182,28 +182,34 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void fetchRecentMoods(String userId) {
-        // Fetch up to 5 moods to ensure we get at least 3 non-private ones
+        // Fetch all moods for the user
         db.collection("moods")
                 .whereEqualTo("userId", userId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(5)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<DocumentSnapshot> moodDocs = queryDocumentSnapshots.getDocuments();
-                    Log.d(TAG, "Fetched " + moodDocs.size() + " moods for userId: " + userId);
+                    List<DocumentSnapshot> allMoods = queryDocumentSnapshots.getDocuments();
+                    Log.d(TAG, "Fetched " + allMoods.size() + " total moods for userId: " + userId);
 
                     // Filter for public (non-private) moods
                     List<DocumentSnapshot> publicMoods = new ArrayList<>();
-                    for (DocumentSnapshot doc : moodDocs) {
+                    for (DocumentSnapshot doc : allMoods) {
                         Boolean privateMood = doc.getBoolean("privateMood");
                         // Treat null or false as public
                         if (privateMood == null || !privateMood) {
                             publicMoods.add(doc);
-                            if (publicMoods.size() >= 3) break; // Stop once we have 3 public moods
                         }
                     }
 
+                    // Log the number of public moods found
                     Log.d(TAG, "Filtered to " + publicMoods.size() + " public moods");
+
+                    // If there are more than 3 public moods, take the top 3 (already sorted by timestamp)
+                    if (publicMoods.size() > 3) {
+                        publicMoods = publicMoods.subList(0, 3);
+                        Log.d(TAG, "Limited to the 3 most recent public moods");
+                    }
+
                     this.moodDocs = publicMoods;
                     setupMoodAdapter(publicMoods);
                     swipeRefreshLayout.setRefreshing(false);
@@ -215,7 +221,6 @@ public class UserProfileActivity extends AppCompatActivity {
                     swipeRefreshLayout.setRefreshing(false);
                 });
     }
-
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
         final int[] completedQueries = {0};

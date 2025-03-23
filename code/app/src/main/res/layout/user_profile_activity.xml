@@ -175,34 +175,35 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="20dp"
                     android:text="Recent Moods"
                     android:textColor="@android:color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
-
-                <!-- ListView for Recent Moods -->
-                <ListView
-                    android:id="@+id/moodListView"
-                    android:layout_width="match_parent"
-                    android:layout_height="259dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@android:color/black"
-                    android:divider="@android:color/transparent"
-                    android:dividerHeight="8dp"
-                    android:padding="8dp" />
 
                 <!-- No Moods Message -->
                 <TextView
                     android:id="@+id/noMoodsText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="28dp"
                     android:text="No recent public moods"
                     android:textColor="@android:color/white"
                     android:textSize="14sp"
                     android:gravity="center"
                     android:visibility="gone" />
+
+                <!-- ListView for Recent Moods -->
+                <ListView
+                    android:id="@+id/moodListView"
+                    android:layout_width="match_parent"
+                    android:layout_height="312dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@android:color/black"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="8dp"
+                    android:padding="8dp" />
+
             </LinearLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
