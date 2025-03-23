@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private ImageView profileImage;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ListView moodListView;
+    private ScrollView scrollView;
     private MoodAdapter moodAdapter;
     private ProfileDataManager profileDataManager;
     private String userId;
@@ -86,6 +89,7 @@ public class UserProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         moodListView = findViewById(R.id.moodListView);
+        scrollView = findViewById(R.id.scrollView);
 
         // Null checks
         if (usernameText == null || followersCountText == null || followingCountText == null ||
@@ -98,6 +102,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
         profileImage.setImageResource(R.drawable.default_person);
         setupSwipeRefresh();
+        setupListViewScrollListener();
         return true;
     }
 
@@ -110,6 +115,34 @@ public class UserProfileActivity extends AppCompatActivity {
                 findUserIdByUsername(username);
             }
         });
+    }
+
+    private void setupListViewScrollListener() {
+        moodListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // Not needed for this use case
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // Check if the ListView is at the top
+                boolean isAtTop = firstVisibleItem == 0 && (view.getChildCount() == 0 || view.getChildAt(0).getTop() >= 0);
+                // Enable SwipeRefreshLayout only when the ListView is at the top
+                swipeRefreshLayout.setEnabled(isAtTop);
+                Log.d(TAG, "ListView scroll - isAtTop: " + isAtTop + ", SwipeRefreshLayout enabled: " + swipeRefreshLayout.isEnabled());
+            }
+        });
+
+        // Also monitor the ScrollView to ensure SwipeRefreshLayout is enabled when scrolling the outer layout
+        if (scrollView != null) {
+            scrollView.setOnScrollChangeListener((View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) -> {
+                // Enable SwipeRefreshLayout when the ScrollView is at the top
+                boolean isScrollViewAtTop = scrollY == 0;
+                swipeRefreshLayout.setEnabled(isScrollViewAtTop);
+                Log.d(TAG, "ScrollView scrollY: " + scrollY + ", SwipeRefreshLayout enabled: " + swipeRefreshLayout.isEnabled());
+            });
+        }
     }
 
     private void findUserIdByUsername(String username) {
@@ -221,6 +254,7 @@ public class UserProfileActivity extends AppCompatActivity {
                     swipeRefreshLayout.setRefreshing(false);
                 });
     }
+
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
         final int[] completedQueries = {0};
