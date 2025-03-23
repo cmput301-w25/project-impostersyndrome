@@ -2,6 +2,9 @@ package com.example.impostersyndrom.view;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -11,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,13 +24,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.spotify.SpotifyManager;
+import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -45,14 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
+    private SwipeRefreshLayout swipeRefreshLayout; // Added for pull-to-refresh
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
     private LinearLayout logoutContainer;
-    private TextView userEmailTextView;
-
-    // Data
     private MoodDataManager moodDataManager;
+    private ProfileDataManager profileDataManager;
     private String userId;
     private FirebaseFirestore db;
 
@@ -64,16 +70,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("MainActivity", "onCreate called");
 
-        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
-
-        // Initialize UI components
         initializeViews();
         moodDataManager = new MoodDataManager();
+        profileDataManager = new ProfileDataManager();
 
-        // Get userId from FirebaseAuth
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             redirectToLogin();
@@ -82,25 +84,25 @@ public class MainActivity extends AppCompatActivity {
         userId = auth.getCurrentUser().getUid();
         Log.d("MainActivity", "userId: " + userId);
 
-        // Pass userId to fragments via Intent
         getIntent().putExtra("userId", userId);
 
         // Initialize SpotifyManager
         SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
 
         // Set up ViewPager and TabLayout
+
         setupViewPager();
-
-        // Set up button click listeners
         setupButtonListeners();
-
-        // Set up navigation drawer with user information
         setupNavigationDrawer();
+
+        // Set up swipe-to-refresh
+        setupSwipeRefresh();
     }
 
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout); // Initialize SwipeRefreshLayout
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -109,26 +111,89 @@ public class MainActivity extends AppCompatActivity {
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
         innerNavigationView = findViewById(R.id.innerNavigationView);
-        logoutContainer = findViewById(R.id.logoutContainer);
-        userEmailTextView = findViewById(R.id.userEmailTextView);
+        // Note: userNameTextView, userEmailTextView, and logoutContainer are initialized in setupNavigationDrawer
     }
 
     private void setupNavigationDrawer() {
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-            if (email != null) {
-                userEmailTextView.setText(email);
-            }
+        View navigationLayout = findViewById(R.id.navigation_layout);
+        if (navigationLayout == null) {
+            Log.e("MainActivity", "Navigation layout not found! Check activity_main.xml <include> ID.");
+            return;
         }
 
-        innerNavigationView.setNavigationItemSelectedListener(item -> {
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
+        ImageView profileImage = navigationLayout.findViewById(R.id.profileImage);
+        TextView userNameTextView = navigationLayout.findViewById(R.id.userNameTextView);
+        TextView userEmailTextView = navigationLayout.findViewById(R.id.userEmailTextView);
+        logoutContainer = navigationLayout.findViewById(R.id.logoutContainer);
+
+        if (profileImage == null || userNameTextView == null || userEmailTextView == null) {
+            Log.e("MainActivity", "One or more header views not found in navigation_layout!");
+            return;
+        }
+        if (logoutContainer == null) {
+            Log.e("MainActivity", "Logout container not found in navigation_layout!");
+            return;
+        }
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            userNameTextView.setText("Guest");
+            userEmailTextView.setText("Not logged in");
+            profileImage.setImageResource(R.drawable.white_profile);
+        } else {
+            String email = auth.getCurrentUser().getEmail();
+            userEmailTextView.setText(email != null ? email : "No email available");
+
+            profileDataManager.fetchUserProfile(userId, new ProfileDataManager.OnProfileFetchedListener() {
+                @Override
+                public void onProfileFetched(DocumentSnapshot profileDoc) {
+                    String username = profileDoc.getString("username");
+                    Log.d("MainActivity", "Fetched username: " + username);
+                    userNameTextView.setText(username != null && !username.isEmpty() ? username : "Anonymous");
+
+                    String profileImageUrl = profileDoc.getString("profileImageUrl");
+                    Log.d("MainActivity", "Fetched profileImageUrl: " + profileImageUrl);
+                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                        Glide.with(MainActivity.this)
+                                .load(profileImageUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.white_profile)
+                                .error(R.drawable.white_profile)
+                                .into(profileImage);
+                    } else {
+                        profileImage.setImageResource(R.drawable.white_profile);
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    Log.e("MainActivity", "Error fetching profile: " + errorMessage);
+                    userNameTextView.setText("Anonymous");
+                    profileImage.setImageResource(R.drawable.white_profile);
+                    Toast.makeText(MainActivity.this, "Error loading profile: " + errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
         logoutContainer.setOnClickListener(v -> {
+            Log.d("MainActivity", "Logout clicked");
             drawerLayout.closeDrawer(GravityCompat.START);
             logoutUser();
+        });
+
+        innerNavigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.maps) {
+                // Handle maps action
+                // Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                // startActivity(intent);
+            } else if (id == R.id.nav_settings) {
+                // Handle settings action
+                // Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                // startActivity(intent);
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
         });
     }
 
@@ -136,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
         viewPagerAdapter = new MainViewPagerAdapter(this);
         viewPager.setAdapter(viewPagerAdapter);
         Log.d("MainActivity", "ViewPager adapter set");
-
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             tab.setText(position == 0 ? "My Moods" : "Following");
         }).attach();
@@ -144,27 +208,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupButtonListeners() {
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
-
         profileButton.setOnClickListener(v -> navigateToProfile());
-
         filterButton.setOnClickListener(v -> showFilterDialog());
-
-        searchButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-            startActivity(intent);
-        });
-
-        heartButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, FollowingActivity.class);
-            startActivity(intent);
-        });
-
+        searchButton.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
+        heartButton.setOnClickListener(v -> startActivity(new Intent(this, FollowingActivity.class)));
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.d("MainActivity", "Swipe to refresh triggered");
+            refreshCurrentFragment();
+            // Stop the refresh animation once data is loaded
+            swipeRefreshLayout.setRefreshing(false);
+        });
+    }
+
     private void navigateToProfile() {
-        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, ProfileActivity.class));
     }
 
     private void toggleNavigationDrawer() {
@@ -174,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToEmojiSelection() {
-        Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
+        Intent intent = new Intent(this, EmojiSelectionActivity.class);
         intent.putExtra("userId", userId);
         startActivity(intent);
     }
@@ -258,6 +319,14 @@ public class MainActivity extends AppCompatActivity {
     public void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            );
+        }
 
         TextView editMood = bottomSheetView.findViewById(R.id.editMoodOption);
         TextView deleteMood = bottomSheetView.findViewById(R.id.deleteMoodOption);
@@ -271,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
             intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
             intent.putExtra("group", (String) moodDoc.get("group"));
-            boolean isPrivateMood = moodDoc.contains("privateMood") && (Boolean) moodDoc.get("privateMood");
+            boolean isPrivateMood = moodDoc.contains("privateMood") && Boolean.TRUE.equals(moodDoc.getBoolean("privateMood"));
             intent.putExtra("privateMood", isPrivateMood);
             startActivity(intent);
             bottomSheetDialog.dismiss();
@@ -293,7 +362,8 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+
         bottomSheetDialog.show();
     }
 
@@ -358,8 +428,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d("MainActivity", "onResume called");
         refreshCurrentFragment();
-        // Force ViewPager to re-render
         viewPagerAdapter.notifyDataSetChanged();
-        viewPager.setCurrentItem(viewPager.getCurrentItem(), false); // Trigger re-render without animation
+        viewPager.setCurrentItem(viewPager.getCurrentItem(), false);
     }
 }

@@ -65,5 +65,7 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")// For TabLayout
     implementation("androidx.viewpager2:viewpager2:1.0.0") // For ViewPager2
     androidTestImplementation("androidx.test.espresso:espresso-idling-resource:3.5.1")
+    implementation("com.google.firebase:firebase-auth:22.3.1")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
 }
