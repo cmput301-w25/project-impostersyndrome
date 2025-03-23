@@ -32,6 +32,33 @@ public class MoodFilter {
     }
 
     /**
+     * Filters moods by both recent week, emotional state, and reason.
+     *
+     * @param moodDocs           The list of mood documents to filter.
+     * @param filterByRecentWeek Whether to filter by the recent week.
+     * @param emotionalState     The emotional state to filter by (empty string for no filter).
+     * @param reason            The reason to filter by (empty string for no filter).
+     * @return The filtered list of mood documents.
+     */
+    public List<DocumentSnapshot> applyFilter(List<DocumentSnapshot> moodDocs, boolean filterByRecentWeek, String emotionalState, String reason) {
+        List<DocumentSnapshot> filteredMoods = new ArrayList<>(moodDocs);
+
+        if (filterByRecentWeek) {
+            filteredMoods = filterByRecentWeek(filteredMoods);
+        }
+
+        if (!emotionalState.isEmpty()) {
+            filteredMoods = filterByEmotionalState(filteredMoods, emotionalState);
+        }
+
+        if (!reason.isEmpty()) {
+            filteredMoods = filterByReason(filteredMoods, reason);
+        }
+
+        return filteredMoods;
+    }
+
+    /**
      * Filters moods from the last 7 days.
      *
      * @param moodDocs The list of mood documents to filter.
@@ -69,6 +96,26 @@ public class MoodFilter {
         for (DocumentSnapshot moodDoc : moodDocs) {
             String state = moodDoc.getString("emotionalState");
             if (state != null && state.equals(emotionalState)) {
+                filteredMoods.add(moodDoc);
+            }
+        }
+
+        return filteredMoods;
+    }
+
+    /**
+     * Filters moods by reason.
+     *
+     * @param moodDocs The list of mood documents to filter.
+     * @param reason   The reason to filter by.
+     * @return A list of moods with the specified reason.
+     */
+    public List<DocumentSnapshot> filterByReason(List<DocumentSnapshot> moodDocs, String reason) {
+        List<DocumentSnapshot> filteredMoods = new ArrayList<>();
+
+        for (DocumentSnapshot moodDoc : moodDocs) {
+            String moodReason = moodDoc.getString("reason");
+            if (moodReason != null && moodReason.toLowerCase().contains(reason.toLowerCase())) {
                 filteredMoods.add(moodDoc);
             }
         }
