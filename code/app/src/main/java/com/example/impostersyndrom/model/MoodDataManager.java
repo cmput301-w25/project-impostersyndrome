@@ -15,8 +15,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MoodDataManager {
     private final CollectionReference moodsRef;
@@ -187,5 +190,62 @@ public class MoodDataManager {
         context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE)
                 .edit().remove("moodList").apply();
     }
+
+    // Offline edits
+    public void saveOfflineEdit(Context context, String moodId, Map<String, Object> updates) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineEdits", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("editList", "[]");
+        List<OfflineEdit> editList = gson.fromJson(json, new TypeToken<List<OfflineEdit>>(){}.getType());
+        if (editList == null) {
+            editList = new ArrayList<>();
+        }
+        editList.add(new OfflineEdit(moodId, updates));
+        prefs.edit().putString("editList", gson.toJson(editList)).apply();
+        Log.d("OfflineEdit", "Saved offline edit for moodId: " + moodId);
+    }
+
+    public List<OfflineEdit> getOfflineEdits(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineEdits", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("editList", "[]");
+        return gson.fromJson(json, new TypeToken<List<OfflineEdit>>(){}.getType());
+    }
+
+    public void clearOfflineEdits(Context context) {
+        context.getSharedPreferences("OfflineEdits", Context.MODE_PRIVATE)
+                .edit().remove("editList").apply();
+    }
+
+    // Offline deletes
+    public void saveOfflineDelete(Context context, String moodId) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineDeletes", Context.MODE_PRIVATE);
+        Set<String> deletes = new HashSet<>(prefs.getStringSet("deleteSet", new HashSet<>()));
+        deletes.add(moodId);
+        prefs.edit().putStringSet("deleteSet", deletes).apply();
+        Log.d("OfflineDelete", "Saved offline delete for moodId: " + moodId);
+    }
+
+    public Set<String> getOfflineDeletes(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("OfflineDeletes", Context.MODE_PRIVATE);
+        return prefs.getStringSet("deleteSet", new HashSet<>());
+    }
+
+    public void clearOfflineDeletes(Context context) {
+        context.getSharedPreferences("OfflineDeletes", Context.MODE_PRIVATE)
+                .edit().remove("deleteSet").apply();
+    }
+
+    // Helper class
+    public static class OfflineEdit {
+        public String moodId;
+        public Map<String, Object> updates;
+
+        public OfflineEdit(String moodId, Map<String, Object> updates) {
+            this.moodId = moodId;
+            this.updates = updates;
+        }
+    }
+
 
 }

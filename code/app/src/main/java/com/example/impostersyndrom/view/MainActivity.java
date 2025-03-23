@@ -1,11 +1,14 @@
 package com.example.impostersyndrom.view;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -282,7 +286,8 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
             intent.putExtra("reason", (String) moodDoc.get("reason"));
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
-            intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
+            Number colorNumber = (Number) moodDoc.get("color");
+            intent.putExtra("color", colorNumber.intValue());
             intent.putExtra("group", (String) moodDoc.get("group"));
             boolean isPrivateMood = moodDoc.contains("privateMood") && (Boolean) moodDoc.get("privateMood");
             intent.putExtra("privateMood", isPrivateMood);
@@ -291,18 +296,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
         deleteMood.setOnClickListener(v -> {
-            moodDataManager.deleteMood(moodDoc.getId(), new MoodDataManager.OnMoodDeletedListener() {
-                @Override
-                public void onMoodDeleted() {
-                    showToast("Mood deleted!");
-                    refreshCurrentFragment();
-                }
+            if (NetworkUtils.isOffline(this)) {
+                Log.d("OfflineDelete", "Offline branch taken for moodId: " + moodDoc.getId());
+                new MoodDataManager().saveOfflineDelete(this, moodDoc.getId());
+                showToast("You're offline. Mood will be deleted once you're back online.");
+                refreshCurrentFragment();
+            } else {
+                moodDataManager.deleteMood(moodDoc.getId(), new MoodDataManager.OnMoodDeletedListener() {
+                    @Override
+                    public void onMoodDeleted() {
+                        showToast("Mood deleted!");
+                        refreshCurrentFragment();
+                    }
 
-                @Override
-                public void onError(String errorMessage) {
-                    showToast("Failed to delete mood: " + errorMessage);
-                }
-            });
+                    @Override
+                    public void onError(String errorMessage) {
+                        showToast("Failed to delete mood: " + errorMessage);
+                    }
+                });
+            }
             bottomSheetDialog.dismiss();
         });
 
@@ -368,6 +380,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d("MainActivity", "onResume called");
+        syncOfflineMoodsIfNeeded();
         refreshCurrentFragment();
         // Force ViewPager to re-render
         viewPagerAdapter.notifyDataSetChanged();
@@ -376,26 +389,70 @@ public class MainActivity extends AppCompatActivity {
 
     private void syncOfflineMoodsIfNeeded() {
         if (!NetworkUtils.isOffline(this)) {
-            List<Mood> offlineMoods = new MoodDataManager().getOfflineMoods(this);
+            MoodDataManager manager = new MoodDataManager();
+
+            // Sync offline added moods
+            List<Mood> offlineMoods = manager.getOfflineMoods(this);
             if (!offlineMoods.isEmpty()) {
-                MoodDataManager manager = new MoodDataManager();
                 for (Mood mood : offlineMoods) {
                     manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
                         @Override
                         public void onMoodAdded() {
-                            Toast.makeText(MainActivity.this, "Offline mood synced!", Toast.LENGTH_SHORT).show();
+                            Log.d("Sync", "Offline add synced: " + mood.getId());
                         }
-
                         @Override
                         public void onError(String errorMessage) {
-                            Toast.makeText(MainActivity.this, "Failed to sync mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                            Log.e("Sync", "Add failed: " + errorMessage);
                         }
                     });
                 }
                 manager.clearOfflineMoods(this);
+            } else {
+                Log.d("Sync", "No offline added moods to sync.");
+            }
+
+            // Sync offline edits
+            List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
+            if (!offlineEdits.isEmpty()) {
+                Log.d("Sync", "Syncing offline edits: " + offlineEdits.size());
+                for (MoodDataManager.OfflineEdit edit : offlineEdits) {
+                    FirebaseFirestore.getInstance().collection("moods").document(edit.moodId)
+                            .update(edit.updates)
+                            .addOnSuccessListener(aVoid -> Log.d("Sync", "Offline edit synced: " + edit.moodId))
+                            .addOnFailureListener(e -> Log.e("Sync", "Edit failed: " + edit.moodId, e));
+                }
+                manager.clearOfflineEdits(this);
+            } else {
+                Log.d("Sync", "No offline edits to sync.");
+            }
+
+            // Sync offline deletes
+            Set<String> deleteIds = manager.getOfflineDeletes(this);
+            if (!deleteIds.isEmpty()) {
+                Log.d("Sync", "Syncing offline deletes: " + deleteIds.size());
+                for (String moodId : deleteIds) {
+                    FirebaseFirestore.getInstance().collection("moods").document(moodId)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> Log.d("Sync", "Offline delete synced: " + moodId))
+                            .addOnFailureListener(e -> Log.e("Sync", "Delete failed: " + moodId, e));
+                }
+                manager.clearOfflineDeletes(this);
+            } else {
+                Log.d("Sync", "No offline deletes to sync.");
             }
         }
     }
+
+    private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            runOnUiThread(() -> {
+                Log.d("NetworkCallback", "Network available - syncing offline data");
+                syncOfflineMoodsIfNeeded();  // Process offline adds, edits, and deletes
+                refreshCurrentFragment();      // Refresh the UI with the latest data
+            });
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -403,11 +460,17 @@ public class MainActivity extends AppCompatActivity {
         connectivityReceiver = new ConnectivityReceiver();
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(connectivityReceiver, filter);
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkRequest networkRequest = new NetworkRequest.Builder().build();
+        connectivityManager.registerNetworkCallback(networkRequest, networkCallback);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         unregisterReceiver(connectivityReceiver);
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        connectivityManager.unregisterNetworkCallback(networkCallback);
     }
 }

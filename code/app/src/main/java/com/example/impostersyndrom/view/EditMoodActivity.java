@@ -25,7 +25,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
+import com.example.impostersyndrom.model.MoodDataManager;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -257,6 +259,14 @@ public class EditMoodActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image permanently deleted"))
                     .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
             updates.put("imageUrl", null);
+        }
+
+        if (NetworkUtils.isOffline(this)) {
+            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+            Log.d("OfflineEdit", "Offline branch taken for moodId: " + moodId);
+            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+            finish();
+            return;
         }
 
         saveToFirestore(updates);
