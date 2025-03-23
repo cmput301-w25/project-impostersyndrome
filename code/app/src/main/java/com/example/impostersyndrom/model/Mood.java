@@ -37,6 +37,27 @@ public class Mood implements Serializable {
     private int emojiDrawableId; // Resource ID of the emoji drawable
     private boolean privateMood = false;
 
+    private Double latitude; // location coordinate
+    private Double longitude; // location coordinate
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+
     /**
      * Constructor for the Mood class.
      *

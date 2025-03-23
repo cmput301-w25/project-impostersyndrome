@@ -2,9 +2,11 @@ package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -17,16 +19,25 @@ import android.widget.PopupMenu;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import android.content.pm.PackageManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import android.Manifest;
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ImageHandler;
+
+import com.example.impostersyndrom.model.Mood;
+import com.example.impostersyndrom.model.MoodDataManager;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+
 import com.google.android.material.switchmaterial.SwitchMaterial;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -41,6 +52,7 @@ import java.util.Map;
  *
  * @author Rayan
  */
+
 public class EditMoodActivity extends AppCompatActivity {
     private String moodId; // ID of the mood being edited
     private FirebaseFirestore db; // Firestore database instance
@@ -61,13 +73,35 @@ public class EditMoodActivity extends AppCompatActivity {
     private String imageURL; // URL of the mood image
     private boolean hasSubmittedChanges = false; // Tracks if changes have been submitted
     private String originalImageUrl; // Original image URL before editing
+
+    private FusedLocationProviderClient fusedLocationClient; // For fetching location
+    private ActivityResultLauncher<String[]> locationPermissionLauncher; // For location permission request
+    private Location currentLocation; // Stores the current location
+    private boolean isLocationAttached = false;
+
+    private boolean imageRemoved = false;
     private boolean isPrivateMood = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_mood);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Initialize location permission launcher
+        locationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    if (result.get(Manifest.permission.ACCESS_FINE_LOCATION) != null &&
+                            result.get(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // Permission granted, fetch location
+                        fetchLocation();
+                    } else {
+                        Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
@@ -112,6 +146,11 @@ public class EditMoodActivity extends AppCompatActivity {
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
         ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
+        ImageButton attachLocationButton = findViewById(R.id.attachLocationButton); // Ensure this ID matches your layout
+        attachLocationButton.setOnClickListener(v -> {
+            Log.d("EditMoodActivity", "Attach Location button clicked");
+            showLocationPrompt();
+        });
 
         // Initialize ImageHandler AFTER editImagePreview is set
         imageHandler = new ImageHandler(this, editImagePreview);
@@ -123,6 +162,7 @@ public class EditMoodActivity extends AppCompatActivity {
             public void onImageLoaded() {
                 editImagePreview.setVisibility(View.VISIBLE);
             }
+
             @Override
             public void onImageCleared() {
                 editImagePreview.setVisibility(View.GONE);
@@ -228,6 +268,10 @@ public class EditMoodActivity extends AppCompatActivity {
         updates.put("color", EditEmojiResources.getMoodColor(emoji));
         updates.put("privateMood", isPrivateMood);
 
+        if (isLocationAttached && currentLocation != null) {
+            updates.put("latitude", currentLocation.getLatitude());
+            updates.put("longitude", currentLocation.getLongitude());
+        }
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
@@ -236,6 +280,18 @@ public class EditMoodActivity extends AppCompatActivity {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
+                    // If there's an existing image, delete it from Firebase Storage
+                    if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
+                        StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
+                        oldImageRef.delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Firebase Storage", "Old image permanently deleted after new upload");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Firebase Storage", "Failed to delete old image", e);
+                                });
+                    }
+                    // Set the new image URL and update Firestore
                     EditMoodActivity.this.imageUrl = url;
                     updates.put("imageUrl", url);
                     saveToFirestore(updates);
@@ -251,15 +307,22 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("imageUrl", imageUrl);
         }
 
+        // If no image is selected and there was an original image, delete it from Firebase Storage
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
-                    .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image permanently deleted"))
-                    .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
-            updates.put("imageUrl", null);
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Firebase Storage", "Image permanently deleted");
+                        updates.put("imageUrl", null);
+                        saveToFirestore(updates);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("Firebase Storage", "Failed to delete image", e);
+                        Toast.makeText(EditMoodActivity.this, "Failed to delete image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            saveToFirestore(updates);
         }
-
-        saveToFirestore(updates);
     }
 
     /**
@@ -362,6 +425,7 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
+
     /**
      * Displays a popup menu for image options (camera, gallery, remove photo).
      *
@@ -388,25 +452,105 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                if (imageUrl != null && !imageUrl.isEmpty()) {
-                    Log.d("EditMoodActivity", "Image marked for removal but not yet deleted.");
-                    imageUrl = null;
-                    imageHandler.clearImage();
-                    Toast.makeText(this, "Image removed (pending submission)", Toast.LENGTH_SHORT).show();
-                } else {
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("imageUrl", null);
-                    db.collection("moods").document(moodId)
-                            .update(updates)
-                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
-                            .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
-                }
+                // Do not attempt deletion here; simply update the UI and mark the image as removed.
                 imageHandler.clearImage();
                 imageUrl = null;
+                imageRemoved = true; // Mark that the user removed the image
+                db.collection("moods").document(moodId)
+                        .update("imageUrl", null)
+                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
+                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
                 Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
+                return true;
             }
             return false;
         });
         popup.show();
+    }
+
+    private void showLocationPrompt() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Attach Location");
+        builder.setMessage("Would you like to attach your current location to this mood event?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Check location permissions
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Permission already granted, fetch location
+                fetchLocation();
+            } else {
+                // Request location permissions
+                locationPermissionLauncher.launch(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                });
+            }
+        });
+        builder.setNegativeButton("No", (dialog, which) -> {
+            // User chose not to attach location
+            isLocationAttached = false;
+            currentLocation = null;
+            Toast.makeText(this, "Location not attached", Toast.LENGTH_SHORT).show();
+        });
+        builder.show();
+    }
+
+    /**
+     * Fetches the device's current location.
+     */
+    private void fetchLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            currentLocation = location;
+                            isLocationAttached = true;
+                            Toast.makeText(this, "Location attached: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(this, e -> {
+                        Toast.makeText(this, "Failed to fetch location: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Updates the mood in Firestore with the attached location (if any).
+     */
+    /**
+     * Updates the mood in Firestore with the attached location (if any).
+     */
+    private void updateMoodWithLocation() {
+        if (moodId == null) {
+            Toast.makeText(EditMoodActivity.this, "Invalid mood ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+
+        if (isLocationAttached && currentLocation != null) {
+            updates.put("latitude", currentLocation.getLatitude());
+            updates.put("longitude", currentLocation.getLongitude());
+        } else {
+            updates.put("latitude", null);
+            updates.put("longitude", null);
+        }
+
+        // Call the correctly formatted updateMood method
+        MoodDataManager moodDataManager = new MoodDataManager();
+        moodDataManager.updateMood(moodId, updates, new MoodDataManager.OnMoodUpdatedListener() {
+            @Override
+            public void onMoodUpdated() {
+                Toast.makeText(EditMoodActivity.this, "Mood updated with location!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(EditMoodActivity.this, "Failed to update mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
