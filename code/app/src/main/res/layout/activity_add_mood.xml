@@ -134,6 +134,20 @@
                             android:src="@drawable/ic_camera" />
 
                         <!-- Group button -->
+
+                        <ImageButton
+                            android:id="@+id/attachLocationButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="16dp"
+                            android:background="@null"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/location"
+                            android:text="Attach Location" />
+
                         <ImageButton
                             android:id="@+id/groupButton"
                             android:layout_width="40dp"
@@ -169,12 +183,7 @@
                 android:padding="16dp"
                 android:src="@drawable/left_arrow"
                 android:layout_gravity="top|start" />
-            <Button
-                android:id="@+id/attachLocationButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Attach Location"
-                android:layout_marginTop="16dp"/>
+
 
             <!-- Submit Button -->
             <ImageButton

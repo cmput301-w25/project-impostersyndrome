@@ -103,7 +103,7 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
-        Button attachLocationButton = findViewById(R.id.attachLocationButton); // Replace with your button's ID
+        ImageButton attachLocationButton = findViewById(R.id.attachLocationButton); // Replace with your button's ID
         attachLocationButton.setOnClickListener(v -> {
             Log.d("AddMoodActivity", "Attach Location button clicked");
             showLocationPrompt();

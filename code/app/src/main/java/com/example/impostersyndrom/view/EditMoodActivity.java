@@ -146,7 +146,7 @@ public class EditMoodActivity extends AppCompatActivity {
         ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
         ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
         editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-        Button attachLocationButton = findViewById(R.id.attachLocationButton); // Ensure this ID matches your layout
+        ImageButton attachLocationButton = findViewById(R.id.attachLocationButton); // Ensure this ID matches your layout
         attachLocationButton.setOnClickListener(v -> {
             Log.d("EditMoodActivity", "Attach Location button clicked");
             showLocationPrompt();
