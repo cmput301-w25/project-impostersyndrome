@@ -44,7 +44,6 @@ import com.google.android.gms.tasks.Task;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
-
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -115,6 +114,9 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
+
+        // Set default social situation to "Alone"
+        selectedGroup = "Alone"; // Default value
 
         // Initialize ActivityResultLaunchers
         galleryLauncher = registerForActivityResult(
@@ -205,7 +207,6 @@ public class AddMoodActivity extends AppCompatActivity {
 
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
-            selectedGroup = mood.getGroup();
         }
 
         // Group button functionality
