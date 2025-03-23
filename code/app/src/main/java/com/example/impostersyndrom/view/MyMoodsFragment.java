@@ -95,6 +95,10 @@ public class MyMoodsFragment extends Fragment {
             db.collection("users").document(moodUserId)
                     .get()
                     .addOnSuccessListener(userDoc -> {
+                        // Check if fragment is still attached
+                        if (!isAdded()) {
+                            return;
+                        }
                         String username = userDoc.getString("username");
                         moodItems.set(position, new MoodItem(moodDoc, "")); // No username for My Moods
 
@@ -112,11 +116,13 @@ public class MyMoodsFragment extends Fragment {
                                 moodListView.invalidate(); // Force redraw
 
                                 moodListView.setOnItemClickListener((parent, view, pos, id) -> {
+                                    if (!isAdded()) return;
                                     DocumentSnapshot selectedMood = moodDocs.get(pos);
                                     ((MainActivity) requireActivity()).navigateToMoodDetail(selectedMood);
                                 });
 
                                 moodListView.setOnItemLongClickListener((parent, view, pos, id) -> {
+                                    if (!isAdded()) return true;
                                     DocumentSnapshot selectedMood = moodDocs.get(pos);
                                     ((MainActivity) requireActivity()).showBottomSheetDialog(selectedMood);
                                     return true;
@@ -125,6 +131,9 @@ public class MyMoodsFragment extends Fragment {
                         }
                     })
                     .addOnFailureListener(e -> {
+                        if (!isAdded()) {
+                            return;
+                        }
                         Log.e("MyMoodsFragment", "Error fetching user details: " + e.getMessage());
                         showToast("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;

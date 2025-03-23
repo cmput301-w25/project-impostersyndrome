@@ -386,7 +386,8 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("timestamp", (Timestamp) data.getOrDefault("timestamp", null));
             intent.putExtra("reason", (String) data.getOrDefault("reason", "No reason provided"));
             intent.putExtra("group", (String) data.getOrDefault("group", "No group"));
-            intent.putExtra("color", ((Long) data.getOrDefault("color", 0L)).intValue());
+            Number colorNumber = (Number) data.getOrDefault("color", 0);
+            intent.putExtra("color", colorNumber.intValue());
             intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
