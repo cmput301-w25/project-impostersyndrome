@@ -175,8 +175,12 @@ public class MoodDataManager {
         Gson gson = new Gson();
         String json = prefs.getString("moodList", "[]");
         List<Mood> moodList = gson.fromJson(json, new TypeToken<List<Mood>>() {}.getType());
+        if (moodList == null) {
+            moodList = new ArrayList<>();
+        }
         moodList.add(mood);
         prefs.edit().putString("moodList", gson.toJson(moodList)).apply();
+        Log.d("OfflineMood", "Offline mood stored. Total offline moods: " + moodList.size());
     }
 
     public List<Mood> getOfflineMoods(Context context) {

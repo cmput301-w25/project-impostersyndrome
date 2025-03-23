@@ -11,6 +11,7 @@ import android.net.Network;
 import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ import com.example.impostersyndrom.controller.ConnectivityReceiver;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.EmojiUtils;
+import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
@@ -445,37 +447,49 @@ public class MainActivity extends AppCompatActivity {
 
             // Sync offline added moods
             List<Mood> offlineMoods = manager.getOfflineMoods(this);
+            Log.d("Sync", "Found " + offlineMoods.size() + " offline moods.");
             if (!offlineMoods.isEmpty()) {
                 for (Mood mood : offlineMoods) {
-                    manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
-                        @Override
-                        public void onMoodAdded() {
-                            Log.d("Sync", "Offline add synced: " + mood.getId());
-                        }
-                        @Override
-                        public void onError(String errorMessage) {
-                            Log.e("Sync", "Add failed: " + errorMessage);
-                        }
-                    });
+                    // Check if the mood has a local image URI.
+                    if (mood.getImageUrl() != null && mood.getImageUrl().startsWith("file://")) {
+                        ImageHandler offlineImageHandler = new ImageHandler(this, null);
+                        offlineImageHandler.uploadImageFromLocalUri(mood.getImageUrl(), new ImageHandler.OnImageUploadListener() {
+                            @Override
+                            public void onImageUploadSuccess(String url) {
+                                mood.setImageUrl(url); // Update the mood with the remote URL
+                                manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
+                                    @Override
+                                    public void onMoodAdded() {
+                                        Log.d("Sync", "Offline add synced (with image upload): " + mood.getId());
+                                    }
+                                    @Override
+                                    public void onError(String errorMessage) {
+                                        Log.e("Sync", "Add failed: " + errorMessage);
+                                    }
+                                });
+                            }
+                            @Override
+                            public void onImageUploadFailure(Exception e) {
+                                Log.e("Sync", "Failed to upload offline image: " + e.getMessage());
+                            }
+                        });
+                    } else {
+                        // No local image, add the mood normally.
+                        manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
+                            @Override
+                            public void onMoodAdded() {
+                                Log.d("Sync", "Offline add synced: " + mood.getId());
+                            }
+                            @Override
+                            public void onError(String errorMessage) {
+                                Log.e("Sync", "Add failed: " + errorMessage);
+                            }
+                        });
+                    }
                 }
                 manager.clearOfflineMoods(this);
             } else {
                 Log.d("Sync", "No offline added moods to sync.");
-            }
-
-            // Sync offline edits
-            List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
-            if (!offlineEdits.isEmpty()) {
-                Log.d("Sync", "Syncing offline edits: " + offlineEdits.size());
-                for (MoodDataManager.OfflineEdit edit : offlineEdits) {
-                    FirebaseFirestore.getInstance().collection("moods").document(edit.moodId)
-                            .update(edit.updates)
-                            .addOnSuccessListener(aVoid -> Log.d("Sync", "Offline edit synced: " + edit.moodId))
-                            .addOnFailureListener(e -> Log.e("Sync", "Edit failed: " + edit.moodId, e));
-                }
-                manager.clearOfflineEdits(this);
-            } else {
-                Log.d("Sync", "No offline edits to sync.");
             }
 
             // Sync offline deletes
@@ -500,8 +514,9 @@ public class MainActivity extends AppCompatActivity {
         public void onAvailable(Network network) {
             runOnUiThread(() -> {
                 Log.d("NetworkCallback", "Network available - syncing offline data");
-                syncOfflineMoodsIfNeeded();  // Process offline adds, edits, and deletes
-                refreshCurrentFragment();      // Refresh the UI with the latest data
+                syncOfflineMoodsIfNeeded();
+                // Delay the UI refresh for 2 seconds to allow async tasks to complete.
+                new android.os.Handler().postDelayed(() -> refreshCurrentFragment(), 2000);
             });
         }
     };

@@ -244,8 +244,22 @@ public class AddMoodActivity extends AppCompatActivity {
             if (isOffline) {
                 Toast.makeText(this, "You're offline. Your mood will be saved locally.", Toast.LENGTH_LONG).show();
 
-                // Skip image upload, save locally
-                mood.setImageUrl(null); // Avoid upload
+                // If an image is selected, save it locally and store its URI in the mood object.
+                if (imageHandler.hasImage()) {
+                    String localImageUri = imageHandler.saveImageLocally();
+                    if (localImageUri != null) {
+                        mood.setImageUrl(localImageUri);
+                        Log.d("OfflineImage", "Image saved locally: " + localImageUri);
+                    } else {
+                        Log.e("OfflineImage", "Failed to save image locally.");
+                        mood.setImageUrl(null);
+                    }
+                } else {
+                    mood.setImageUrl(null);
+                }
+
+                // Add extra logging to verify the mood is being saved offline.
+                Log.d("OfflineMood", "Saving offline mood: " + mood.toString());
                 moodDataManager.saveMoodOffline(this, mood);
                 Log.d("MoodSubmit", "Mood saved offline: " + mood.getReason());
                 navigateToMainActivity();
