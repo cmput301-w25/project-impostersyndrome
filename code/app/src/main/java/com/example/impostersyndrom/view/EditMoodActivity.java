@@ -2,6 +2,7 @@ package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +28,7 @@ import com.bumptech.glide.Glide;
 import android.Manifest;
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.MoodDataManager;
 
