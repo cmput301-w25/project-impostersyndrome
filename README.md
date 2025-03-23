@@ -44,4 +44,6 @@ ImposterSyndrome is an Android application designed to help users track, manage,
 - Referenced the Spotify Web API documentation for the /v1/recommendations endpoint to fetch song recommendations based on mood parameters and implement API authentication using an access token. <br>
 [Spotify for Developers - Web API Reference](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) <br>
 [Spotify for Developers - Authorization Guide](https://developer.spotify.com/documentation/web-api/concepts/authorization)
+- Referenced the Spotify Content Linking Guide to implement the "Play on Spotify" functionality using Spotify URI schemes for deep linking to tracks in the Spotify app.  
+  [Spotify for Developers - Content Linking Guide](https://developer.spotify.com/documentation/general/guides/content-linking-guide)
 
