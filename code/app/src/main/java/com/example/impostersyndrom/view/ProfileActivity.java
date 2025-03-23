@@ -3,6 +3,7 @@ package com.example.impostersyndrom.view;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,17 +14,28 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.EmojiUtils;
+import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView usernameText, followersCountText, followingCountText, bioText;
     private ImageButton backButton, homeButton, searchButton, addMoodButton, heartButton, profileButton, editButton;
     private ImageView profileImage;
+    private ImageView mood1, mood2, mood3;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProfileDataManager profileDataManager;
+    private MoodDataManager moodDataManager;
+    private String userId; // The user whose profile is being viewed
+    private FirebaseFirestore db;
 
     private static final String TAG = "ProfileActivity";
 
@@ -32,9 +44,27 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.profile_activity);
 
+        db = FirebaseFirestore.getInstance();
         initializeViews();
         profileDataManager = new ProfileDataManager();
+        moodDataManager = new MoodDataManager();
+
+        // Get the userId from the Intent (if viewing another user's profile)
+        Intent intent = getIntent();
+        userId = intent.getStringExtra("userId");
+        if (userId == null) {
+            // Fallback to the logged-in user if no userId is provided
+            userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                    FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        }
+
+        if (userId == null) {
+            setDefaultProfileData();
+            return;
+        }
+
         fetchUserData();
+        fetchRecentMoods();
         setupBottomNavigation();
         setupSwipeRefresh();
         backButton.setOnClickListener(v -> finish());
@@ -55,6 +85,9 @@ public class ProfileActivity extends AppCompatActivity {
         profileButton = findViewById(R.id.profileButton);
         editButton = findViewById(R.id.editButton);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        mood1 = findViewById(R.id.mood1);
+        mood2 = findViewById(R.id.mood2);
+        mood3 = findViewById(R.id.mood3);
     }
 
     private void setupBottomNavigation() {
@@ -68,7 +101,10 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(this::fetchUserData);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            fetchUserData();
+            fetchRecentMoods();
+        });
     }
 
     private void navigateTo(Class<?> activityClass) {
@@ -79,14 +115,6 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void fetchUserData() {
         swipeRefreshLayout.setRefreshing(true);
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-
-        if (userId == null) {
-            setDefaultProfileData();
-            swipeRefreshLayout.setRefreshing(false);
-            return;
-        }
 
         // Fetch profile information
         profileDataManager.fetchUserProfile(userId, new ProfileDataManager.OnProfileFetchedListener() {
@@ -130,6 +158,51 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    private void fetchRecentMoods() {
+        // Query the moods collection for the user's most recent non-private moods
+        db.collection("moods")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("privateMood", false) // Only non-private moods
+                .orderBy("timestamp", Query.Direction.DESCENDING) // Most recent first
+                .limit(3) // Limit to 3 moods
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<DocumentSnapshot> moodDocs = queryDocumentSnapshots.getDocuments();
+                    displayRecentMoods(moodDocs);
+                    swipeRefreshLayout.setRefreshing(false);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching recent moods: " + e.getMessage());
+                    Toast.makeText(ProfileActivity.this, "Failed to load recent moods", Toast.LENGTH_SHORT).show();
+                    swipeRefreshLayout.setRefreshing(false);
+                });
+    }
+
+    private void displayRecentMoods(List<DocumentSnapshot> moodDocs) {
+        // Reset visibility of mood ImageViews
+        mood1.setVisibility(View.GONE);
+        mood2.setVisibility(View.GONE);
+        mood3.setVisibility(View.GONE);
+
+        // Map to convert emoji keys to drawable resources
+        List<ImageView> moodViews = new ArrayList<>();
+        moodViews.add(mood1);
+        moodViews.add(mood2);
+        moodViews.add(mood3);
+
+        for (int i = 0; i < moodDocs.size() && i < 3; i++) {
+            DocumentSnapshot moodDoc = moodDocs.get(i);
+            String emotionalState = moodDoc.getString("emotionalState");
+            if (emotionalState != null) {
+                int drawableId = EmojiUtils.getEmojiDrawableId(emotionalState);
+                if (drawableId != 0) {
+                    moodViews.get(i).setImageResource(drawableId);
+                    moodViews.get(i).setVisibility(View.VISIBLE);
+                }
+            }
+        }
+    }
+
     private void setProfileDataFromDocument(DocumentSnapshot document) {
         usernameText.setText(document.getString("username") != null ? document.getString("username") : "username");
         bioText.setText(document.getString("bio") != null ? document.getString("bio") : "Exploring emotional awareness.");
@@ -148,6 +221,10 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage.setImageResource(R.drawable.default_person);
         followersCountText.setText("0");
         followingCountText.setText("0");
+        mood1.setVisibility(View.GONE);
+        mood2.setVisibility(View.GONE);
+        mood3.setVisibility(View.GONE);
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void showErrorMessage(String message) {
