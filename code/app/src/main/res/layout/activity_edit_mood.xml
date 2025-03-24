@@ -197,7 +197,7 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:padding="8dp"
-                        android:src="@drawable/person" />
+                        android:src="@drawable/ic_person" />
                     <ImageButton
                         android:id="@+id/attachLocationButton"
                         android:layout_width="40dp"
