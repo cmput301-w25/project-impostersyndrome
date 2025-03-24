@@ -50,10 +50,12 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_ADD_MOOD = 1001; // Request code for AddMoodActivity
+
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
-    private SwipeRefreshLayout swipeRefreshLayout; // Added for pull-to-refresh
+    private SwipeRefreshLayout swipeRefreshLayout;
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
@@ -63,14 +65,12 @@ public class MainActivity extends AppCompatActivity {
     private String userId;
     private FirebaseFirestore db;
 
-
     // Spotify Authentication
     private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
     private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
     private String savedReasonFilter = "";
     private boolean savedRecentWeekFilter = false;
     private int savedEmotionalStatePosition = 0;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
 
         // Set up ViewPager and TabLayout
-
         setupViewPager();
         setupButtonListeners();
         setupNavigationDrawer();
@@ -108,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout); // Initialize SwipeRefreshLayout
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -117,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
         innerNavigationView = findViewById(R.id.innerNavigationView);
-        // Note: userNameTextView, userEmailTextView, and logoutContainer are initialized in setupNavigationDrawer
     }
 
     private void setupNavigationDrawer() {
@@ -225,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(() -> {
             Log.d("MainActivity", "Swipe to refresh triggered");
             refreshCurrentFragment();
-            // Stop the refresh animation once data is loaded
             swipeRefreshLayout.setRefreshing(false);
         });
     }
@@ -241,9 +238,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToEmojiSelection() {
-        Intent intent = new Intent(this, EmojiSelectionActivity.class);
+        Intent intent = new Intent(this, AddMoodActivity.class); // Changed to AddMoodActivity directly for simplicity
         intent.putExtra("userId", userId);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_ADD_MOOD);
     }
 
     private void showFilterDialog() {
@@ -297,7 +294,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         tickButton.setOnClickListener(v -> {
-            // Save filter values
             savedRecentWeekFilter = checkboxRecentWeek.isChecked();
             savedReasonFilter = reasonInput.getText().toString().trim();
             savedEmotionalStatePosition = emotionalStateSpinner.getSelectedItemPosition();
@@ -336,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
     public void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
-        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+        bottomSheetDialog.setContentView(bottomSheetView);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -379,8 +375,6 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
-
         bottomSheetDialog.show();
     }
 
@@ -402,6 +396,13 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
             intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
+
+            // Add latitude and longitude
+            Double latitude = moodDoc.getDouble("latitude");
+            Double longitude = moodDoc.getDouble("longitude");
+            intent.putExtra("latitude", latitude != null ? latitude : 0.0);
+            intent.putExtra("longitude", longitude != null ? longitude : 0.0);
+
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");
@@ -437,6 +438,18 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "Refreshing FollowingMoodsFragment");
         } else {
             Log.d("MainActivity", "No valid fragment found to refresh");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ADD_MOOD && resultCode == RESULT_OK && data != null) {
+            String moodId = data.getStringExtra("moodId");
+            Log.d("MainActivity", "Mood added with ID: " + moodId);
+            refreshCurrentFragment(); // Refresh MyMoodsFragment to show the new mood
+            viewPager.setCurrentItem(0, true); // Switch to "My Moods" tab
+            showToast("Mood added! Check My Moods tab.");
         }
     }
 

@@ -299,7 +299,8 @@ public class AddMoodActivity extends AppCompatActivity {
             public void onMoodAdded() {
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                 Log.d("AddMoodActivity", "Mood saved to Firestore: " + mood.toString());
-                navigateToMoodDetailActivity(mood);
+                setResult(RESULT_OK); // Set result to indicate success
+                finish(); // Finish the activity to return to the main screen
             }
 
             @Override
