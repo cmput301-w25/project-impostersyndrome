@@ -482,24 +482,12 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     private void openMap() {
         if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
-            String geoUri = "geo:" + latitude + "," + longitude + "?q=" + latitude + "," + longitude + "(Mood Location)";
-            Uri locationUri = Uri.parse(geoUri);
-
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
-
-            try {
-                startActivity(mapIntent);
-                Log.d(TAG, "Map opened successfully with lat: " + latitude + ", lon: " + longitude);
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to open map: " + e.getMessage());
-                mapIntent.setPackage(null);
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(mapIntent);
-                } else {
-                    showToast("No map application available.");
-                }
-            }
+            Intent intent = new Intent(this, MoodLocationMapActivity.class);
+            intent.putExtra("latitude", latitude);
+            intent.putExtra("longitude", longitude);
+            intent.putExtra("emoji", emoji); // Pass the emoji to display on the map
+            startActivity(intent);
+            Log.d(TAG, "Navigating to MoodLocationMapActivity with lat: " + latitude + ", lon: " + longitude);
         } else {
             showToast("This mood doesn’t have a location.");
             Log.e(TAG, "No valid location data: lat=" + latitude + ", lon=" + longitude);
