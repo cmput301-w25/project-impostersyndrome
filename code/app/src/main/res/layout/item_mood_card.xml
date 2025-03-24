@@ -87,7 +87,7 @@
                     android:id="@+id/locationButton"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="5dp"
                     android:background="@null"
                     android:clickable="true"
                     android:focusable="true"
