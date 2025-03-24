@@ -143,8 +143,8 @@ public class MoodLocationMapActivity extends AppCompatActivity {
     private Bitmap drawableToBitmap(Drawable drawable) {
         if (drawable == null) return null;
 
-        int width = 48;
-        int height = 48;
+        int width = 60;
+        int height = 60;
 
 
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);

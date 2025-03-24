@@ -238,11 +238,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToEmojiSelection() {
-        Intent intent = new Intent(this, AddMoodActivity.class); // Changed to AddMoodActivity directly for simplicity
+        Intent intent = new Intent(this, EmojiSelectionActivity.class); // Launch EmojiSelectionActivity
         intent.putExtra("userId", userId);
         startActivityForResult(intent, REQUEST_ADD_MOOD);
     }
-
     private void showFilterDialog() {
         Dialog filterDialog = new Dialog(this);
         filterDialog.setContentView(R.layout.filter_mood_dialog);

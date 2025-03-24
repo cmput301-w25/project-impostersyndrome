@@ -299,8 +299,19 @@ public class AddMoodActivity extends AppCompatActivity {
             public void onMoodAdded() {
                 Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
                 Log.d("AddMoodActivity", "Mood saved to Firestore: " + mood.toString());
-                setResult(RESULT_OK); // Set result to indicate success
-                finish(); // Finish the activity to return to the main screen
+
+                // Set the result to pass back to MainActivity
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("moodId", mood.getId());
+                setResult(RESULT_OK, resultIntent);
+
+                // Start MainActivity and clear the activity stack
+                Intent mainIntent = new Intent(AddMoodActivity.this, MainActivity.class);
+                mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(mainIntent);
+
+                // Finish AddMoodActivity (and EmojiSelectionActivity will be finished automatically)
+                finish();
             }
 
             @Override
