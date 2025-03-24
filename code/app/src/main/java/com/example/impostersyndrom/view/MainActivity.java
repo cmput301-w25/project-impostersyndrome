@@ -32,6 +32,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
+import com.example.impostersyndrom.spotify.SpotifyManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
@@ -60,9 +61,14 @@ public class MainActivity extends AppCompatActivity {
     private String userId;
     private FirebaseFirestore db;
 
+
+    // Spotify Authentication
+    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
+    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
     private String savedReasonFilter = "";
     private boolean savedRecentWeekFilter = false;
     private int savedEmotionalStatePosition = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +89,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "userId: " + userId);
 
         getIntent().putExtra("userId", userId);
+
+        // Initialize SpotifyManager
+        SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
+
+        // Set up ViewPager and TabLayout
+
         setupViewPager();
         setupButtonListeners();
         setupNavigationDrawer();
@@ -347,7 +359,9 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
+
         bottomSheetDialog.setContentView(bottomSheetView);
+
         bottomSheetDialog.show();
     }
 
@@ -368,6 +382,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
+            intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");
