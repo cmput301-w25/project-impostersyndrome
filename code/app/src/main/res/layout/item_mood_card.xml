@@ -93,7 +93,7 @@
                     android:focusable="true"
                     android:padding="8dp"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/location"
+                    android:src="@drawable/ic_location"
                     android:contentDescription="View Location"
                     android:visibility="gone" />
             </LinearLayout>

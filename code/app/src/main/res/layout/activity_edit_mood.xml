@@ -208,7 +208,7 @@
                         android:focusable="true"
                         android:padding="8dp"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/location"
+                        android:src="@drawable/ic_location"
                         android:text="Attach Location" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
