@@ -45,7 +45,7 @@ public class MoodDetailActivity extends AppCompatActivity {
 
     // Mood Data
     private String emoji;
-    private Timestamp timestamp; // Reverted to Timestamp for original working state
+    private Timestamp timestamp;
     private String reason;
     private String group;
     private int color;
@@ -131,7 +131,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         Mood updatedMood = (Mood) intent.getSerializableExtra("updatedMood");
         if (updatedMood != null) {
             emoji = updatedMood.getEmotionalState();
-            // Convert Date to Timestamp if coming from Mood
             Date date = updatedMood.getTimestamp();
             timestamp = date != null ? new Timestamp(date) : null;
             reason = updatedMood.getReason();
@@ -141,16 +140,18 @@ public class MoodDetailActivity extends AppCompatActivity {
             imageUrl = updatedMood.getImageUrl();
             latitude = updatedMood.getLatitude();
             longitude = updatedMood.getLongitude();
+            Log.d(TAG, "Retrieved from updatedMood - Latitude: " + latitude + ", Longitude: " + longitude);
         } else {
             emoji = intent.getStringExtra("emoji");
-            timestamp = intent.getParcelableExtra("timestamp"); // Expecting Timestamp from original intent
+            timestamp = intent.getParcelableExtra("timestamp");
             reason = intent.getStringExtra("reason");
             group = intent.getStringExtra("group");
             color = intent.getIntExtra("color", Color.WHITE);
             emojiDescription = intent.getStringExtra("emojiDescription");
             imageUrl = intent.getStringExtra("imageUrl");
-            latitude = intent.getDoubleExtra("latitude", 0.0);
-            longitude = intent.getDoubleExtra("longitude", 0.0);
+            latitude = intent.hasExtra("latitude") ? intent.getDoubleExtra("latitude", 0.0) : null;
+            longitude = intent.hasExtra("longitude") ? intent.getDoubleExtra("longitude", 0.0) : null;
+            Log.d(TAG, "Retrieved from Intent extras - Latitude: " + latitude + ", Longitude: " + longitude);
         }
 
         logMoodData();
@@ -239,11 +240,12 @@ public class MoodDetailActivity extends AppCompatActivity {
             if (holder.locationButton != null) {
                 holder.locationButton.setVisibility(View.VISIBLE); // Always show the button
                 holder.locationButton.setOnClickListener(v -> {
+                    Log.d(TAG, "Location button clicked - Current lat: " + latitude + ", lon: " + longitude);
                     if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
-                        Log.d(TAG, "Location button clicked, opening map with lat: " + latitude + ", lon: " + longitude);
+                        Log.d(TAG, "Valid location found, opening map with lat: " + latitude + ", lon: " + longitude);
                         openMap();
                     } else {
-                        Log.d(TAG, "Location button clicked, but no valid location: lat=" + latitude + ", lon=" + longitude);
+                        Log.d(TAG, "No valid location: lat=" + latitude + ", lon=" + longitude);
                         showToast("This mood doesn’t have a location.");
                     }
                 });
