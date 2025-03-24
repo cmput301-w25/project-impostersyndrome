@@ -159,17 +159,19 @@
                             android:focusable="true"
                             android:padding="8dp"
                             android:src="@drawable/ic_person" />
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/privacySwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:text="Private"
-                            android:textColor="@color/white"
-                            android:checked="false" />
                     </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/privacySwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:checked="false"
+                        android:textColor="@color/black" />
+
                 </LinearLayout>
+
+
             </LinearLayout>
 
             <ImageButton
