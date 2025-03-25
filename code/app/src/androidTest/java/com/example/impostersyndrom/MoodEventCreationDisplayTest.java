@@ -7,6 +7,7 @@ import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasFlags;
 import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -24,6 +25,7 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import android.content.Intent;
 import android.view.View;
 
 import androidx.test.espresso.Espresso;
@@ -74,15 +76,13 @@ public class MoodEventCreationDisplayTest {
         onView(withId(R.id.addMoodButton)).perform(click());
 
         // 2. Verify we're in EmojiSelectionActivity and select Happy emoji
-        onView(withId(R.id.emoji1)).check(matches(isDisplayed())); // Verify emoji selection screen
-        onView(withId(R.id.emoji1)).perform(click()); // Click emoji1 to go to AddMoodActivity
+        onView(withId(R.id.emoji5)).check(matches(isDisplayed())); // Verify emoji selection screen
+        onView(withId(R.id.emoji5)).perform(click()); // Click emoji1 to go to AddMoodActivity
 
-        // 3. Verify we're in AddMoodActivity
+        // 3. Verify we're in AddMoodActivity and check the emoji display
         onView(withId(R.id.emojiView)).check(matches(isDisplayed())); // Now emojiView should be present
-
-        // 4. Verify emoji selection
         onView(withId(R.id.emojiDescription))
-                .check(matches(withText(containsString("Happy"))));
+                .check(matches(withText(containsString("Sad"))));
 
         // 5. Submit the mood
         onView(withId(R.id.submitButton)).perform(click());
@@ -93,7 +93,10 @@ public class MoodEventCreationDisplayTest {
         // 7. Verify we're back on MainActivity
         waitForView(withId(R.id.viewPager), 15000);
         onView(withId(R.id.viewPager)).check(matches(isDisplayed()));
-        intended(hasComponent(MainActivity.class.getName()));
+        intended(allOf(
+                hasComponent(MainActivity.class.getName()),
+                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+        ));
     }
 
 
