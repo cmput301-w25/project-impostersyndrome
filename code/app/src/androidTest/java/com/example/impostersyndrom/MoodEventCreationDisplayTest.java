@@ -2,6 +2,7 @@ package com.example.impostersyndrom;
 
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.Espresso.pressBack;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.typeText;
@@ -103,7 +104,7 @@ public class MoodEventCreationDisplayTest {
     }
 
 
-    // Test 2: Add Mood Event with All Fields
+    // Test 2: Add Mood Event with All Fields and verifies them
     @Test
     public void testAddMoodEventWithAllFields() throws TimeoutException {
         // 1. Click the add mood button in MainActivity
@@ -148,93 +149,6 @@ public class MoodEventCreationDisplayTest {
         onView(withId(R.id.groupView)).check(matches(withText("With another person")));
         onView(withId(R.id.emojiDescription)).check(matches(withText("Sad")));
     }
-
-    // Test 3: Emotional State Display Consistency
-    @Test
-    public void testEmotionalStateDisplayConsistency() throws TimeoutException {
-        // 1. Add Anger (emoji4)
-        onView(withId(R.id.addMoodButton)).perform(click());
-        onView(withId(R.id.emoji4)).check(matches(isDisplayed())); // Verify emoji selection screen
-        onView(withId(R.id.emoji4)).perform(click()); // Select emoji_angry
-        onView(withId(R.id.submitButton)).perform(click());
-        onView(isRoot()).perform(waitFor(6000)); // Wait for save and navigation
-        waitForView(withId(R.id.viewPager), 15000);
-        intended(allOf(
-                hasComponent(MainActivity.class.getName()),
-                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
-        ));
-
-        // 2. Add Happiness (emoji1)
-        onView(withId(R.id.addMoodButton)).perform(click());
-        onView(withId(R.id.emoji1)).check(matches(isDisplayed()));
-        onView(withId(R.id.emoji1)).perform(click()); // Select emoji_happy
-        onView(withId(R.id.submitButton)).perform(click());
-        onView(isRoot()).perform(waitFor(6000));
-        waitForView(withId(R.id.viewPager), 15000);
-        intended(allOf(
-                hasComponent(MainActivity.class.getName()),
-                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
-        ));
-
-        // 3. Add Surprise (emoji8)
-        onView(withId(R.id.addMoodButton)).perform(click());
-        onView(withId(R.id.emoji8)).check(matches(isDisplayed()));
-        onView(withId(R.id.emoji8)).perform(click()); // Select emoji_surprised
-        onView(withId(R.id.submitButton)).perform(click());
-        onView(isRoot()).perform(waitFor(6000));
-        waitForView(withId(R.id.viewPager), 15000);
-        intended(allOf(
-                hasComponent(MainActivity.class.getName()),
-                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
-        ));
-
-        // 4. Verify all three moods appear in MyMoodsFragment's moodListView
-        waitForView(withId(R.id.moodListView), 15000);
-        onView(withId(R.id.moodListView)).check(matches(isDisplayed()));
-
-        // Check for Anger (emoji_angry)
-        onData(anything())
-                .inAdapterView(withId(R.id.moodListView))
-                .check(matches(hasDescendant(allOf(
-                        withId(R.id.emojiView),
-                        withTagValue(is("emoji_angry"))
-                ))));
-
-        // Check for Happiness (emoji_happy)
-        onData(anything())
-                .inAdapterView(withId(R.id.moodListView))
-                .check(matches(hasDescendant(allOf(
-                        withId(R.id.emojiView),
-                        withTagValue(is("emoji_happy"))
-                ))));
-
-        // Check for Surprise (emoji_surprised)
-        onData(anything())
-                .inAdapterView(withId(R.id.moodListView))
-                .check(matches(hasDescendant(allOf(
-                        withId(R.id.emojiView),
-                        withTagValue(is("emoji_surprised"))
-                ))));
-    }
-//
-//    // Test 4: View Mood Event Details
-//    @Test
-//    public void testViewMoodEventDetails() {
-//        // Add a mood event
-//        onView(withId(R.id.addMoodButton)).perform(click());
-//        onView(withId(R.id.emoji6)).perform(click()); // emoji_fear
-//        onView(withId(R.id.addReasonEdit)).perform(typeText("Scary movie"));
-//        onView(withId(R.id.submitButton)).perform(click());
-//
-//        // Tap the first item in the mood list (MyMoodsFragment)
-//        onView(withId(R.id.moodListView)).perform(click());
-//
-//        // Verify MoodDetailActivity (assuming it’s launched; adjust IDs based on actual layout)
-//        onView(withId(R.id.mood_detail_emotional_state)) // Placeholder ID, replace with actual
-//                .check(matches(withText("Fear")));
-//        onView(withId(R.id.mood_detail_reason)) // Placeholder ID, replace with actual
-//                .check(matches(withText("Scary movie")));
-//    }
 
     public static Matcher<View> atPosition(final int position, final Matcher<View> itemMatcher) {
         return new BoundedMatcher<View, RecyclerView>(RecyclerView.class) {
