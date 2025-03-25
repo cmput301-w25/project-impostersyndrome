@@ -3,6 +3,7 @@ package com.example.impostersyndrom;
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
@@ -13,10 +14,12 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withTagValue;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.anything;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,9 +78,9 @@ public class MoodEventCreationDisplayTest {
         // 1. Click the add mood button in MainActivity
         onView(withId(R.id.addMoodButton)).perform(click());
 
-        // 2. Verify we're in EmojiSelectionActivity and select Happy emoji
+        // 2. Verify we're in EmojiSelectionActivity and select Sad emoji
         onView(withId(R.id.emoji5)).check(matches(isDisplayed())); // Verify emoji selection screen
-        onView(withId(R.id.emoji5)).perform(click()); // Click emoji1 to go to AddMoodActivity
+        onView(withId(R.id.emoji5)).perform(click()); // Click emoji5 to go to AddMoodActivity
 
         // 3. Verify we're in AddMoodActivity and check the emoji display
         onView(withId(R.id.emojiView)).check(matches(isDisplayed())); // Now emojiView should be present
@@ -100,61 +103,119 @@ public class MoodEventCreationDisplayTest {
     }
 
 
-    //    // Test 2: Add Mood Event with All Fields
-//    @Test
-//    public void testAddMoodEventWithAllFields() {
-//        onView(withId(R.id.addMoodButton)).perform(click());
-//
-//        // Select Sadness (emoji5)
-//        onView(withId(R.id.emoji5)).perform(click());
-//
-//        // In AddMoodActivity, fill in details
-//        onView(withId(R.id.addReasonEdit)).perform(typeText("Feeling down today"));
-//        onView(withId(R.id.groupButton)).perform(click());
-//        onView(withText("Alone")).perform(click());
-//        onView(withId(R.id.privacySwitch)).perform(click()); // Set to private
-//        onView(withId(R.id.submitButton)).perform(click());
-//
-//        // Verify in MyMoodsFragment
-//        onView(withId(R.id.moodListView))
-//                .check(matches(isDisplayed()));
-//        onView(withId(R.id.reasonView))
-//                .check(matches(withText("Feeling down today")));
-//        onView(withId(R.id.socialSituationIcon))
-//                .check(matches(withText(containsString("ic_alone"))));
-//        onView(withId(R.id.emojiView))
-//                .check(matches(withText(containsString("emoji_sad"))));
-//    }
-//
-//    // Test 3: Emotional State Display Consistency
-//    @Test
-//    public void testEmotionalStateDisplayConsistency() {
-//        // Add Anger
-//        onView(withId(R.id.addMoodButton)).perform(click());
-//        onView(withId(R.id.emoji4)).perform(click()); // emoji_angry
-//        onView(withId(R.id.submitButton)).perform(click());
-//
-//        // Add Happiness
-//        onView(withId(R.id.addMoodButton)).perform(click());
-//        onView(withId(R.id.emoji1)).perform(click()); // emoji_happy
-//        onView(withId(R.id.submitButton)).perform(click());
-//
-//        // Add Surprise
-//        onView(withId(R.id.addMoodButton)).perform(click());
-//        onView(withId(R.id.emoji8)).perform(click()); // emoji_surprised
-//        onView(withId(R.id.submitButton)).perform(click());
-//
-//        // Verify all appear in MyMoodsFragment
-//        onView(withId(R.id.moodListView))
-//                .check(matches(isDisplayed()));
-//        onView(withId(R.id.emojiView))
-//                .check(matches(withText(containsString("emoji_angry"))));
-//        onView(withId(R.id.emojiView))
-//                .check(matches(withText(containsString("emoji_happy"))));
-//        onView(withId(R.id.emojiView))
-//                .check(matches(withText(containsString("emoji_surprised"))));
-//        // Note: Color consistency needs manual verification as Espresso can't check drawables directly
-//    }
+    // Test 2: Add Mood Event with All Fields
+    @Test
+    public void testAddMoodEventWithAllFields() throws TimeoutException {
+        // 1. Click the add mood button in MainActivity
+        onView(withId(R.id.addMoodButton)).perform(click());
+
+        // 2. Verify we're in EmojiSelectionActivity and select Sad emoji (emoji5)
+        onView(withId(R.id.emoji5)).check(matches(isDisplayed()));
+        onView(withId(R.id.emoji5)).perform(click());
+
+        // 3. Verify we're in AddMoodActivity and fill in details
+        onView(withId(R.id.emojiView)).check(matches(isDisplayed()));
+        onView(withId(R.id.addReasonEdit)).perform(typeText("TESTING RHHEHHH"), closeSoftKeyboard());
+        onView(withId(R.id.groupButton)).perform(click());
+        onView(withText("With another person")).perform(click());
+        onView(withId(R.id.privacySwitch)).perform(click()); // Set to private
+
+        // 4. Submit the mood
+        onView(withId(R.id.submitButton)).perform(click());
+
+        // 5. Wait 6 seconds for the mood to save and navigate back to MainActivity
+        onView(isRoot()).perform(waitFor(6000));
+
+        // 6. Verify we're back in MainActivity and MyMoodsFragment is updated
+        waitForView(withId(R.id.viewPager), 5000);
+        onView(withId(R.id.viewPager)).check(matches(isDisplayed()));
+        intended(allOf(
+                hasComponent(MainActivity.class.getName()),
+                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+        ));
+
+        // 7. Tap on the mood in MyMoodsFragment's moodListView to view details
+        waitForView(withId(R.id.moodListView), 5000); // Wait for list to update
+        onView(withId(R.id.moodListView)).check(matches(isDisplayed()));
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(0)
+                .perform(click());
+
+        // 8. Verify mood details in MoodDetailActivity
+        waitForView(withId(R.id.rootLayout), 5000); // Wait for MoodDetailActivity to load
+        onView(withId(R.id.reasonView)).check(matches(withText("TESTING RHHEHHH")));
+        onView(withId(R.id.groupView)).check(matches(withText("With another person")));
+        onView(withId(R.id.emojiDescription)).check(matches(withText("Sad")));
+    }
+
+    // Test 3: Emotional State Display Consistency
+    @Test
+    public void testEmotionalStateDisplayConsistency() throws TimeoutException {
+        // 1. Add Anger (emoji4)
+        onView(withId(R.id.addMoodButton)).perform(click());
+        onView(withId(R.id.emoji4)).check(matches(isDisplayed())); // Verify emoji selection screen
+        onView(withId(R.id.emoji4)).perform(click()); // Select emoji_angry
+        onView(withId(R.id.submitButton)).perform(click());
+        onView(isRoot()).perform(waitFor(6000)); // Wait for save and navigation
+        waitForView(withId(R.id.viewPager), 15000);
+        intended(allOf(
+                hasComponent(MainActivity.class.getName()),
+                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+        ));
+
+        // 2. Add Happiness (emoji1)
+        onView(withId(R.id.addMoodButton)).perform(click());
+        onView(withId(R.id.emoji1)).check(matches(isDisplayed()));
+        onView(withId(R.id.emoji1)).perform(click()); // Select emoji_happy
+        onView(withId(R.id.submitButton)).perform(click());
+        onView(isRoot()).perform(waitFor(6000));
+        waitForView(withId(R.id.viewPager), 15000);
+        intended(allOf(
+                hasComponent(MainActivity.class.getName()),
+                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+        ));
+
+        // 3. Add Surprise (emoji8)
+        onView(withId(R.id.addMoodButton)).perform(click());
+        onView(withId(R.id.emoji8)).check(matches(isDisplayed()));
+        onView(withId(R.id.emoji8)).perform(click()); // Select emoji_surprised
+        onView(withId(R.id.submitButton)).perform(click());
+        onView(isRoot()).perform(waitFor(6000));
+        waitForView(withId(R.id.viewPager), 15000);
+        intended(allOf(
+                hasComponent(MainActivity.class.getName()),
+                hasFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+        ));
+
+        // 4. Verify all three moods appear in MyMoodsFragment's moodListView
+        waitForView(withId(R.id.moodListView), 15000);
+        onView(withId(R.id.moodListView)).check(matches(isDisplayed()));
+
+        // Check for Anger (emoji_angry)
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .check(matches(hasDescendant(allOf(
+                        withId(R.id.emojiView),
+                        withTagValue(is("emoji_angry"))
+                ))));
+
+        // Check for Happiness (emoji_happy)
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .check(matches(hasDescendant(allOf(
+                        withId(R.id.emojiView),
+                        withTagValue(is("emoji_happy"))
+                ))));
+
+        // Check for Surprise (emoji_surprised)
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .check(matches(hasDescendant(allOf(
+                        withId(R.id.emojiView),
+                        withTagValue(is("emoji_surprised"))
+                ))));
+    }
 //
 //    // Test 4: View Mood Event Details
 //    @Test
