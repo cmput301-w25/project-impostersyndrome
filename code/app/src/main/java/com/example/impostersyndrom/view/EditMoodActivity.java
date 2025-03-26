@@ -40,11 +40,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -118,7 +121,10 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+
+        TextView editDateTimeView = findViewById(R.id.EditDateTimeView);
         reasonCharCounter = findViewById(R.id.reasonCharCounter); // Initialize character counter
+
         SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
 
         // Retrieve passed mood data
@@ -130,6 +136,17 @@ public class EditMoodActivity extends AppCompatActivity {
         originalImageUrl = imageUrl;
         int color = intent.getIntExtra("color", 0);
         isPrivateMood = intent.getBooleanExtra("privateMood", false);
+
+        // Display timestamp
+        Timestamp timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
+        if (timestamp != null) {
+            String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault())
+                    .format(timestamp.toDate());
+            editDateTimeView.setText(formattedTime);
+            editDateTimeView.setTextColor(Color.BLACK);
+        } else {
+            editDateTimeView.setText("Unknown time");
+        }
 
         // Set initial privacy switch state
         privacySwitch.setChecked(isPrivateMood);

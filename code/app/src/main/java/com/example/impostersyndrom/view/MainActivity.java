@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -49,9 +50,12 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_ADD_MOOD = 1001; // Request code for AddMoodActivity
+
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
+
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
@@ -100,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
+
+
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -207,6 +213,9 @@ public class MainActivity extends AppCompatActivity {
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
+
+
+
     private void navigateToProfile() {
         startActivity(new Intent(this, ProfileActivity.class));
     }
@@ -218,11 +227,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToEmojiSelection() {
-        Intent intent = new Intent(this, EmojiSelectionActivity.class);
+        Intent intent = new Intent(this, EmojiSelectionActivity.class); // Launch EmojiSelectionActivity
         intent.putExtra("userId", userId);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_ADD_MOOD);
     }
-
     private void showFilterDialog() {
         Dialog filterDialog = new Dialog(this);
         filterDialog.setContentView(R.layout.filter_mood_dialog);
@@ -274,7 +282,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         tickButton.setOnClickListener(v -> {
-            // Save filter values
             savedRecentWeekFilter = checkboxRecentWeek.isChecked();
             savedReasonFilter = reasonInput.getText().toString().trim();
             savedEmotionalStatePosition = emotionalStateSpinner.getSelectedItemPosition();
@@ -356,9 +363,6 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-
-        bottomSheetDialog.setContentView(bottomSheetView);
-
         bottomSheetDialog.show();
     }
 
@@ -380,6 +384,13 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
             intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
+
+            // Add latitude and longitude
+            Double latitude = moodDoc.getDouble("latitude");
+            Double longitude = moodDoc.getDouble("longitude");
+            intent.putExtra("latitude", latitude != null ? latitude : 0.0);
+            intent.putExtra("longitude", longitude != null ? longitude : 0.0);
+
             startActivity(intent);
         } else {
             showMessage("Error loading mood details.");
@@ -423,6 +434,18 @@ public class MainActivity extends AppCompatActivity {
             Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
                     .setAction("OK", null)
                     .show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ADD_MOOD && resultCode == RESULT_OK && data != null) {
+            String moodId = data.getStringExtra("moodId");
+            Log.d("MainActivity", "Mood added with ID: " + moodId);
+            refreshCurrentFragment(); // Refresh MyMoodsFragment to show the new mood
+            viewPager.setCurrentItem(0, true); // Switch to "My Moods" tab
+            showToast("Mood added! Check My Moods tab.");
         }
     }
 
