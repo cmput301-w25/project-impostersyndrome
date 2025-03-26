@@ -40,5 +40,10 @@ ImposterSyndrome is an Android application designed to help users track, manage,
 - [UML](https://github.com/cmput301-w25/project-impostersyndrome/wiki/UML)
 
 ## Resources Used:
-Icons from [Icons8](https://icons8.com), used and credited as per [universal multimedia license agreement.](https://intercom.help/icons8-7fb7577e8170/en/articles/5534926-universal-multimedia-license-agreement-for-icons8)
+- Icons from [Icons8](https://icons8.com), used and credited as per [universal multimedia license agreement.](https://intercom.help/icons8-7fb7577e8170/en/articles/5534926-universal-multimedia-license-agreement-for-icons8) 
+- Referenced the Spotify Web API documentation for the /v1/recommendations endpoint to fetch song recommendations based on mood parameters and implement API authentication using an access token. <br>
+[Spotify for Developers - Web API Reference](https://developer.spotify.com/documentation/web-api/reference/get-recommendations) <br>
+[Spotify for Developers - Authorization Guide](https://developer.spotify.com/documentation/web-api/concepts/authorization)
+- Referenced the Spotify Content Linking Guide to implement the "Play on Spotify" functionality using Spotify URI schemes for deep linking to tracks in the Spotify app.  
+  [Spotify for Developers - Content Linking Guide](https://developer.spotify.com/documentation/general/guides/content-linking-guide)
 

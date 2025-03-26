@@ -10,81 +10,97 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.UserData; // Import UserData
 import com.example.impostersyndrom.view.UserProfileActivity;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.List;
 
-public class FollowingAdapter extends ArrayAdapter<String> {
+public class FollowingAdapter extends ArrayAdapter<UserData> {
     private FirebaseFirestore db;
     private String currentUserId;
-    private List<String> followingUsers;
+    private List<UserData> followingUsers;
     private TextView emptyMessage;
-    private View rootView; // Root view for displaying Snackbar
     private static final String TAG = "FollowingAdapter";
 
-    public FollowingAdapter(Context context, List<String> users, String currentUserId, View rootView) {
+    public FollowingAdapter(Context context, List<UserData> users, String currentUserId) {
         super(context, 0, users);
-        db = FirebaseFirestore.getInstance();
+        this.db = FirebaseFirestore.getInstance();
         this.currentUserId = currentUserId;
         this.followingUsers = users;
-        this.rootView = rootView; // Initialize rootView
     }
 
     public void setEmptyMessageView(TextView emptyMessage) {
         this.emptyMessage = emptyMessage;
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_following, parent, false);
         }
 
-        String username = getItem(position);
+        UserData user = getItem(position);
         TextView usernameText = convertView.findViewById(R.id.usernameTextView);
         Button unfollowButton = convertView.findViewById(R.id.unfollowButton);
+        ShapeableImageView profileImage = convertView.findViewById(R.id.profileImage);
 
-        usernameText.setText(username);
+        // Set username
+        usernameText.setText(user.username);
 
-        // Make the TextView clickable and ensure it has proper focus state
+        // Load profile picture
+        if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
+            Glide.with(getContext())
+                    .load(user.profileImageUrl)
+                    .placeholder(R.drawable.default_person)
+                    .error(R.drawable.default_person)
+                    .into(profileImage);
+        } else {
+            profileImage.setImageResource(R.drawable.default_person);
+        }
+
+        // Make the TextView clickable
         usernameText.setClickable(true);
         usernameText.setFocusable(true);
 
         // Set click listener on the username to navigate to user profile
         usernameText.setOnClickListener(v -> {
-            Log.d(TAG, "Username clicked: " + username);
-            navigateToUserProfile(username);
+            Log.d(TAG, "Username clicked: " + user.username);
+            navigateToUserProfile(user.username);
         });
 
-        // Add click listener to the entire row as well for better UX
+        // Add click listener to the entire row
         View finalConvertView = convertView;
         convertView.setOnClickListener(v -> {
-            // Only handle click if it's not on the unfollow button
             if (v == finalConvertView) {
-                Log.d(TAG, "Row clicked: " + username);
-                navigateToUserProfile(username);
+                Log.d(TAG, "Row clicked: " + user.username);
+                navigateToUserProfile(user.username);
             }
         });
 
-        // ✅ Set Unfollow Click Listener
+        // Unfollow Click Listener
         unfollowButton.setOnClickListener(v -> {
-            Log.d(TAG, "Unfollow button clicked for: " + username);
+            Log.d(TAG, "Unfollow button clicked for: " + user.username);
 
-            // 🔹 Step 1: Find receiver ID from "users" collection
+            // Step 1: Find receiver ID from "users" collection
             db.collection("users")
-                    .whereEqualTo("username", username)
+                    .whereEqualTo("username", user.username)
                     .get()
                     .addOnSuccessListener(userQuery -> {
                         if (!userQuery.isEmpty()) {
                             String receiverId = userQuery.getDocuments().get(0).getId();
                             Log.d(TAG, "Found receiverId: " + receiverId);
 
-                            // 🔹 Step 2: Find and delete the follow relationship in Firestore
+                            // Step 2: Find and delete the follow relationship
                             db.collection("following")
                                     .whereEqualTo("followerId", currentUserId)
                                     .whereEqualTo("followingId", receiverId)
@@ -96,13 +112,10 @@ public class FollowingAdapter extends ArrayAdapter<String> {
 
                                             db.collection("following").document(followId).delete()
                                                     .addOnSuccessListener(aVoid -> {
-                                                        Log.d(TAG, "Successfully unfollowed: " + username);
-
-                                                        // Remove user from UI
+                                                        Log.d(TAG, "Successfully unfollowed: " + user.username);
                                                         followingUsers.remove(position);
                                                         notifyDataSetChanged();
 
-                                                        // Show empty message if list is now empty
                                                         if (followingUsers.isEmpty() && emptyMessage != null) {
                                                             ((Activity) getContext()).runOnUiThread(() -> {
                                                                 emptyMessage.setText("You're not following anyone yet");
@@ -112,18 +125,17 @@ public class FollowingAdapter extends ArrayAdapter<String> {
                                                     })
                                                     .addOnFailureListener(e -> {
                                                         Log.e(TAG, "Error deleting follow document", e);
-                                                        showMessage("Error unfollowing");
+                                                        Toast.makeText(getContext(), "Error unfollowing", Toast.LENGTH_SHORT).show();
                                                     });
                                         } else {
                                             Log.e(TAG, "No matching follow document found");
-                                            showMessage("Error: No match found");
+                                            Toast.makeText(getContext(), "Error: No match found", Toast.LENGTH_SHORT).show();
                                         }
                                     })
                                     .addOnFailureListener(e -> Log.e(TAG, "Error searching follow collection", e));
-
                         } else {
-                            Log.e(TAG, "No user found with username: " + username);
-                            showMessage("Error: User not found");
+                            Log.e(TAG, "No user found with username: " + user.username);
+                            Toast.makeText(getContext(), "Error: User not found", Toast.LENGTH_SHORT).show();
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
@@ -135,49 +147,32 @@ public class FollowingAdapter extends ArrayAdapter<String> {
     private void navigateToUserProfile(String username) {
         Log.d(TAG, "Attempting to navigate to profile for: " + username);
 
-        // First get the user ID from the username
         db.collection("users")
                 .whereEqualTo("username", username)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        // Get the first document that matches the username
                         String userId = querySnapshot.getDocuments().get(0).getId();
                         Log.d(TAG, "Found user ID: " + userId + " for username: " + username);
 
                         try {
-                            // Create intent to open UserProfileActivity
                             Intent intent = new Intent(getContext(), UserProfileActivity.class);
-                            intent.putExtra("userId", userId); // Match the key expected by UserProfileActivity
-                            intent.putExtra("username", username); // Match the key expected by UserProfileActivity
-
+                            intent.putExtra("userId", userId);
+                            intent.putExtra("username", username);
                             Log.d(TAG, "Starting UserProfileActivity with userId: " + userId);
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            showMessage("Error opening profile: " + e.getMessage());
+                            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        showMessage("User not found");
+                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    showMessage("Error finding user");
+                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
-    private void showMessage(String message) {
-        if (rootView != null) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
-                    .setAction("OK", null)
-                    .show();
-        }
     }
 }

@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.2"
+agp = "8.7.3"
 firebaseStorage = "21.0.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -9,7 +9,10 @@ material = "1.12.0"
 activity = "1.10.0"
 constraintlayout = "2.2.0"
 firebaseAuth = "23.2.0"
+
+playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.1.0"
+
 
 [libraries]
 firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorage" }
@@ -21,7 +24,11 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

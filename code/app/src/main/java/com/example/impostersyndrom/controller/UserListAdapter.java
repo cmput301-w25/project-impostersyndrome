@@ -10,139 +10,145 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.FollowRequest;
+import com.example.impostersyndrom.model.UserData;
 import com.example.impostersyndrom.view.UserProfileActivity;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.List;
 
-public class UserListAdapter extends ArrayAdapter<String> {
+public class UserListAdapter extends ArrayAdapter<UserData> {
     private FirebaseFirestore db;
     private String currentUserId;
     private String currentUsername;
-    private View rootView; // Root view for displaying Snackbar
     private static final String TAG = "UserListAdapter";
 
-    public UserListAdapter(Context context, List<String> users, View rootView) {
+    public UserListAdapter(Context context, List<UserData> users) {
         super(context, 0, users);
         db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        this.rootView = rootView; // Initialize rootView
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-        // Fetch current user's username
-        db.collection("users").document(currentUserId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        currentUsername = documentSnapshot.getString("username");
-                    }
-                });
+        if (currentUserId != null) {
+            db.collection("users").document(currentUserId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            currentUsername = documentSnapshot.getString("username");
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Error fetching current username", e));
+        }
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.user_list_item, parent, false);
         }
 
-        String receiverUsername = getItem(position);
+        UserData user = getItem(position);
+        if (user == null) {
+            Log.e(TAG, "User data at position " + position + " is null");
+            return convertView;
+        }
+
         TextView userNameTextView = convertView.findViewById(R.id.usernameTextView);
         ImageButton followButton = convertView.findViewById(R.id.followButton);
         Button unfollowButton = convertView.findViewById(R.id.unfollowButton);
         Button requestedButton = convertView.findViewById(R.id.requestedButton);
+        ShapeableImageView profileImage = convertView.findViewById(R.id.pfpView); // Correct ID
 
-        userNameTextView.setText(receiverUsername);
+        // Set username
+        userNameTextView.setText(user.username);
 
-        // DEBUG: Log the username we are searching for
-        Log.d("DEBUG", "Searching for user: " + receiverUsername);
+        // Load profile picture
+        if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
+            Glide.with(getContext())
+                    .load(user.profileImageUrl)
+                    .placeholder(R.drawable.default_person)
+                    .error(R.drawable.default_person)
+                    .into(profileImage);
+        } else {
+            profileImage.setImageResource(R.drawable.default_person);
+        }
 
+        // Fetch receiverId for follow logic
         db.collection("users")
-                .whereEqualTo("username", receiverUsername)
+                .whereEqualTo("username", user.username)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
                         String receiverId = querySnapshot.getDocuments().get(0).getId();
 
-                        // DEBUG: Log the retrieved receiverId
-                        Log.d("DEBUG", "Found receiverId for " + receiverUsername + ": " + receiverId);
-
                         // Set click listener on the username to navigate to user profile
                         userNameTextView.setOnClickListener(v -> {
-                            Log.d(TAG, "Username clicked: " + receiverUsername);
-                            navigateToUserProfile(receiverId, receiverUsername);
+                            Log.d(TAG, "Username clicked: " + user.username);
+                            navigateToUserProfile(receiverId, user.username);
                         });
 
                         // Check follow status and set button visibility
-                        checkFollowStatus(receiverId, receiverUsername, followButton, requestedButton, unfollowButton);
+                        checkFollowStatus(receiverId, user.username, followButton, requestedButton, unfollowButton);
 
                         // Add Click Listeners for buttons
                         followButton.setOnClickListener(v -> {
-                            Log.d("DEBUG", "Follow button clicked for: " + receiverUsername);
-                            sendFollowRequest(receiverId, receiverUsername, followButton, requestedButton, unfollowButton);
+                            Log.d(TAG, "Follow button clicked for: " + user.username);
+                            sendFollowRequest(receiverId, user.username, followButton, requestedButton, unfollowButton);
                         });
 
                         requestedButton.setOnClickListener(v -> {
-                            Log.d("DEBUG", "Requested button clicked for: " + receiverUsername);
+                            Log.d(TAG, "Requested button clicked for: " + user.username);
                             cancelFollowRequest(receiverId, followButton, requestedButton);
                         });
 
                         unfollowButton.setOnClickListener(v -> {
-                            Log.d("DEBUG", "Unfollow button clicked for: " + receiverUsername);
+                            Log.d(TAG, "Unfollow button clicked for: " + user.username);
                             unfollowUser(receiverId, followButton, requestedButton, unfollowButton);
                         });
-
                     } else {
-                        Log.e("DEBUG", "No user found with username: " + receiverUsername);
-                        showMessage("No user found with username: " + receiverUsername);
+                        Log.e(TAG, "No user found with username: " + user.username);
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("DEBUG", "Error fetching user document", e);
-                    showMessage("Error fetching user document: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document: " + e.getMessage()));
 
         return convertView;
     }
 
     private void navigateToUserProfile(String receiverId, String receiverUsername) {
         Log.d(TAG, "Attempting to navigate to profile for: " + receiverUsername);
-
         try {
-            // Create intent to open UserProfileActivity
             Intent intent = new Intent(getContext(), UserProfileActivity.class);
-            intent.putExtra("userId", receiverId); // Pass the userId
-            intent.putExtra("username", receiverUsername); // Pass the username
-
-            Log.d(TAG, "Starting UserProfileActivity with userId: " + receiverId);
+            intent.putExtra("userId", receiverId);
+            intent.putExtra("username", receiverUsername);
             getContext().startActivity(intent);
         } catch (Exception e) {
             Log.e(TAG, "Error starting UserProfileActivity", e);
-            showMessage("Error opening profile: " + e.getMessage());
+            Toast.makeText(getContext(), "Error opening profile", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void checkFollowStatus(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
         if (receiverId == null || receiverId.isEmpty()) {
-            Log.e("DEBUG", "❌ receiverId is NULL or EMPTY! Follow status cannot be checked.");
-            showMessage("Error: Invalid receiver ID");
+            Log.e(TAG, "receiverId is NULL or EMPTY! Follow status cannot be checked.");
             return;
         }
 
-        Log.d("DEBUG", "🔍 Checking follow status for receiverId: " + receiverId);
-
-        // First, check if there's a pending follow request
+        // Check if there's a pending follow request
         db.collection("follow_requests")
                 .whereEqualTo("senderId", currentUserId)
                 .whereEqualTo("receiverId", receiverId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        Log.d("DEBUG", "📌 Follow request exists! Showing Requested button.");
                         followButton.setVisibility(View.GONE);
                         requestedButton.setVisibility(View.VISIBLE);
                         unfollowButton.setVisibility(View.GONE);
@@ -154,30 +160,27 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                 .get()
                                 .addOnSuccessListener(followQuery -> {
                                     if (!followQuery.isEmpty()) {
-                                        Log.d("DEBUG", "✅ User is FOLLOWED! Showing Unfollow button.");
                                         followButton.setVisibility(View.GONE);
                                         requestedButton.setVisibility(View.GONE);
                                         unfollowButton.setVisibility(View.VISIBLE);
                                     } else {
-                                        Log.d("DEBUG", "❌ User NOT found in followers collection. Showing Follow button.");
                                         followButton.setVisibility(View.VISIBLE);
                                         requestedButton.setVisibility(View.GONE);
                                         unfollowButton.setVisibility(View.GONE);
                                     }
                                 })
-                                .addOnFailureListener(e -> {
-                                    Log.e("DEBUG", "⚠️ Error checking followers", e);
-                                    showMessage("Error checking followers: " + e.getMessage());
-                                });
+                                .addOnFailureListener(e -> Log.e(TAG, "Error checking followers: " + e.getMessage()));
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("DEBUG", "⚠️ Error checking follow requests", e);
-                    showMessage("Error checking follow requests: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error checking follow requests: " + e.getMessage()));
     }
 
     private void sendFollowRequest(String receiverId, String receiverUsername, ImageButton followButton, Button requestedButton, Button unfollowButton) {
+        if (currentUsername == null) {
+            Log.e(TAG, "Current username is null, cannot send follow request");
+            return;
+        }
+
         FollowRequest followRequest = new FollowRequest(
                 currentUserId, receiverId, currentUsername, receiverUsername, "pending"
         );
@@ -188,12 +191,8 @@ public class UserListAdapter extends ArrayAdapter<String> {
                     followButton.setVisibility(View.GONE);
                     requestedButton.setVisibility(View.VISIBLE);
                     unfollowButton.setVisibility(View.GONE);
-                    showMessage("Follow request sent!");
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("DEBUG", "Error sending follow request", e);
-                    showMessage("Error sending follow request: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error sending follow request: " + e.getMessage()));
     }
 
     private void cancelFollowRequest(String receiverId, ImageButton followButton, Button requestedButton) {
@@ -208,18 +207,11 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                 .addOnSuccessListener(aVoid -> {
                                     followButton.setVisibility(View.VISIBLE);
                                     requestedButton.setVisibility(View.GONE);
-                                    showMessage("Follow request canceled!");
                                 })
-                                .addOnFailureListener(e -> {
-                                    Log.e("DEBUG", "Error canceling follow request", e);
-                                    showMessage("Error canceling follow request: " + e.getMessage());
-                                });
+                                .addOnFailureListener(e -> Log.e(TAG, "Error canceling follow request: " + e.getMessage()));
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("DEBUG", "Error finding follow request", e);
-                    showMessage("Error finding follow request: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching follow request: " + e.getMessage()));
     }
 
     private void unfollowUser(String receiverId, ImageButton followButton, Button requestedButton, Button unfollowButton) {
@@ -235,30 +227,10 @@ public class UserListAdapter extends ArrayAdapter<String> {
                                     followButton.setVisibility(View.VISIBLE);
                                     requestedButton.setVisibility(View.GONE);
                                     unfollowButton.setVisibility(View.GONE);
-                                    showMessage("Unfollowed successfully!");
                                 })
-                                .addOnFailureListener(e -> {
-                                    Log.e("DEBUG", "Error unfollowing user", e);
-                                    showMessage("Error unfollowing user: " + e.getMessage());
-                                });
+                                .addOnFailureListener(e -> Log.e(TAG, "Error unfollowing user: " + e.getMessage()));
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("DEBUG", "Error finding follow relationship", e);
-                    showMessage("Error finding follow relationship: " + e.getMessage());
-                });
-    }
-
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
-    private void showMessage(String message) {
-        if (rootView != null) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
-                    .setAction("OK", null)
-                    .show();
-        }
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching following data: " + e.getMessage()));
     }
 }

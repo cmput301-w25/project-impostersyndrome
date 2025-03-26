@@ -6,38 +6,43 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.impostersyndrom.controller.MoodAdapter;
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.MainViewPagerAdapter;
 import com.example.impostersyndrom.model.EmojiUtils;
-import com.example.impostersyndrom.model.MoodDataCache;
 import com.example.impostersyndrom.model.MoodDataManager;
-import com.example.impostersyndrom.model.MoodFilter;
+import com.example.impostersyndrom.spotify.SpotifyManager;
+import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,93 +50,65 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    // UI Components
-    private ListView moodListView;
-    private ImageButton addMoodButton;
-    private ImageButton profileButton;
-    private ImageButton filterButton;
-    private ImageButton menuButton;
+    private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private SwipeRefreshLayout swipeRefreshLayout; // Added for pull-to-refresh
+    private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
     private LinearLayout logoutContainer;
-    private TextView userEmailTextView;
-    private ImageButton searchButton;
-    private ImageButton heartButton;
-
-    // Data
-    private List<DocumentSnapshot> moodDocs = new ArrayList<>();
-    private MoodAdapter moodAdapter;
-    private String userId;
-    private boolean filterByRecentWeek = false;
-    private String selectedEmotionalState = "";
-
-    // Repositories and Utilities
     private MoodDataManager moodDataManager;
-    private MoodFilter moodFilter;
+    private ProfileDataManager profileDataManager;
+    private String userId;
+    private FirebaseFirestore db;
+
+
+    // Spotify Authentication
+    private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
+    private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
+    private String savedReasonFilter = "";
+    private boolean savedRecentWeekFilter = false;
+    private int savedEmotionalStatePosition = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        // Initialize UI components
+        db = FirebaseFirestore.getInstance();
         initializeViews();
-
-        // Initialize repositories and utilities
         moodDataManager = new MoodDataManager();
-        moodFilter = new MoodFilter();
+        profileDataManager = new ProfileDataManager();
 
-        // Get userId from intent or FirebaseAuth
-        userId = getIntent().getStringExtra("userId");
-        if (userId == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        }
-
-        if (userId == null) {
-            showMessage("User ID is missing!");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
             redirectToLogin();
             return;
         }
+        userId = auth.getCurrentUser().getUid();
+        Log.d("MainActivity", "userId: " + userId);
 
-        // Check if data was preloaded
-        boolean dataPreloaded = getIntent().getBooleanExtra("dataPreloaded", false);
+        getIntent().putExtra("userId", userId);
 
-        if (dataPreloaded && MoodDataCache.getInstance().getMoodDocs() != null) {
-            // Use pre-fetched data
-            setupMoodAdapter(MoodDataCache.getInstance().getMoodDocs());
-            MoodDataCache.getInstance().clearCache();
-        } else {
-            // Fetch data if not pre-loaded
-            fetchMoods(userId);
-        }
+        // Initialize SpotifyManager
+        SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
 
-        // Set up button click listeners
+        // Set up ViewPager and TabLayout
+
+        setupViewPager();
         setupButtonListeners();
-
-        // Set up navigation drawer with user information
         setupNavigationDrawer();
+
+        // Set up swipe-to-refresh
+        setupSwipeRefresh();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh moods when returning to this activity
-        if (userId != null) {
-            fetchMoods(userId);
-        }
-    }
-
-    /**
-     * Initializes all UI components.
-     */
     private void initializeViews() {
-        moodListView = findViewById(R.id.moodListView);
+        tabLayout = findViewById(R.id.tabLayout);
+        viewPager = findViewById(R.id.viewPager);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout); // Initialize SwipeRefreshLayout
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -139,175 +116,136 @@ public class MainActivity extends AppCompatActivity {
         heartButton = findViewById(R.id.heartButton);
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
-
-        // New navigation components
         innerNavigationView = findViewById(R.id.innerNavigationView);
-        logoutContainer = findViewById(R.id.logoutContainer);
-        userEmailTextView = findViewById(R.id.userEmailTextView);
+        // Note: userNameTextView, userEmailTextView, and logoutContainer are initialized in setupNavigationDrawer
     }
 
-    /**
-     * Sets up the navigation drawer with user information.
-     */
     private void setupNavigationDrawer() {
-        // Set up user email in the drawer header
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-            if (email != null) {
-                userEmailTextView.setText(email);
-            }
+        View navigationLayout = findViewById(R.id.navigation_layout);
+        if (navigationLayout == null) {
+            Log.e("MainActivity", "Navigation layout not found! Check activity_main.xml <include> ID.");
+            return;
         }
 
-        // Set up navigation item click listener for the inner navigation view
-        innerNavigationView.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
+        ImageView profileImage = navigationLayout.findViewById(R.id.profileImage);
+        TextView userNameTextView = navigationLayout.findViewById(R.id.userNameTextView);
+        TextView userEmailTextView = navigationLayout.findViewById(R.id.userEmailTextView);
+        logoutContainer = navigationLayout.findViewById(R.id.logoutContainer);
 
-            // Handle navigation item clicks
-            // Add your navigation handling code here
+        if (profileImage == null || userNameTextView == null || userEmailTextView == null) {
+            Log.e("MainActivity", "One or more header views not found in navigation_layout!");
+            return;
+        }
+        if (logoutContainer == null) {
+            Log.e("MainActivity", "Logout container not found in navigation_layout!");
+            return;
+        }
 
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            userNameTextView.setText("Guest");
+            userEmailTextView.setText("Not logged in");
+            profileImage.setImageResource(R.drawable.white_profile);
+        } else {
+            String email = auth.getCurrentUser().getEmail();
+            userEmailTextView.setText(email != null ? email : "No email available");
 
-        // Setup the logout button
+            profileDataManager.fetchUserProfile(userId, new ProfileDataManager.OnProfileFetchedListener() {
+                @Override
+                public void onProfileFetched(DocumentSnapshot profileDoc) {
+                    String username = profileDoc.getString("username");
+                    Log.d("MainActivity", "Fetched username: " + username);
+                    userNameTextView.setText(username != null && !username.isEmpty() ? username : "Anonymous");
+
+                    String profileImageUrl = profileDoc.getString("profileImageUrl");
+                    Log.d("MainActivity", "Fetched profileImageUrl: " + profileImageUrl);
+                    if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
+                        Glide.with(MainActivity.this)
+                                .load(profileImageUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.white_profile)
+                                .error(R.drawable.white_profile)
+                                .into(profileImage);
+                    } else {
+                        profileImage.setImageResource(R.drawable.white_profile);
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    Log.e("MainActivity", "Error fetching profile: " + errorMessage);
+                    userNameTextView.setText("Anonymous");
+                    profileImage.setImageResource(R.drawable.white_profile);
+                    Toast.makeText(MainActivity.this, "Error loading profile: " + errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         logoutContainer.setOnClickListener(v -> {
+            Log.d("MainActivity", "Logout clicked");
             drawerLayout.closeDrawer(GravityCompat.START);
             logoutUser();
         });
+
+        innerNavigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.maps) {
+                // Handle maps action
+                // Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                // startActivity(intent);
+            } else if (id == R.id.nav_settings) {
+                // Handle settings action
+                // Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                // startActivity(intent);
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
     }
 
-    /**
-     * Sets up button click listeners.
-     */
-    private void setupButtonListeners() {
+    private void setupViewPager() {
+        viewPagerAdapter = new MainViewPagerAdapter(this);
+        viewPager.setAdapter(viewPagerAdapter);
+        Log.d("MainActivity", "ViewPager adapter set");
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            tab.setText(position == 0 ? "My Moods" : "Following");
+        }).attach();
+    }
 
-        searchButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-            startActivity(intent);
-        });
+    private void setupButtonListeners() {
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
         profileButton.setOnClickListener(v -> navigateToProfile());
         filterButton.setOnClickListener(v -> showFilterDialog());
-        heartButton.setOnClickListener(v -> {
-            // Navigate to FollowingActivity when the heart button is clicked
-            Intent intent = new Intent(MainActivity.this, FollowingActivity.class);
-            startActivity(intent);
-        });
+        searchButton.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
+        heartButton.setOnClickListener(v -> startActivity(new Intent(this, FollowingActivity.class)));
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
-    /**
-     * Navigates to the ProfileActivity.
-     */
-    private void navigateToProfile() {
-        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-        startActivity(intent);
+    private void setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.d("MainActivity", "Swipe to refresh triggered");
+            refreshCurrentFragment();
+            // Stop the refresh animation once data is loaded
+            swipeRefreshLayout.setRefreshing(false);
+        });
     }
 
-    /**
-     * Method for toggling the navigation drawer
-      */
+    private void navigateToProfile() {
+        startActivity(new Intent(this, ProfileActivity.class));
+    }
+
     private void toggleNavigationDrawer() {
         if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.openDrawer(GravityCompat.START);
         }
     }
-    /**
-     * Navigates to EmojiSelectionActivity.
-     */
+
     private void navigateToEmojiSelection() {
-        Intent intent = new Intent(MainActivity.this, EmojiSelectionActivity.class);
+        Intent intent = new Intent(this, EmojiSelectionActivity.class);
         intent.putExtra("userId", userId);
         startActivity(intent);
     }
 
-    /**
-     * Logs out the user and redirects to LoginActivity.
-     */
-    private void logoutUser() {
-        FirebaseAuth.getInstance().signOut();
-        showMessage("Logged out successfully!");
-        redirectToLogin();
-    }
-
-    /**
-     * Redirects to LoginActivity.
-     */
-    private void redirectToLogin() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * Sets up the MoodAdapter with the provided list of mood documents.
-     *
-     * @param moodDocs The list of mood documents to display.
-     */
-    private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
-        if (moodDocs != null && !moodDocs.isEmpty()) {
-            moodAdapter = new MoodAdapter(this, moodDocs);
-            moodListView.setAdapter(moodAdapter);
-
-            moodListView.setOnItemClickListener((parent, view, position, id) -> {
-                DocumentSnapshot moodDoc = moodDocs.get(position);
-                navigateToMoodDetail(moodDoc);
-            });
-
-            moodListView.setOnItemLongClickListener((parent, view, position, id) -> {
-                DocumentSnapshot moodDoc = moodDocs.get(position);
-                showBottomSheetDialog(moodDoc);
-                return true;
-            });
-        } else {
-            showMessage("No moods found!");
-        }
-    }
-
-    /**
-     * Navigates to MoodDetailActivity with the selected mood data.
-     *
-     * @param moodDoc The Firestore document representing the mood.
-     */
-    private void navigateToMoodDetail(DocumentSnapshot moodDoc) {
-        Map<String, Object> data = moodDoc.getData();
-        if (data != null) {
-            Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
-            intent.putExtra("emoji", (String) data.get("emotionalState"));
-            intent.putExtra("timestamp", (Timestamp) data.get("timestamp"));
-            intent.putExtra("reason", (String) data.get("reason"));
-            intent.putExtra("group", (String) data.get("group"));
-            intent.putExtra("color", ((Long) data.get("color")).intValue());
-            intent.putExtra("imageUrl", (String) data.get("imageUrl"));
-            intent.putExtra("emojiDescription", (String) data.get("emojiDescription"));
-            startActivity(intent);
-        }
-    }
-
-    /**
-     * Fetches mood entries from Firestore for the current user.
-     *
-     * @param userId The ID of the current user.
-     */
-    private void fetchMoods(String userId) {
-        moodDataManager.fetchMoods(userId, new MoodDataManager.OnMoodsFetchedListener() {
-            @Override
-            public void onMoodsFetched(List<DocumentSnapshot> moodDocs) {
-                MainActivity.this.moodDocs = moodDocs;
-                applyFilter(selectedEmotionalState);
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                showMessage("Failed to fetch moods: " + errorMessage);
-            }
-        });
-    }
-
-    /**
-     * Shows the filter dialog with options to filter moods.
-     */
     private void showFilterDialog() {
         Dialog filterDialog = new Dialog(this);
         filterDialog.setContentView(R.layout.filter_mood_dialog);
@@ -321,7 +259,11 @@ public class MainActivity extends AppCompatActivity {
 
         CheckBox checkboxRecentWeek = filterDialog.findViewById(R.id.checkboxRecentWeek);
         Spinner emotionalStateSpinner = filterDialog.findViewById(R.id.emotionalStateSpinner);
+        EditText reasonInput = filterDialog.findViewById(R.id.reasonInput);
         ImageButton tickButton = filterDialog.findViewById(R.id.tickButton);
+
+        checkboxRecentWeek.setChecked(savedRecentWeekFilter);
+        reasonInput.setText(savedReasonFilter);
 
         List<String> emotionalStates = new ArrayList<>();
         emotionalStates.add("All Moods");
@@ -329,51 +271,75 @@ public class MainActivity extends AppCompatActivity {
 
         EmojiSpinnerAdapter spinnerAdapter = new EmojiSpinnerAdapter(this, emotionalStates, getEmojiDrawables());
         emotionalStateSpinner.setAdapter(spinnerAdapter);
+        emotionalStateSpinner.setSelection(savedEmotionalStatePosition);
 
-        checkboxRecentWeek.setChecked(filterByRecentWeek);
-
-        if (!selectedEmotionalState.isEmpty()) {
-            String selectedDescription = EmojiUtils.getDescription(selectedEmotionalState);
-            int selectedPosition = emotionalStates.indexOf(selectedDescription);
-            if (selectedPosition != -1) {
-                emotionalStateSpinner.setSelection(selectedPosition);
+        Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+        if (currentFragment instanceof MyMoodsFragment) {
+            checkboxRecentWeek.setChecked(((MyMoodsFragment) currentFragment).isFilterByRecentWeek());
+            String selectedEmotionalState = ((MyMoodsFragment) currentFragment).getSelectedEmotionalState();
+            if (!selectedEmotionalState.isEmpty()) {
+                String selectedDescription = EmojiUtils.getDescription(selectedEmotionalState);
+                int selectedPosition = emotionalStates.indexOf(selectedDescription);
+                if (selectedPosition != -1) {
+                    emotionalStateSpinner.setSelection(selectedPosition);
+                }
+            }
+        } else if (currentFragment instanceof FollowingMoodsFragment) {
+            checkboxRecentWeek.setChecked(((FollowingMoodsFragment) currentFragment).isFilterByRecentWeek());
+            String selectedEmotionalState = ((FollowingMoodsFragment) currentFragment).getSelectedEmotionalState();
+            if (!selectedEmotionalState.isEmpty()) {
+                String selectedDescription = EmojiUtils.getDescription(selectedEmotionalState);
+                int selectedPosition = emotionalStates.indexOf(selectedDescription);
+                if (selectedPosition != -1) {
+                    emotionalStateSpinner.setSelection(selectedPosition);
+                }
             }
         }
 
         tickButton.setOnClickListener(v -> {
-            filterByRecentWeek = checkboxRecentWeek.isChecked();
+            // Save filter values
+            savedRecentWeekFilter = checkboxRecentWeek.isChecked();
+            savedReasonFilter = reasonInput.getText().toString().trim();
+            savedEmotionalStatePosition = emotionalStateSpinner.getSelectedItemPosition();
+
+            boolean filterByRecentWeek = checkboxRecentWeek.isChecked();
             String selectedDescription = (String) emotionalStateSpinner.getSelectedItem();
-            selectedEmotionalState = selectedDescription.equals("All Moods") ? "" : EmojiUtils.getEmojiKey(selectedDescription);
-            applyFilter(selectedEmotionalState);
+            String selectedEmotionalState = selectedDescription.equals("All Moods") ? "" : EmojiUtils.getEmojiKey(selectedDescription);
+            String reasonFilter = reasonInput.getText().toString().trim();
+
+            if (currentFragment instanceof MyMoodsFragment) {
+                ((MyMoodsFragment) currentFragment).setFilterByRecentWeek(filterByRecentWeek);
+                ((MyMoodsFragment) currentFragment).applyFilter(selectedEmotionalState, reasonFilter);
+            } else if (currentFragment instanceof FollowingMoodsFragment) {
+                ((FollowingMoodsFragment) currentFragment).setFilterByRecentWeek(filterByRecentWeek);
+                ((FollowingMoodsFragment) currentFragment).applyFilter(selectedEmotionalState, reasonFilter);
+            }
             filterDialog.dismiss();
         });
 
         filterDialog.show();
     }
 
-    /**
-     * Applies the filter to the mood list based on the current filter settings.
-     *
-     * @param emotionalState The emotional state to filter by (empty string for no filter).
-     */
-    private void applyFilter(String emotionalState) {
-        List<DocumentSnapshot> filteredMoods = moodFilter.applyFilter(moodDocs, filterByRecentWeek, emotionalState);
-        setupMoodAdapter(filteredMoods);
+    private List<Integer> getEmojiDrawables() {
+        List<Integer> emojiDrawables = new ArrayList<>();
+        emojiDrawables.add(R.drawable.emoji_happy);
+        emojiDrawables.add(R.drawable.emoji_confused);
+        emojiDrawables.add(R.drawable.emoji_disgust);
+        emojiDrawables.add(R.drawable.emoji_angry);
+        emojiDrawables.add(R.drawable.emoji_sad);
+        emojiDrawables.add(R.drawable.emoji_fear);
+        emojiDrawables.add(R.drawable.emoji_shame);
+        emojiDrawables.add(R.drawable.emoji_surprised);
+        return emojiDrawables;
     }
 
-    /**
-     * Displays a bottom sheet dialog with options to edit or delete a mood.
-     *
-     * @param moodDoc The Firestore document representing the mood.
-     */
-    private void showBottomSheetDialog(DocumentSnapshot moodDoc) {
+    public void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
-        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
 
-        // Set edge-to-edge display
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove grey background
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             );
@@ -391,6 +357,8 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("imageUrl", (String) moodDoc.get("imageUrl"));
             intent.putExtra("color", ((Long) moodDoc.get("color")).intValue());
             intent.putExtra("group", (String) moodDoc.get("group"));
+            boolean isPrivateMood = moodDoc.contains("privateMood") && Boolean.TRUE.equals(moodDoc.getBoolean("privateMood"));
+            intent.putExtra("privateMood", isPrivateMood);
             startActivity(intent);
             bottomSheetDialog.dismiss();
         });
@@ -399,42 +367,85 @@ public class MainActivity extends AppCompatActivity {
             moodDataManager.deleteMood(moodDoc.getId(), new MoodDataManager.OnMoodDeletedListener() {
                 @Override
                 public void onMoodDeleted() {
-                    showMessage("Mood deleted!");
-                    fetchMoods(userId); // Refresh the list after deletion
+                    showToast("Mood deleted!");
+                    refreshCurrentFragment();
                 }
 
                 @Override
                 public void onError(String errorMessage) {
-                    showMessage("Failed to delete mood: " + errorMessage);
+                    showToast("Failed to delete mood: " + errorMessage);
                 }
             });
             bottomSheetDialog.dismiss();
         });
 
+        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+
         bottomSheetDialog.show();
     }
 
-    /**
-     * Returns a list of emoji drawable resource IDs.
-     *
-     * @return A list of emoji drawable resource IDs.
-     */
-    private List<Integer> getEmojiDrawables() {
-        List<Integer> emojiDrawables = new ArrayList<>();
-        emojiDrawables.add(R.drawable.emoji_happy);
-        emojiDrawables.add(R.drawable.emoji_confused);
-        emojiDrawables.add(R.drawable.emoji_disgust);
-        emojiDrawables.add(R.drawable.emoji_angry);
-        emojiDrawables.add(R.drawable.emoji_sad);
-        emojiDrawables.add(R.drawable.emoji_fear);
-        emojiDrawables.add(R.drawable.emoji_shame);
-        emojiDrawables.add(R.drawable.emoji_surprised);
-        return emojiDrawables;
+    public void navigateToMoodDetail(DocumentSnapshot moodDoc) {
+        if (moodDoc == null || !moodDoc.exists()) {
+            showToast("Mood details unavailable.");
+            return;
+        }
+
+        Map<String, Object> data = moodDoc.getData();
+        if (data != null) {
+            Intent intent = new Intent(MainActivity.this, MoodDetailActivity.class);
+            intent.putExtra("emoji", (String) data.getOrDefault("emotionalState", ""));
+            intent.putExtra("timestamp", (Timestamp) data.getOrDefault("timestamp", null));
+            intent.putExtra("reason", (String) data.getOrDefault("reason", "No reason provided"));
+            intent.putExtra("group", (String) data.getOrDefault("group", "No group"));
+            intent.putExtra("color", ((Long) data.getOrDefault("color", 0L)).intValue());
+            intent.putExtra("imageUrl", (String) data.getOrDefault("imageUrl", ""));
+            intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
+            intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
+            intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
+            startActivity(intent);
+        } else {
+            showToast("Error loading mood details.");
+        }
     }
 
-    private void showMessage(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
-                .setAction("OK", null)
-                .show();
+    private void logoutUser() {
+        FirebaseAuth.getInstance().signOut();
+        showToast("Logged out successfully!");
+        redirectToLogin();
+    }
+
+    private void redirectToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    private void showToast(String message) {
+        if (!isFinishing()) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void refreshCurrentFragment() {
+        Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+        if (currentFragment instanceof MyMoodsFragment) {
+            ((MyMoodsFragment) currentFragment).fetchMyMoods();
+            Log.d("MainActivity", "Refreshing MyMoodsFragment");
+        } else if (currentFragment instanceof FollowingMoodsFragment) {
+            ((FollowingMoodsFragment) currentFragment).fetchFollowingMoods();
+            Log.d("MainActivity", "Refreshing FollowingMoodsFragment");
+        } else {
+            Log.d("MainActivity", "No valid fragment found to refresh");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("MainActivity", "onResume called");
+        refreshCurrentFragment();
+        viewPagerAdapter.notifyDataSetChanged();
+        viewPager.setCurrentItem(viewPager.getCurrentItem(), false);
     }
 }

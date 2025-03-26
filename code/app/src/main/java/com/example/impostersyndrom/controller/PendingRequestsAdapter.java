@@ -10,12 +10,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.UserData;
 import com.example.impostersyndrom.view.UserProfileActivity;
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -24,33 +28,50 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PendingRequestsAdapter extends ArrayAdapter<String> {
+public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
     private final FirebaseFirestore db;
     private final String currentUserId;
     private final String currentUsername;
-    private final View rootView; // Root view for displaying Snackbar
     private static final String TAG = "PendingRequestsAdapter";
 
-    public PendingRequestsAdapter(Context context, List<String> users, String currentUsername, View rootView) {
+    public PendingRequestsAdapter(Context context, List<UserData> users, String currentUsername) {
         super(context, 0, users);
         db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
         this.currentUsername = currentUsername;
-        this.rootView = rootView; // Initialize rootView
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_pending_request, parent, false);
         }
 
-        String senderUsername = getItem(position);
+        UserData user = getItem(position);
+        if (user == null) {
+            Log.e(TAG, "User data at position " + position + " is null");
+            return convertView;
+        }
+
         TextView usernameText = convertView.findViewById(R.id.usernameTextView);
         Button acceptButton = convertView.findViewById(R.id.acceptButton);
         ImageButton declineButton = convertView.findViewById(R.id.rejectButton);
+        ShapeableImageView profileImage = convertView.findViewById(R.id.profileImage);
 
-        usernameText.setText(senderUsername);
+        // Set username
+        usernameText.setText(user.username);
+
+        // Load profile picture
+        if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
+            Glide.with(getContext())
+                    .load(user.profileImageUrl)
+                    .placeholder(R.drawable.default_person)
+                    .error(R.drawable.default_person)
+                    .into(profileImage);
+        } else {
+            profileImage.setImageResource(R.drawable.default_person);
+        }
 
         // Make the TextView clickable and ensure it has proper focus state
         usernameText.setClickable(true);
@@ -58,22 +79,21 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
 
         // Set click listener on the username to navigate to user profile
         usernameText.setOnClickListener(v -> {
-            Log.d(TAG, "Username clicked: " + senderUsername);
-            navigateToUserProfile(senderUsername);
+            Log.d(TAG, "Username clicked: " + user.username);
+            navigateToUserProfile(user.username);
         });
 
         // Add click listener to the entire row as well for better UX
         View finalConvertView = convertView;
         convertView.setOnClickListener(v -> {
-            // Only handle click if it's not on a button
             if (v == finalConvertView) {
-                Log.d(TAG, "Row clicked: " + senderUsername);
-                navigateToUserProfile(senderUsername);
+                Log.d(TAG, "Row clicked: " + user.username);
+                navigateToUserProfile(user.username);
             }
         });
 
-        acceptButton.setOnClickListener(v -> acceptFollowRequest(senderUsername));
-        declineButton.setOnClickListener(v -> declineFollowRequest(senderUsername));
+        acceptButton.setOnClickListener(v -> acceptFollowRequest(user.username, acceptButton, declineButton));
+        declineButton.setOnClickListener(v -> declineFollowRequest(user.username, acceptButton, declineButton));
 
         return convertView;
     }
@@ -81,40 +101,35 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
     private void navigateToUserProfile(String username) {
         Log.d(TAG, "Attempting to navigate to profile for: " + username);
 
-        // First get the user ID from the username
         db.collection("users")
                 .whereEqualTo("username", username)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        // Get the first document that matches the username
                         String userId = querySnapshot.getDocuments().get(0).getId();
                         Log.d(TAG, "Found user ID: " + userId + " for username: " + username);
 
                         try {
-                            // Create intent to open UserProfileActivity
                             Intent intent = new Intent(getContext(), UserProfileActivity.class);
-                            intent.putExtra("userId", userId); // Match the key expected by UserProfileActivity
-                            intent.putExtra("username", username); // Match the key expected by UserProfileActivity
-
-                            Log.d(TAG, "Starting UserProfileActivity with userId: " + userId);
+                            intent.putExtra("userId", userId);
+                            intent.putExtra("username", username);
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            showMessage("Error opening profile: " + e.getMessage());
+                            Toast.makeText(getContext(), "Error opening profile", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        showMessage("User not found");
+                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    showMessage("Error finding user");
+                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void acceptFollowRequest(String senderUsername) {
+    private void acceptFollowRequest(String senderUsername, Button acceptButton, ImageButton declineButton) {
         db.collection("follow_requests")
                 .whereEqualTo("senderUsername", senderUsername)
                 .whereEqualTo("receiverId", currentUserId)
@@ -132,46 +147,57 @@ public class PendingRequestsAdapter extends ArrayAdapter<String> {
 
                             db.collection("following").add(followData)
                                     .addOnSuccessListener(documentReference -> {
-                                        removeRequest(senderUsername);
-                                        showMessage("Follow request accepted!");
+                                        removeRequest(senderUsername, acceptButton, declineButton);
+                                        Toast.makeText(getContext(), "Follow request accepted!", Toast.LENGTH_SHORT).show();
                                     })
-                                    .addOnFailureListener(e -> showMessage("Error following user"));
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Error adding to following: " + e.getMessage());
+                                        Toast.makeText(getContext(), "Error accepting request", Toast.LENGTH_SHORT).show();
+                                    });
                         }
+                    } else {
+                        Log.e(TAG, "No matching follow request found for: " + senderUsername);
                     }
                 })
-                .addOnFailureListener(e -> showMessage("Failed to accept request"));
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching follow request: " + e.getMessage());
+                    Toast.makeText(getContext(), "Failed to accept request", Toast.LENGTH_SHORT).show();
+                });
     }
 
-    private void declineFollowRequest(String senderUsername) {
-        removeRequest(senderUsername);
-        showMessage("Follow request declined");
+    private void declineFollowRequest(String senderUsername, Button acceptButton, ImageButton declineButton) {
+        removeRequest(senderUsername, acceptButton, declineButton);
+        Toast.makeText(getContext(), "Follow request declined", Toast.LENGTH_SHORT).show();
     }
 
-    private void removeRequest(String senderUsername) {
+    private void removeRequest(String senderUsername, Button acceptButton, ImageButton declineButton) {
         db.collection("follow_requests")
                 .whereEqualTo("senderUsername", senderUsername)
                 .whereEqualTo("receiverId", currentUserId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-                        db.collection("follow_requests").document(doc.getId()).delete();
+                        db.collection("follow_requests").document(doc.getId()).delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Follow request removed for: " + senderUsername);
+                                    acceptButton.setVisibility(View.GONE);
+                                    declineButton.setVisibility(View.GONE);
+                                    // Find and remove the item from the list
+                                    for (int i = 0; i < getCount(); i++) {
+                                        UserData user = getItem(i);
+                                        if (user != null && user.username.equals(senderUsername)) {
+                                            remove(user);
+                                            break;
+                                        }
+                                    }
+                                    notifyDataSetChanged();
+                                })
+                                .addOnFailureListener(e -> Log.e(TAG, "Error deleting follow request: " + e.getMessage()));
                     }
-                    remove(senderUsername);
-                    notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> showMessage("Failed to remove request"));
-    }
-
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
-    private void showMessage(String message) {
-        if (rootView != null) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
-                    .setAction("OK", null)
-                    .show();
-        }
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching follow request to remove: " + e.getMessage());
+                    Toast.makeText(getContext(), "Failed to remove request", Toast.LENGTH_SHORT).show();
+                });
     }
 }

@@ -13,9 +13,11 @@ import android.widget.TextView;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.FollowingAdapter;
+import com.example.impostersyndrom.model.UserData; // Import UserData
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -24,10 +26,11 @@ import java.util.List;
 public class FollowingFragment extends Fragment {
     private ListView listView;
     private TextView emptyMessage;
-    private List<String> followingUsers = new ArrayList<>();
+    private List<UserData> followingUsers = new ArrayList<>();
     private FollowingAdapter followingAdapter;
     private FirebaseFirestore db;
     private String currentUserId;
+    private ListenerRegistration followingListener;
 
     public FollowingFragment() {}
 
@@ -40,8 +43,8 @@ public class FollowingFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getUid();
 
-        // Initialize adapter with empty list and pass the root view for Snackbar
-        followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId, view);
+        // Initialize adapter with List<UserData>
+        followingAdapter = new FollowingAdapter(requireContext(), followingUsers, currentUserId);
         followingAdapter.setEmptyMessageView(emptyMessage);
         listView.setAdapter(followingAdapter);
 
@@ -50,17 +53,26 @@ public class FollowingFragment extends Fragment {
     }
 
     private void loadFollowingUsers() {
-        db.collection("following")
-                .whereEqualTo("followerId", currentUserId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    followingUsers.clear(); // Clear old data to avoid duplicates
+        if (followingListener != null) {
+            followingListener.remove();
+        }
 
+        followingListener = db.collection("following")
+                .whereEqualTo("followerId", currentUserId)
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (error != null) {
+                        emptyMessage.setText("Failed to load following list.");
+                        emptyMessage.setVisibility(View.VISIBLE);
+                        Log.e("FollowingFragment", "Error: " + error.getMessage());
+                        return;
+                    }
+
+                    followingUsers.clear();
                     List<String> userIds = new ArrayList<>();
 
-                    // Step 1: Get the list of user IDs we are following
+                    // Get the list of user IDs we are following
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String followingId = doc.getString("followingId"); // Get the user ID
+                        String followingId = doc.getString("followingId");
                         if (followingId != null) {
                             userIds.add(followingId);
                         }
@@ -71,38 +83,53 @@ public class FollowingFragment extends Fragment {
                         emptyMessage.setText("You're not following anyone yet");
                         emptyMessage.setVisibility(View.VISIBLE);
                         listView.setVisibility(View.GONE);
+                        followingAdapter.notifyDataSetChanged();
                     } else {
                         emptyMessage.setVisibility(View.GONE);
                         listView.setVisibility(View.VISIBLE);
-
-                        for (String userId : userIds) {
-                            db.collection("users").document(userId)
-                                    .get()
-                                    .addOnSuccessListener(userDoc -> {
-                                        if (userDoc.exists()) {
-                                            String username = userDoc.getString("username");
-                                            if (username != null) {
-                                                followingUsers.add(username);
-                                            }
-                                        }
-
-                                        // Update adapter only when all usernames are fetched
-                                        if (followingUsers.size() == userIds.size()) {
-                                            followingAdapter.notifyDataSetChanged();
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("FollowingFragment", "Error fetching username: " + e.getMessage());
-                                        showMessage("Error fetching username: " + e.getMessage());
-                                    });
-                        }
+                        fetchUserDetails(userIds);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    emptyMessage.setText("Failed to load following list.");
-                    emptyMessage.setVisibility(View.VISIBLE);
-                    showMessage("Failed to load following list: " + e.getMessage());
                 });
+    }
+
+    private void fetchUserDetails(List<String> userIds) {
+        followingUsers.clear();
+        for (String userId : userIds) {
+            db.collection("users").document(userId)
+                    .addSnapshotListener((userDoc, error) -> {
+                        if (error != null) {
+                            Log.e("FollowingFragment", "Error fetching user data: " + error.getMessage());
+                            return;
+                        }
+
+                        if (userDoc != null && userDoc.exists()) {
+                            String username = userDoc.getString("username");
+                            String profileImageUrl = userDoc.getString("profileImageUrl");
+                            if (username != null) {
+                                boolean userExists = false;
+                                for (UserData existingUser : followingUsers) {
+                                    if (existingUser.username.equals(username)) {
+                                        existingUser.profileImageUrl = profileImageUrl; // Update existing pfp
+                                        userExists = true;
+                                        break;
+                                    }
+                                }
+                                if (!userExists) {
+                                    followingUsers.add(new UserData(username, profileImageUrl));
+                                }
+                                followingAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (followingListener != null) {
+            followingListener.remove();
+        }
     }
 
     /**

@@ -14,9 +14,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.PendingRequestsAdapter;
-import com.google.android.material.snackbar.Snackbar;
+import com.example.impostersyndrom.model.UserData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -25,11 +26,13 @@ import java.util.List;
 public class PendingRequestsFragment extends Fragment {
     private ListView listView;
     private TextView emptyMessage;
-    private List<String> pendingRequests = new ArrayList<>();
+    private List<UserData> pendingRequests = new ArrayList<>(); // Changed to List<UserData>
     private PendingRequestsAdapter pendingRequestsAdapter;
     private FirebaseFirestore db;
     private String currentUserId;
     private String currentUsername;
+    private ListenerRegistration pendingListener;
+    private static final String TAG = "PendingRequestsFragment";
 
     public PendingRequestsFragment() {}
 
@@ -40,70 +43,118 @@ public class PendingRequestsFragment extends Fragment {
         listView = view.findViewById(R.id.listView);
         emptyMessage = view.findViewById(R.id.emptyMessage);
         db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-        // Get current username
+        if (currentUserId == null) {
+            Log.e(TAG, "Current user ID is null");
+            emptyMessage.setText("Please log in to view pending requests");
+            emptyMessage.setVisibility(View.VISIBLE);
+            return view;
+        }
+
+        // Get current username and initialize adapter
         db.collection("users").document(currentUserId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         currentUsername = documentSnapshot.getString("username");
+                        pendingRequestsAdapter = new PendingRequestsAdapter(requireContext(), pendingRequests, currentUsername);
+                        listView.setAdapter(pendingRequestsAdapter);
                         loadPendingRequests();
+                    } else {
+                        Log.e(TAG, "Current user document not found");
+                        emptyMessage.setText("User data not found");
+                        emptyMessage.setVisibility(View.VISIBLE);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("PendingRequestsFragment", "Error fetching username: " + e.getMessage());
-                    showMessage("Error fetching username: " + e.getMessage());
+                    Log.e(TAG, "Error fetching username: " + e.getMessage());
+                    emptyMessage.setText("Failed to load user data");
+                    emptyMessage.setVisibility(View.VISIBLE);
                 });
 
         return view;
     }
 
     private void loadPendingRequests() {
-        db.collection("follow_requests")
+        if (pendingListener != null) {
+            pendingListener.remove();
+        }
+
+        pendingListener = db.collection("follow_requests")
                 .whereEqualTo("receiverId", currentUserId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    pendingRequests.clear(); // Clear old data to avoid duplicates
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error loading pending requests: " + error.getMessage());
+                        emptyMessage.setText("Failed to load pending requests");
+                        emptyMessage.setVisibility(View.VISIBLE);
+                        return;
+                    }
+
+                    if (querySnapshot == null) {
+                        Log.e(TAG, "Query snapshot is null");
+                        return;
+                    }
+
+                    pendingRequests.clear();
+                    List<String> senderIds = new ArrayList<>();
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String senderUsername = doc.getString("senderUsername");
-                        if (senderUsername != null) {
-                            pendingRequests.add(senderUsername);
+                        String senderId = doc.getString("senderId");
+                        if (senderId != null) {
+                            senderIds.add(senderId);
                         }
                     }
 
-                    if (pendingRequests.isEmpty()) {
+                    if (senderIds.isEmpty()) {
                         emptyMessage.setText("No pending follow requests");
                         emptyMessage.setVisibility(View.VISIBLE);
                         listView.setVisibility(View.GONE);
+                        pendingRequestsAdapter.notifyDataSetChanged();
                     } else {
                         emptyMessage.setVisibility(View.GONE);
                         listView.setVisibility(View.VISIBLE);
-
-                        // Initialize adapter with rootView
-                        pendingRequestsAdapter = new PendingRequestsAdapter(requireContext(), pendingRequests, currentUsername, getView());
-                        listView.setAdapter(pendingRequestsAdapter);
+                        fetchSenderDetails(senderIds);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("PendingRequestsFragment", "Error loading pending requests: " + e.getMessage());
-                    emptyMessage.setText("Failed to load pending requests.");
-                    emptyMessage.setVisibility(View.VISIBLE);
-                    showMessage("Failed to load pending requests: " + e.getMessage());
                 });
     }
 
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
-    private void showMessage(String message) {
-        if (getView() != null) {
-            Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
-                    .setAction("OK", null)
-                    .show();
+    private void fetchSenderDetails(List<String> senderIds) {
+        for (String senderId : senderIds) {
+            db.collection("users").document(senderId)
+                    .addSnapshotListener((userDoc, error) -> {
+                        if (error != null) {
+                            Log.e(TAG, "Error fetching sender data: " + error.getMessage());
+                            return;
+                        }
+
+                        if (userDoc != null && userDoc.exists()) {
+                            String username = userDoc.getString("username");
+                            String profileImageUrl = userDoc.getString("profileImageUrl");
+                            if (username != null) {
+                                boolean userExists = false;
+                                for (UserData existingUser : pendingRequests) {
+                                    if (existingUser.username.equals(username)) {
+                                        existingUser.profileImageUrl = profileImageUrl; // Update pfp
+                                        userExists = true;
+                                        break;
+                                    }
+                                }
+                                if (!userExists) {
+                                    pendingRequests.add(new UserData(username, profileImageUrl));
+                                }
+                                pendingRequestsAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (pendingListener != null) {
+            pendingListener.remove();
         }
     }
 }

@@ -9,10 +9,10 @@
 
     <!-- Main content -->
     <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:id="@+id/main"
         android:background="@android:color/black">
 
         <!-- Header with App Name and Tabs -->
@@ -63,46 +63,30 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray" />
 
-            <!-- Tab Headers -->
-            <LinearLayout
+            <!-- TabLayout for My Moods & Following -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <TextView
-                    android:id="@+id/myMoodsTab"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="My Moods"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp"
-                    android:padding="12dp"
-                    android:gravity="center" />
-
-                <TextView
-                    android:id="@+id/followingTab"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Following"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp"
-                    android:padding="12dp"
-                    android:gravity="center" />
-            </LinearLayout>
+                android:background="@android:color/black"
+                app:tabTextColor="@android:color/white"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabMode="fixed" />
         </LinearLayout>
 
-        <!-- Content area for mood posts -->
-        <ListView
-            android:id="@+id/moodListView"
+        <!-- SwipeRefreshLayout wrapping ViewPager2 -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="8dp"
-            android:padding="8dp" />
+            android:layout_weight="1">
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <!-- Thin divider line above navigation -->
         <View
@@ -127,7 +111,7 @@
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:scaleType="centerInside"
-                android:src="@drawable/home"
+                android:src="@drawable/ic_home"
                 android:contentDescription="Home" />
 
             <!-- Search Button -->
@@ -160,7 +144,7 @@
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:scaleType="centerInside"
-                android:src="@drawable/heart"
+                android:src="@drawable/ic_heart"
                 android:contentDescription="Favorites" />
 
             <!-- Profile Button -->
@@ -176,88 +160,13 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Custom Navigation View with logout at bottom -->
-    <LinearLayout
+    <!-- Navigation Drawer -->
+    <include
+        android:id="@+id/navigation_layout"
+        layout="@layout/navigation_layout"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:orientation="vertical"
-        android:background="#F5E6DA"
-        android:fitsSystemWindows="true">
+        android:layout_gravity="start" />
 
-        <!-- Header Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#C8A97E">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="IS"
-                android:textSize="24sp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/userEmailTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="user@example.com"
-                android:textSize="14sp"
-                android:textColor="@android:color/white"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#F5E6DA" />
-
-        <!-- Menu items section -->
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/innerNavigationView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            app:menu="@menu/nav_menu"
-            android:background="#F5E6DA" />
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray" />
-
-        <!-- Bottom Logout Button -->
-        <LinearLayout
-            android:id="@+id/logoutContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#F5E6DA"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="Logout"
-                android:src="@drawable/ic_logout" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="Logout"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
-        </LinearLayout>
-    </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

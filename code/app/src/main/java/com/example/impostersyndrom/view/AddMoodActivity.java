@@ -1,24 +1,29 @@
 package com.example.impostersyndrom.view;
 
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
-
+import android.widget.Toast;
+import android.Manifest;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -27,8 +32,17 @@ import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.User;
-import com.google.android.material.snackbar.Snackbar;
 
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.Task;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -36,6 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class AddMoodActivity extends AppCompatActivity {
+    private static final int REQUEST_CHECK_SETTINGS = 2001;
     private MoodDataManager moodDataManager; // Handles Firestore operations
     private ImageHandler imageHandler; // Handles image selection and uploading
     private String selectedGroup; // Stores the selected group for the mood
@@ -47,6 +62,14 @@ public class AddMoodActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<String> galleryPermissionLauncher;
 
+    private FusedLocationProviderClient fusedLocationClient; // For fetching location
+    private ActivityResultLauncher<String[]> locationPermissionLauncher; // For location permission request
+    private Location currentLocation; // Stores the current location
+    private boolean isLocationAttached = false; // Tracks if location is attached
+
+    private boolean isPrivateMood = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +77,19 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Initialize Firestore and moods collection reference
         moodDataManager = new MoodDataManager();
-
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    if (result.get(Manifest.permission.ACCESS_FINE_LOCATION) != null &&
+                            result.get(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // Permission granted, fetch location
+                        fetchLocation();
+                    } else {
+                        Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
         // Initialize views
         ImageView emojiView = findViewById(R.id.emojiView);
         TextView emojiDescription = findViewById(R.id.emojiDescription);
@@ -68,8 +103,20 @@ public class AddMoodActivity extends AppCompatActivity {
         ImageButton cameraMenuButton = findViewById(R.id.cameraMenuButton);
         ImageView imagePreview = findViewById(R.id.imagePreview);
 
+        ImageButton attachLocationButton = findViewById(R.id.attachLocationButton); // Replace with your button's ID
+        attachLocationButton.setOnClickListener(v -> {
+            Log.d("AddMoodActivity", "Attach Location button clicked");
+            showLocationPrompt();
+        });
+
+        SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
+
+
         // Initialize image handling
         imageHandler = new ImageHandler(this, imagePreview);
+
+        // Set default social situation to "Alone"
+        selectedGroup = "Alone"; // Default value
 
         // Initialize ActivityResultLaunchers
         galleryLauncher = registerForActivityResult(
@@ -89,7 +136,7 @@ public class AddMoodActivity extends AppCompatActivity {
                         // Permission granted, launch camera intent
                         imageHandler.openCamera(cameraLauncher);
                     } else {
-                        showMessage("Camera permission required");
+                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -101,20 +148,28 @@ public class AddMoodActivity extends AppCompatActivity {
                         // Permission granted, launch gallery intent
                         imageHandler.openGallery(galleryLauncher);
                     } else {
-                        showMessage("Storage permission required");
+                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
+
+        privacySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isPrivateMood = isChecked;
+            String status = isPrivateMood ? "Private" : "Public";
+            Toast.makeText(this, "Mood set to " + status, Toast.LENGTH_SHORT).show();
+        });
 
         addReasonEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 // Not needed
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Not needed
             }
+
             @Override
             public void afterTextChanged(Editable s) {
                 int chars = s.length();
@@ -152,7 +207,6 @@ public class AddMoodActivity extends AppCompatActivity {
 
             // Set the background color, rounded corners, and border for the rectangle
             setRoundedBackground(emojiRectangle, mood.getColor());
-            selectedGroup = mood.getGroup();
         }
 
         // Group button functionality
@@ -166,9 +220,28 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
+            // Ensure the mood object is properly initialized
+            if (mood == null) {
+                Toast.makeText(this, "Mood object is null", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Populate the mood object
             mood.setReason(addReasonEdit.getText().toString().trim());
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
+            mood.setPrivateMood(isPrivateMood);
+
+            if (isLocationAttached && currentLocation != null) {
+                mood.setLatitude(currentLocation.getLatitude());
+                mood.setLongitude(currentLocation.getLongitude());
+            } else {
+                mood.setLatitude(null);
+                mood.setLongitude(null);
+            }
+
+            // Log the mood details
+            Log.d("AddMoodActivity", "Mood details: " + mood.toString());
 
             if (imageHandler.hasImage()) {
                 imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
@@ -181,12 +254,61 @@ public class AddMoodActivity extends AppCompatActivity {
 
                     @Override
                     public void onImageUploadFailure(Exception e) {
-                        showMessage("Failed to upload image: " + e.getMessage());
+                        Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
                 mood.setImageUrl(null);
                 saveMood(mood);
+            }
+        });
+    }
+    private void fetchLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            currentLocation = location;
+                            isLocationAttached = true;
+                            Toast.makeText(this, "Location attached: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(this, e -> {
+                        Toast.makeText(this, "Failed to fetch location: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void checkLocationSettings() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(this, response -> {
+            // Location settings are satisfied, fetch location
+            fetchLocation();
+        });
+
+        task.addOnFailureListener(this, e -> {
+            if (e instanceof ResolvableApiException) {
+                // Location settings are not satisfied, prompt the user to enable them
+                try {
+                    ResolvableApiException resolvable = (ResolvableApiException) e;
+                    resolvable.startResolutionForResult(this, REQUEST_CHECK_SETTINGS);
+                } catch (IntentSender.SendIntentException sendEx) {
+                    Toast.makeText(this, "Failed to enable location settings", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Location settings check failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -200,13 +322,15 @@ public class AddMoodActivity extends AppCompatActivity {
         moodDataManager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
             @Override
             public void onMoodAdded() {
-                showMessage("Mood saved!");
+                Toast.makeText(AddMoodActivity.this, "Mood saved!", Toast.LENGTH_SHORT).show();
+                Log.d("AddMoodActivity", "Mood saved to Firestore");
                 navigateToMainActivity();
             }
 
             @Override
             public void onError(String errorMessage) {
-                showMessage("Failed to save mood: " + errorMessage);
+                Toast.makeText(AddMoodActivity.this, "Failed to save mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                Log.e("AddMoodActivity", "Error saving mood: " + errorMessage);
             }
         });
     }
@@ -256,7 +380,7 @@ public class AddMoodActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
-                showMessage("Group Status Saved!");
+                Toast.makeText(AddMoodActivity.this, "Group Status Saved!", Toast.LENGTH_SHORT).show();
                 return true;
             }
             return false;
@@ -303,11 +427,32 @@ public class AddMoodActivity extends AppCompatActivity {
         });
 
         popup.show();
+
+    }
+    private void showLocationPrompt() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Attach Location");
+        builder.setMessage("Would you like to attach your current location to this mood event?");
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Check location permissions
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Permission already granted, fetch location
+                fetchLocation();
+            } else {
+                // Request location permissions
+                locationPermissionLauncher.launch(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                });
+            }
+        });
+        builder.setNegativeButton("No", (dialog, which) -> {
+            // User chose not to attach location
+            isLocationAttached = false;
+            currentLocation = null;
+            Toast.makeText(this, "Location not attached", Toast.LENGTH_SHORT).show();
+        });
+        builder.show();
     }
 
-    private void showMessage(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
-                .setAction("OK", null)
-                .show();
-    }
 }
