@@ -63,17 +63,40 @@
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-condensed"/>
 
-            <!-- Reason TextView -->
-            <TextView
-                android:id="@+id/reasonView"
+            <!-- Reason and Location Icon in a horizontal layout -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
                 android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
+                android:layout_marginTop="4dp">
+
+                <!-- Reason TextView -->
+                <TextView
+                    android:id="@+id/reasonView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/black"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"/>
+
+                <!-- Location Icon -->
+                <ImageButton
+                    android:id="@+id/locationButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="5dp"
+                    android:background="@null"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_location"
+                    android:contentDescription="View Location"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <!-- Group/Context TextView -->
             <TextView
@@ -101,6 +124,5 @@
                 android:scaleType="fitCenter"
                 android:visibility="visible" />
         </LinearLayout>
-
     </LinearLayout>
 </androidx.cardview.widget.CardView>
