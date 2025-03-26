@@ -39,10 +39,9 @@
 
                 <ImageView
                     android:id="@+id/EditEmoji"
-
-                    android:layout_width="100sp"
-                    android:layout_height="100sp"
-
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginTop="25dp"
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter" />
 
