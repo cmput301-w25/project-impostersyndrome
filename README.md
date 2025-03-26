@@ -19,6 +19,11 @@ An Android mood tracking application that enables users to:
 - Visualize mood patterns through filters and maps
 - Securely share mood events with others
 
+- 🎵 **Music Integration**: Get personalized Spotify playlists matching your mood
+- 📊 Mood logging with visualizations
+- 👥 Social mood sharing
+- 📍 Location-aware tracking
+
 ## Core Features
 
 ### Mood Management
@@ -27,9 +32,9 @@ An Android mood tracking application that enables users to:
 ✔ Optional triggers (text/photo) and social situation tags  
 
 ### Social Features
-✔ Follow other users' mood updates  
-✔ Control visibility (public/private mood posts)  
-✔ Comment on shared mood events  
+👀 Follow friends' mood journeys
+💬 Comment on shared moods
+🔒 Public/private post controls
 
 ### Data Visualization
 🗓️ Filterable timeline (date range, emotion type)  
