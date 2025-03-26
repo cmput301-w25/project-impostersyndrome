@@ -20,9 +20,9 @@ An Android mood tracking application that enables users to:
 - Securely share mood events with others
 
 
-📊 Mood logging with visualizations
-👥 Social mood sharing
-📍 Location-aware tracking
+📊 Mood logging with visualizations <br>
+👥 Social mood sharing <br>
+📍 Location-aware tracking <br>
 
 ## Core Features
 
