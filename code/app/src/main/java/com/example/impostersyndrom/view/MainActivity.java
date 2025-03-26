@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -36,6 +35,7 @@ import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.spotify.SpotifyManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.navigation.NavigationView;
@@ -63,14 +63,12 @@ public class MainActivity extends AppCompatActivity {
     private String userId;
     private FirebaseFirestore db;
 
-
     // Spotify Authentication
     private static final String CLIENT_ID = "ae52ad97cfd5446299f8883b4a6a6236";
     private static final String CLIENT_SECRET = "b40c6d9bfabd4f6592f7fb3210ca2f59";
     private String savedReasonFilter = "";
     private boolean savedRecentWeekFilter = false;
     private int savedEmotionalStatePosition = 0;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
         SpotifyManager.getInstance().initialize(CLIENT_ID, CLIENT_SECRET);
 
         // Set up ViewPager and TabLayout
-
         setupViewPager();
         setupButtonListeners();
         setupNavigationDrawer();
@@ -176,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("MainActivity", "Error fetching profile: " + errorMessage);
                     userNameTextView.setText("Anonymous");
                     profileImage.setImageResource(R.drawable.white_profile);
-                    Toast.makeText(MainActivity.this, "Error loading profile: " + errorMessage, Toast.LENGTH_SHORT).show();
+                    showMessage("Error loading profile: " + errorMessage);
                 }
             });
         }
@@ -367,13 +364,13 @@ public class MainActivity extends AppCompatActivity {
             moodDataManager.deleteMood(moodDoc.getId(), new MoodDataManager.OnMoodDeletedListener() {
                 @Override
                 public void onMoodDeleted() {
-                    showToast("Mood deleted!");
+                    showMessage("Mood deleted!");
                     refreshCurrentFragment();
                 }
 
                 @Override
                 public void onError(String errorMessage) {
-                    showToast("Failed to delete mood: " + errorMessage);
+                    showMessage("Failed to delete mood: " + errorMessage);
                 }
             });
             bottomSheetDialog.dismiss();
@@ -386,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void navigateToMoodDetail(DocumentSnapshot moodDoc) {
         if (moodDoc == null || !moodDoc.exists()) {
-            showToast("Mood details unavailable.");
+            showMessage("Mood details unavailable.");
             return;
         }
 
@@ -404,13 +401,13 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
             startActivity(intent);
         } else {
-            showToast("Error loading mood details.");
+            showMessage("Error loading mood details.");
         }
     }
 
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
-        showToast("Logged out successfully!");
+        showMessage("Logged out successfully!");
         redirectToLogin();
     }
 
@@ -419,12 +416,6 @@ public class MainActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    private void showToast(String message) {
-        if (!isFinishing()) {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void refreshCurrentFragment() {
@@ -437,6 +428,20 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "Refreshing FollowingMoodsFragment");
         } else {
             Log.d("MainActivity", "No valid fragment found to refresh");
+        }
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
         }
     }
 
