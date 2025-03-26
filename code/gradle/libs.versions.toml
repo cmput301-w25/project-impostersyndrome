@@ -14,6 +14,7 @@ playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.1.0"
 espressoIntents = "3.6.1"
 espressoContrib = "3.6.1"
+uiautomator = "2.3.0"
 
 
 [libraries]
@@ -32,6 +33,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 
 
 [plugins]
