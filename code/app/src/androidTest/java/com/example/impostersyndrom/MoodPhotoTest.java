@@ -78,6 +78,8 @@ public class MoodPhotoTest {
 
         // Wait for main activity
         waitForView(withId(R.id.viewPager), 15000);
+        onView(withId(R.id.viewPager)).check(matches(isDisplayed()));
+        intended(hasComponent(MainActivity.class.getName()));
     }
 
     @Test
@@ -103,7 +105,55 @@ public class MoodPhotoTest {
         uiDevice.pressBack();
     }
 
+    @Test
+    public void testRemovePhotoFromMood() throws Exception {
+        // 1. Wait for moods to load (with timeout)
 
+        onView(isRoot()).perform(waitFor(2000));
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(0) // First item
+                .onChildView(withId(R.id.emojiView))
+                .perform(longClick());
+
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 3. Handle Edit Mood option
+        onView(withId(R.id.editMoodOption)).perform(click());
+
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 5. Remove photo flow (with verification)
+        try {
+            // Check if photo exists before trying to remove
+            if (isViewDisplayed(R.id.EditImagePreview)) {
+                // Open camera menu
+                onView(withId(R.id.EditCameraMenuButton))
+                        .perform(click());
+
+                // Wait for menu to appear
+                onView(isRoot()).perform(waitFor(500));
+
+                // Remove photo
+                onView(withText("Remove Photo"))
+                        .perform(click());
+
+                // Verify removal
+                onView(withId(R.id.EditImagePreview))
+                        .check(matches(not(isDisplayed())));
+            }
+        } catch (Exception e) {
+            Log.d("Test", "Photo removal step failed: " + e.getMessage());
+            throw e;
+        }
+
+        // 6. Save changes
+        onView(withId(R.id.submitButton))
+                .perform(click());
+
+        waitForView(withId(R.id.viewPager), 5000);
+        onView(withId(R.id.viewPager)).check(matches(isDisplayed()));
+    }
 
     // Helper method to check view visibility
     private boolean isViewDisplayed(int viewId) {
