@@ -2,6 +2,7 @@ package com.example.impostersyndrom.view;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -168,10 +169,18 @@ public class UserProfileActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(false);
     }
 
+    /**
+     * Displays a Snackbar message and stops the refresh animation.
+     *
+     * @param message The message to display.
+     */
     private void showMessage(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
-                .setAction("OK", null)
-                .show();
-        swipeRefreshLayout.setRefreshing(false);
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 }
