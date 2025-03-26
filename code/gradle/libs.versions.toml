@@ -12,6 +12,8 @@ firebaseAuth = "23.2.0"
 
 playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.1.0"
+espressoIntents = "3.6.1"
+espressoContrib = "3.6.1"
 
 
 [libraries]
@@ -28,6 +30,8 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
+espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
 
 
 [plugins]
