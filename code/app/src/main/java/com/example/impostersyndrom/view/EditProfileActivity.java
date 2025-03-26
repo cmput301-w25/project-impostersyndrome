@@ -42,7 +42,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private String userId;
     private ImageHandler imageHandler;
     private String currentProfileImageUrl;
-    private String currentUsername; // Track the current username
+    private String currentUsername;
 
     private static final String TAG = "EditProfileActivity";
 
@@ -51,38 +51,29 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        // Initialize Firestore and Storage
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Initialize views
         usernameEditText = findViewById(R.id.usernameEditText);
         bioEditText = findViewById(R.id.bioEditText);
         saveButton = findViewById(R.id.saveButton);
         backButton = findViewById(R.id.backButton);
         profileImage = findViewById(R.id.profileImage);
 
-        // Initialize ImageHandler
         imageHandler = new ImageHandler(this, profileImage);
 
-        // Set up back button
         backButton.setOnClickListener(v -> finish());
-
-        // Set up change profile image button to show bottom sheet
         profileImage.setOnClickListener(v -> showBottomSheetDialog());
-
-        // Set up save button
         saveButton.setOnClickListener(v -> saveProfile());
 
-        // Load current user data
         loadUserData();
     }
 
     private void showBottomSheetDialog() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_picker, null);
-        bottomSheetDialog.setContentView(bottomSheetView); // Note: This should be bottomSheetView, not bottomSheetView
+        bottomSheetDialog.setContentView(bottomSheetView);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -116,7 +107,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        currentUsername = documentSnapshot.getString("username"); // Store current username
+                        currentUsername = documentSnapshot.getString("username");
                         String bio = documentSnapshot.getString("bio");
                         currentProfileImageUrl = documentSnapshot.getString("profileImageUrl");
 
@@ -147,9 +138,8 @@ public class EditProfileActivity extends AppCompatActivity {
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Old profile image deleted from Storage");
                         profileImage.setImageResource(R.drawable.default_person);
-                        currentProfileImageUrl = null; // Reset the URL
+                        currentProfileImageUrl = null;
                         showMessage("Profile picture removed");
-
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to delete image from Storage: ", e);
@@ -170,11 +160,9 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // If the username hasn't changed, proceed directly to saving
         if (newUsername.equals(currentUsername)) {
             proceedWithSave(newUsername, newBio);
         } else {
-            // Check if the new username is already taken
             checkUsernameAvailability(newUsername, newBio);
         }
     }
@@ -185,16 +173,14 @@ public class EditProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        // Username already exists
-                        Toast.makeText(this, "Username '" + newUsername + "' is already taken", Toast.LENGTH_SHORT).show();
+                        showMessage("Username '" + newUsername + "' is already taken");
                     } else {
-                        // Username is available, proceed with saving
                         proceedWithSave(newUsername, newBio);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error checking username availability: ", e);
-                    Toast.makeText(this, "Error checking username availability", Toast.LENGTH_SHORT).show();
+                    showMessage("Error checking username availability");
                 });
     }
 
@@ -238,11 +224,9 @@ public class EditProfileActivity extends AppCompatActivity {
         db.collection("users").document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-
-                    currentUsername = newUsername; // Update current username after successful save
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    currentUsername = newUsername;
+                    showMessage("Profile updated successfully");
                     finish();
-
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating profile: ", e);

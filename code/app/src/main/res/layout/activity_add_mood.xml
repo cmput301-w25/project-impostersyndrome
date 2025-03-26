@@ -145,7 +145,7 @@
                             android:focusable="true"
                             android:padding="8dp"
                             android:scaleType="fitCenter"
-                            android:src="@drawable/location"
+                            android:src="@drawable/ic_location"
                             android:text="Attach Location" />
 
                         <ImageButton
@@ -158,7 +158,7 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:padding="8dp"
-                            android:src="@drawable/person" />
+                            android:src="@drawable/ic_person" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/privacySwitch"

@@ -95,7 +95,7 @@ public class UserProfileActivity extends AppCompatActivity {
         if (usernameText == null || followersCountText == null || followingCountText == null ||
                 bioText == null || noMoodsText == null || backButton == null || profileImage == null ||
                 swipeRefreshLayout == null || moodListView == null) {
-            Toast.makeText(this, "Error: Unable to initialize views. Please check the layout file.", Toast.LENGTH_LONG).show();
+            showMessage("Error: Unable to initialize views. Please check the layout file.");
             finish();
             return false;
         }
@@ -249,7 +249,7 @@ public class UserProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching recent moods: " + e.getMessage(), e);
-                    Toast.makeText(UserProfileActivity.this, "Failed to load recent moods: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    showMessage("Failed to load recent moods: " + e.getMessage());
                     moodListView.setAdapter(null);
                     swipeRefreshLayout.setRefreshing(false);
                 });
@@ -312,7 +312,7 @@ public class UserProfileActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error fetching user details: " + e.getMessage());
-                        Toast.makeText(UserProfileActivity.this, "Error fetching user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
                             moodItems.removeIf(item -> item == null);
@@ -327,7 +327,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void navigateToMoodDetail(DocumentSnapshot moodDoc) {
         if (moodDoc == null || !moodDoc.exists()) {
-            Toast.makeText(this, "Mood details unavailable.", Toast.LENGTH_SHORT).show();
+            showMessage("Mood details unavailable.");
             return;
         }
 
