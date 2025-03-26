@@ -83,7 +83,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         // Inflate the bottom sheet layout
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_picker, null);
-        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.setContentView(bottomSheetView); // Note: This should be bottomSheetView, not bottomSheetView
 
         // Set edge-to-edge display
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -232,8 +232,11 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void showMessage(String message) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
-                .setAction("OK", null)
-                .show();
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }
