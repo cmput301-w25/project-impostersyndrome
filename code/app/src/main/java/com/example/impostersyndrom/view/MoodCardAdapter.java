@@ -5,7 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton; // Add import for ImageButton
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,14 +25,12 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final Context context;
     private final List<Integer> cardTypes;
 
-    // Callbacks for binding data
     private MoodDetailsViewHolder.OnBindMoodDetailsListener moodDetailsListener;
     private SongRecommendationViewHolder.OnBindSongRecommendationListener songRecommendationListener;
 
     public MoodCardAdapter(Context context) {
         this.context = context;
         this.cardTypes = new ArrayList<>();
-        // Add the two card types
         cardTypes.add(VIEW_TYPE_MOOD_DETAILS);
         cardTypes.add(VIEW_TYPE_SONG_RECOMMENDATION);
     }
@@ -81,7 +79,6 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return cardTypes.size();
     }
 
-    // ViewHolder for Mood Details Card
     static class MoodDetailsViewHolder extends RecyclerView.ViewHolder {
         ImageView emojiView;
         TextView timeView;
@@ -90,6 +87,7 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         TextView groupView;
         View emojiRectangle;
         ImageView imageUrlView;
+        ImageButton locationButton;
 
         interface OnBindMoodDetailsListener {
             void onBind(MoodDetailsViewHolder holder);
@@ -104,16 +102,16 @@ public class MoodCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             groupView = itemView.findViewById(R.id.groupView);
             emojiRectangle = itemView.findViewById(R.id.emojiRectangle);
             imageUrlView = itemView.findViewById(R.id.imageUrlView);
+            locationButton = itemView.findViewById(R.id.locationButton);
         }
     }
 
-    // ViewHolder for Song Recommendation Card
     static class SongRecommendationViewHolder extends RecyclerView.ViewHolder {
         TextView songNameTextView;
         TextView artistNameTextView;
         Button nextSongButton;
-        Button prevSongButton; // Add Previous Song button
-        ImageButton playOnSpotifyButton; // Change to ImageButton
+        Button prevSongButton;
+        ImageButton playOnSpotifyButton;
         ImageView albumArtImageView;
 
         interface OnBindSongRecommendationListener {
