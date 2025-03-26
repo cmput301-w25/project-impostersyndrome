@@ -83,7 +83,7 @@ public class MoodPhotoTest {
     }
 
     @Test
-    public void testGallaryopens() throws Exception {
+    public void testAddMoodAndOpenGallery() throws Exception {
         // 1. Start mood creation
         onView(withId(R.id.addMoodButton)).perform(click());
         onView(withId(R.id.emoji5)).perform(click());
@@ -153,6 +153,42 @@ public class MoodPhotoTest {
 
         waitForView(withId(R.id.viewPager), 5000);
         onView(withId(R.id.viewPager)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testEditMoodAndOpenGallery() throws Exception {
+        // 1. Wait for moods to load
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 2. Long press on first mood item
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(0) // First item
+                .onChildView(withId(R.id.emojiView))
+                .perform(longClick());
+
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 3. Handle Edit Mood option
+        onView(withId(R.id.editMoodOption)).perform(click());
+
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 4. Open camera menu and select gallery
+        onView(withId(R.id.EditCameraMenuButton)).perform(click());
+        onView(isRoot()).perform(waitFor(500)); // Wait for menu to appear
+        onView(withText("Choose from Gallery")).perform(click());
+
+        // 5. Handle permission dialog with UiAutomator
+        UiObject allowButton = uiDevice.findObject(new UiSelector().text("Allow"));
+        if (allowButton.exists()) {
+            allowButton.click();
+        } else {
+            System.out.println("Permission dialog not found, might already be granted");
+        }
+
+        // 6. Press back to return to EditMoodActivity and verify
+        uiDevice.pressBack();
     }
 
     // Helper method to check view visibility
