@@ -24,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -53,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
-    private SwipeRefreshLayout swipeRefreshLayout; // Added for pull-to-refresh
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
@@ -97,15 +95,11 @@ public class MainActivity extends AppCompatActivity {
         setupViewPager();
         setupButtonListeners();
         setupNavigationDrawer();
-
-        // Set up swipe-to-refresh
-        setupSwipeRefresh();
     }
 
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout); // Initialize SwipeRefreshLayout
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -114,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
         menuButton = findViewById(R.id.menuButton);
         drawerLayout = findViewById(R.id.drawerLayout);
         innerNavigationView = findViewById(R.id.innerNavigationView);
-        // Note: userNameTextView, userEmailTextView, and logoutContainer are initialized in setupNavigationDrawer
     }
 
     private void setupNavigationDrawer() {
@@ -188,12 +181,8 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.maps) {
                 // Handle maps action
-                // Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                // startActivity(intent);
             } else if (id == R.id.nav_settings) {
                 // Handle settings action
-                // Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                // startActivity(intent);
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -216,15 +205,6 @@ public class MainActivity extends AppCompatActivity {
         searchButton.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         heartButton.setOnClickListener(v -> startActivity(new Intent(this, FollowingActivity.class)));
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
-    }
-
-    private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            Log.d("MainActivity", "Swipe to refresh triggered");
-            refreshCurrentFragment();
-            // Stop the refresh animation once data is loaded
-            swipeRefreshLayout.setRefreshing(false);
-        });
     }
 
     private void navigateToProfile() {
@@ -333,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
     public void showBottomSheetDialog(DocumentSnapshot moodDoc) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_mood_options, null);
-        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+        bottomSheetDialog.setContentView(bottomSheetView);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -376,7 +356,8 @@ public class MainActivity extends AppCompatActivity {
             bottomSheetDialog.dismiss();
         });
 
-        bottomSheetDialog.setContentView(bottomSheetView); // Fixed: should be bottomSheetView
+
+        bottomSheetDialog.setContentView(bottomSheetView);
 
         bottomSheetDialog.show();
     }

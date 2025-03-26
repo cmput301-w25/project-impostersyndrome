@@ -22,6 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -40,7 +41,8 @@ public class EditProfileActivity extends AppCompatActivity {
     private FirebaseStorage storage;
     private String userId;
     private ImageHandler imageHandler;
-    private String currentProfileImageUrl; // Track the current profile image URL
+    private String currentProfileImageUrl;
+    private String currentUsername; // Track the current username
 
     private static final String TAG = "EditProfileActivity";
 
@@ -78,39 +80,32 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void showBottomSheetDialog() {
-        // Create the bottom sheet dialog
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
-
-        // Inflate the bottom sheet layout
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_picker, null);
         bottomSheetDialog.setContentView(bottomSheetView); // Note: This should be bottomSheetView, not bottomSheetView
 
-        // Set edge-to-edge display
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // Remove grey background
+            bottomSheetDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             bottomSheetDialog.getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             );
         }
-        // Choose from Gallery option
+
         bottomSheetDialog.findViewById(R.id.option_gallery)
                 .setOnClickListener(v -> {
                     imageHandler.openGallery(galleryLauncher);
                     bottomSheetDialog.dismiss();
                 });
 
-        // Remove Image option
         bottomSheetDialog.findViewById(R.id.option_remove)
                 .setOnClickListener(v -> {
                     removeProfileImage();
                     bottomSheetDialog.dismiss();
                 });
 
-        // Show the bottom sheet
         bottomSheetDialog.show();
     }
 
-    // ActivityResultLauncher for gallery
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
@@ -121,14 +116,13 @@ public class EditProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        String username = documentSnapshot.getString("username");
+                        currentUsername = documentSnapshot.getString("username"); // Store current username
                         String bio = documentSnapshot.getString("bio");
                         currentProfileImageUrl = documentSnapshot.getString("profileImageUrl");
 
-                        usernameEditText.setText(username);
+                        usernameEditText.setText(currentUsername);
                         bioEditText.setText(bio);
 
-                        // Load profile image using Glide, or set default if none
                         if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
                             Glide.with(this)
                                     .load(currentProfileImageUrl)
@@ -147,23 +141,21 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void removeProfileImage() {
-        // If there’s an existing image URL, delete it from Firebase Storage
         if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
             StorageReference imageRef = storage.getReferenceFromUrl(currentProfileImageUrl);
             imageRef.delete()
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Old profile image deleted from Storage");
-                        // Clear the local image and set default
                         profileImage.setImageResource(R.drawable.default_person);
                         currentProfileImageUrl = null; // Reset the URL
                         showMessage("Profile picture removed");
+
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to delete image from Storage: ", e);
                         showMessage("Failed to remove profile picture");
                     });
         } else {
-            // No image to remove, just set default locally
             profileImage.setImageResource(R.drawable.default_person);
             showMessage("No profile picture to remove");
         }
@@ -178,9 +170,36 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Check if a new image is selected
+        // If the username hasn't changed, proceed directly to saving
+        if (newUsername.equals(currentUsername)) {
+            proceedWithSave(newUsername, newBio);
+        } else {
+            // Check if the new username is already taken
+            checkUsernameAvailability(newUsername, newBio);
+        }
+    }
+
+    private void checkUsernameAvailability(String newUsername, String newBio) {
+        db.collection("users")
+                .whereEqualTo("username", newUsername)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Username already exists
+                        Toast.makeText(this, "Username '" + newUsername + "' is already taken", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Username is available, proceed with saving
+                        proceedWithSave(newUsername, newBio);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking username availability: ", e);
+                    Toast.makeText(this, "Error checking username availability", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void proceedWithSave(String newUsername, String newBio) {
         if (imageHandler.hasImage()) {
-            // If there’s an old image, delete it before uploading the new one
             if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
                 StorageReference oldImageRef = storage.getReferenceFromUrl(currentProfileImageUrl);
                 oldImageRef.delete()
@@ -188,13 +207,11 @@ public class EditProfileActivity extends AppCompatActivity {
                         .addOnFailureListener(e -> Log.e(TAG, "Failed to delete old image: ", e));
             }
 
-            // Upload the new image
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String imageUrl) {
-                    // Update profile with the new image URL
                     updateProfile(newUsername, newBio, imageUrl);
-                    currentProfileImageUrl = imageUrl; // Update the current URL
+                    currentProfileImageUrl = imageUrl;
                 }
 
                 @Override
@@ -204,7 +221,6 @@ public class EditProfileActivity extends AppCompatActivity {
                 }
             });
         } else {
-            // No new image selected, update profile with null image URL if removed
             updateProfile(newUsername, newBio, currentProfileImageUrl);
         }
     }
@@ -216,14 +232,17 @@ public class EditProfileActivity extends AppCompatActivity {
         if (imageUrl != null) {
             updates.put("profileImageUrl", imageUrl);
         } else {
-            updates.put("profileImageUrl", null); // Explicitly set to null if no image
+            updates.put("profileImageUrl", null);
         }
 
         db.collection("users").document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    showMessage("Profile updated successfully");
-                    finish(); // Close the activity
+
+                    currentUsername = newUsername; // Update current username after successful save
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating profile: ", e);
