@@ -25,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -54,8 +55,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
-
-    private SwipeRefreshLayout swipeRefreshLayout;
 
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
@@ -106,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
 
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
@@ -216,13 +214,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            Log.d("MainActivity", "Swipe to refresh triggered");
-            refreshCurrentFragment();
-            swipeRefreshLayout.setRefreshing(false);
-        });
-    }
 
 
     private void navigateToProfile() {
