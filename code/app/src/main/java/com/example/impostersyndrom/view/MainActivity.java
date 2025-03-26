@@ -25,7 +25,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -55,7 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addMoodButton, profileButton, filterButton, searchButton, heartButton, menuButton;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
+
     private SwipeRefreshLayout swipeRefreshLayout;
+
     private MainViewPagerAdapter viewPagerAdapter;
     private DrawerLayout drawerLayout;
     private NavigationView innerNavigationView;
@@ -99,15 +100,14 @@ public class MainActivity extends AppCompatActivity {
         setupViewPager();
         setupButtonListeners();
         setupNavigationDrawer();
-
-        // Set up swipe-to-refresh
-        setupSwipeRefresh();
     }
 
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
+
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
         addMoodButton = findViewById(R.id.addMoodButton);
         profileButton = findViewById(R.id.profileButton);
         filterButton = findViewById(R.id.filterButton);
@@ -189,12 +189,8 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.maps) {
                 // Handle maps action
-                // Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                // startActivity(intent);
             } else if (id == R.id.nav_settings) {
                 // Handle settings action
-                // Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                // startActivity(intent);
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -219,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         menuButton.setOnClickListener(v -> toggleNavigationDrawer());
     }
 
+
     private void setupSwipeRefresh() {
         swipeRefreshLayout.setOnRefreshListener(() -> {
             Log.d("MainActivity", "Swipe to refresh triggered");
@@ -226,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
         });
     }
+
 
     private void navigateToProfile() {
         startActivity(new Intent(this, ProfileActivity.class));

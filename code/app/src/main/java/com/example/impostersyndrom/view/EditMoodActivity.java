@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -54,6 +56,7 @@ import java.util.Map;
  * The updated mood data is saved to Firestore.
  *
  * @author Rayan
+ * @author Roshan
  */
 
 public class EditMoodActivity extends AppCompatActivity {
@@ -84,7 +87,9 @@ public class EditMoodActivity extends AppCompatActivity {
 
     private boolean imageRemoved = false;
     private boolean isPrivateMood = false;
+    private TextView reasonCharCounter; // Added for character counter
 
+    private static final int MAX_REASON_LENGTH = 200; // Define max length
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +121,10 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+
         TextView editDateTimeView = findViewById(R.id.EditDateTimeView);
+        reasonCharCounter = findViewById(R.id.reasonCharCounter); // Initialize character counter
+
         SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
 
         // Retrieve passed mood data
@@ -244,18 +252,27 @@ public class EditMoodActivity extends AppCompatActivity {
 
         // Set UI elements with retrieved data
         editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
-        editReason.setText(reason);
+        editReason.setText(reason); // Set the full reason text
+        updateCharCounter(reason != null ? reason.length() : 0); // Initial counter update
 
-        // Apply the background color to the rectangle
-        setRoundedBackground(editEmojiRectangle, color);
+        // Add TextWatcher for character counter
+        editReason.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Ensure EditText clears only once when clicked
-        editReason.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                editReason.setText(""); // Clears text when clicked
-                editReason.setOnFocusChangeListener(null); // Removes listener so it doesn't clear repeatedly
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateCharCounter(s.length());
             }
         });
+
+        setRoundedBackground(editEmojiRectangle, color);
+
+        // Remove the focus listener that clears text, as it’s not needed anymore
+        // editReason.setOnFocusChangeListener((v, hasFocus) -> { ... });
 
         // Back button functionality
         backButton.setOnClickListener(v -> {
@@ -270,9 +287,11 @@ public class EditMoodActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
-    /**
-     * Updates the mood entry in Firestore with the new data.
-     */
+    // Update the character counter
+    private void updateCharCounter(int currentLength) {
+        reasonCharCounter.setText(currentLength + "/" + MAX_REASON_LENGTH);
+    }
+
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
         Map<String, Object> updates = new HashMap<>();
@@ -295,18 +314,12 @@ public class EditMoodActivity extends AppCompatActivity {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
-                    // If there's an existing image, delete it from Firebase Storage
                     if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
                         StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
                         oldImageRef.delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("Firebase Storage", "Old image permanently deleted after new upload");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e("Firebase Storage", "Failed to delete old image", e);
-                                });
+                                .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Old image permanently deleted after new upload"))
+                                .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete old image", e));
                     }
-                    // Set the new image URL and update Firestore
                     EditMoodActivity.this.imageUrl = url;
                     updates.put("imageUrl", url);
                     saveToFirestore(updates);
@@ -322,7 +335,6 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("imageUrl", imageUrl);
         }
 
-        // If no image is selected and there was an original image, delete it from Firebase Storage
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
@@ -354,7 +366,6 @@ public class EditMoodActivity extends AppCompatActivity {
                         if (documentSnapshot.exists() && documentSnapshot.contains("imageUrl")) {
                             updates.put("imageUrl", documentSnapshot.getString("imageUrl"));
                         }
-
                         updateFirestore(updates);
                     })
                     .addOnFailureListener(e -> Log.e("Firestore", "Failed to get current mood data", e));
@@ -431,7 +442,7 @@ public class EditMoodActivity extends AppCompatActivity {
         menuMap.put(R.id.with_crowd, "With a crowd");
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
-                selectedGroup = menuMap.get(item.getItemId()); // Store selection
+                selectedGroup = menuMap.get(item.getItemId());
                 Toast.makeText(EditMoodActivity.this, "Group Selection: " + selectedGroup, Toast.LENGTH_SHORT).show();
                 return true;
             }
@@ -467,10 +478,9 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                // Do not attempt deletion here; simply update the UI and mark the image as removed.
                 imageHandler.clearImage();
                 imageUrl = null;
-                imageRemoved = true; // Mark that the user removed the image
+                imageRemoved = true;
                 db.collection("moods").document(moodId)
                         .update("imageUrl", null)
                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))

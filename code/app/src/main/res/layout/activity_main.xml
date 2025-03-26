@@ -75,18 +75,12 @@
                 app:tabMode="fixed" />
         </LinearLayout>
 
-        <!-- SwipeRefreshLayout wrapping ViewPager2 -->
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefreshLayout"
+        <!-- ViewPager2 for fragments -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/viewPager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            android:layout_weight="1" />
 
         <!-- Thin divider line above navigation -->
         <View
@@ -167,6 +161,5 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start" />
-
 
 </androidx.drawerlayout.widget.DrawerLayout>

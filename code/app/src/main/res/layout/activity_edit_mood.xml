@@ -18,7 +18,46 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <!-- Rectangle with Emoji - Dynamic height -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/left_arrow"
+                    android:layout_gravity="center_vertical"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="53dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Choose a different mood"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/submitButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:src="@drawable/white_checkmark"/>
+
+            </LinearLayout>
+
+
             <LinearLayout
                 android:id="@+id/EditEmojiRectangle"
                 android:layout_width="359dp"
@@ -31,9 +70,10 @@
 
                 <ImageView
                     android:id="@+id/EditEmoji"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="25dp"
+
+                    android:layout_width="100sp"
+                    android:layout_height="100sp"
+
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter" />
 
@@ -81,12 +121,23 @@
                                 android:layout_height="wrap_content"
                                 android:background="@null"
                                 android:hint="@string/EditReasonHint"
-                                android:maxLength="20"
+                                android:maxLength="200"
                                 android:padding="8dp"
-                                android:singleLine="true"
                                 android:textColor="@color/black"
                                 android:textColorHint="#D3D3D3"/>
+
                         </FrameLayout>
+
+                        <!-- Character Counter -->
+                        <TextView
+                            android:id="@+id/reasonCharCounter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:text="0/200"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp"/>
 
                         <ImageView
                             android:id="@+id/EditImagePreview"
@@ -109,10 +160,14 @@
                         android:gravity="center"
                         android:orientation="horizontal">
 
+
                         <ImageButton
                             android:id="@+id/EditCameraMenuButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
+
+                            android:layout_gravity="center"
+
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/camera_menu_description"
                             android:padding="8dp"
@@ -120,6 +175,7 @@
                             android:src="@drawable/ic_camera" />
 
                         <ImageButton
+
                             android:id="@+id/attachLocationButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
@@ -132,11 +188,13 @@
                             android:src="@drawable/ic_location" />
 
                         <ImageButton
+
                             android:id="@+id/EditGroupButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:layout_marginStart="16dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
+
                             android:contentDescription="@string/group_button_description"
                             android:clickable="true"
                             android:focusable="true"
@@ -145,6 +203,7 @@
                     </LinearLayout>
 
                     <!-- Privacy Switch - positioned below the button row -->
+
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/privacySwitch"
                         android:layout_width="wrap_content"
@@ -152,6 +211,7 @@
                         android:layout_gravity="center"
                         android:checked="false"
                         android:textColor="@color/black" />
+
 
                 </LinearLayout>
             </LinearLayout>
@@ -183,4 +243,5 @@
                 android:layout_gravity="top|end" />
         </FrameLayout>
     </LinearLayout>
+
 </ScrollView>
