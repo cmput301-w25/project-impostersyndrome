@@ -1,4 +1,4 @@
-# MoodTrack - CMPUT 301 W25
+#CMPUT 301 W25 - Team ImposterSyndrome
 
 ## Team ImposterSyndrome
 
