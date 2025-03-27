@@ -19,12 +19,12 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:contentDescription="Back" />
+             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Profile"
+            android:text="@string/profile"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
@@ -40,7 +40,7 @@
             android:layout_centerVertical="true"
             android:scaleType="centerInside"
             android:padding="8dp"
-            android:contentDescription="Edit Profile" />
+            />
     </RelativeLayout>
 
     <!-- Thin divider line -->
@@ -86,7 +86,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/default_person"
-                        android:contentDescription="Profile Picture" />
+                         />
                 </androidx.cardview.widget.CardView>
 
                 <!-- Username -->
