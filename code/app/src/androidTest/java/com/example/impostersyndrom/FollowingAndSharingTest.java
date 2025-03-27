@@ -109,6 +109,31 @@ public class FollowingAndSharingTest {
                 .check(matches(isDisplayed()));
     }
 
+    @Test
+    public void test3_AcceptFollowRequest() throws Exception {
+        // Precondition: A follow request from "roxsksk" to "NotRoxsksk" exists in Firestore
+
+        // 1. Login as User 2 (NotRoxsksk)
+        login(USER2_EMAIL, USER2_PASSWORD);
+
+        // 2. Go to following screen to check pending requests
+        onView(withId(R.id.heartButton)).perform(click());
+        waitForView(withId(R.id.listView), 10000); // Increased timeout for Firestore load
+        onView(isRoot()).perform(waitFor(2000));   // Additional delay for adapter update
+
+        // 3. Verify follow request from User 1 appears in the ListView
+        onView(allOf(withId(R.id.usernameTextView), withText(USER1_USERNAME)))
+                .check(matches(isDisplayed()));
+
+        // 4. Accept the follow request for "roxsksk" specifically
+        onView(allOf(withId(R.id.acceptButton), withText("Accept"),
+                isDescendantOf(withChild(withText(USER1_USERNAME))), isDisplayed()))
+                .perform(click());
+
+        // 5. Wait for UI update after acceptance
+        onView(isRoot()).perform(waitFor(5000)); // Increased delay for Firestore update
+    }
+
 
     // Helper method to login
     private void login(String email, String password) throws TimeoutException {
