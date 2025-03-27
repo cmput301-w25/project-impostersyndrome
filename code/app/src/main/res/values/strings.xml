@@ -34,5 +34,22 @@
     <string name="back_button_description">Go back</string>
     <string name="EditReasonHint">Enter new reason...</string>
     <string name="default_web_client_id">1015909102211-h22q11lnlit5ncpg4tjqmqlm5k0msp9t.apps.googleusercontent.com</string>
+    <string name="attach_location">Attach Location</string>
+    <string name="choose_different_mood">Choose a different mood</string>
+    <string name="selected_emoji">Selected Emoji</string>
+    <string name="char_count_initial">0/200</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_button_description">Save</string>
+    <string name="profile_picture_description">Profile Picture</string>
+    <string name="bio_label">Bio</string>
+    <string name="bio_hint">Enter your bio</string>
+    <string name="menu_button_description">Menu</string>
+    <string name="app_short_name">IS</string>
+    <string name="pending_requests">Pending Requests</string>
+    <string name="following">Following</string>
+    <string name="home_button_description">Home</string>
+    <string name="search_button_description">Search</string>
+    <string name="favorites_button_description">Favorites</string>
+    <string name="profile_button_description">Profile</string>
 
 </resources>
