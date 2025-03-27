@@ -44,12 +44,7 @@ public class MapActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private static final int PERMISSION_REQUEST_CODE = 1;
     private MyLocationNewOverlay myLocationOverlay;
-    private CompassOverlay compassOverlay;
     private RotationGestureOverlay rotationGestureOverlay;
-    private long lastClickTime = 0;
-    private static final long DOUBLE_CLICK_TIME_DELTA = 300; // milliseconds
-    private Marker lastClickedMarker = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,11 +79,11 @@ public class MapActivity extends AppCompatActivity {
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
 
-        // Set initial position in Van, BC and zoom level
-        mapView.getController().setZoom(4.0);
-        mapView.getController().setCenter(new GeoPoint(49.2827, -123.1207));
+        // Set initial position to Edmonton, Alberta and zoom level
+        mapView.getController().setZoom(12.0); // City level zoom
+        mapView.getController().setCenter(new GeoPoint(53.5461, -113.4937)); // Edmonton coordinates
 
-        // Set bounds so it doesn't show mulitple times (can't scroll infinitely)
+        // Set bounds so it doesn't show multiple times (can't scroll infinitely)
         BoundingBox boundingBox = new BoundingBox(85, 180, -85, -180); // max latitude, max longitude, min latitude, min longitude
         mapView.setScrollableAreaLimitDouble(boundingBox);
 
