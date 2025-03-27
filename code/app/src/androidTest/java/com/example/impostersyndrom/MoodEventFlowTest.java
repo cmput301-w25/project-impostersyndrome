@@ -2,7 +2,6 @@ package com.example.impostersyndrom;
 
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.Espresso.pressBack;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.typeText;
@@ -10,12 +9,9 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasFlags;
-import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
-import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withTagValue;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.anything;
@@ -33,10 +29,8 @@ import android.content.Intent;
 import android.view.View;
 
 import androidx.test.espresso.Espresso;
-import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.matcher.BoundedMatcher;
 
-import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.view.LoginActivity;
 import com.example.impostersyndrom.view.MainActivity;
 
@@ -47,13 +41,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
 @RunWith(AndroidJUnit4.class)
-public class MoodEventCreationDisplayTest {
+public class MoodEventFlowTest {
     @Rule
     public IntentsTestRule<LoginActivity> intentsRule =
             new IntentsTestRule<>(LoginActivity.class);

@@ -10,7 +10,6 @@ import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
-import static androidx.test.espresso.matcher.ViewMatchers.withChild;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.not;
@@ -31,7 +30,6 @@ import androidx.test.uiautomator.UiDevice;
 
 import com.example.impostersyndrom.view.LoginActivity;
 import com.example.impostersyndrom.view.MainActivity;
-import com.example.impostersyndrom.view.SearchActivity;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -47,7 +45,7 @@ import java.util.concurrent.TimeoutException;
 
 @RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING) // Order tests alphabetically by method name
-public class FollowingAndSharingTest {
+public class FollowingFlowTest {
 
     @Rule
     public IntentsTestRule<LoginActivity> intentsRule =
