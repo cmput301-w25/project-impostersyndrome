@@ -14,7 +14,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.graphics.Color;
 import android.view.MenuInflater;
 import android.widget.PopupMenu;
@@ -38,6 +37,7 @@ import com.example.impostersyndrom.model.MoodDataManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import com.google.firebase.Timestamp;
@@ -58,7 +58,6 @@ import java.util.Map;
  * @author Rayan
  * @author Roshan
  */
-
 public class EditMoodActivity extends AppCompatActivity {
     private String moodId; // ID of the mood being edited
     private FirebaseFirestore db; // Firestore database instance
@@ -89,6 +88,7 @@ public class EditMoodActivity extends AppCompatActivity {
     private boolean isPrivateMood = false;
     private TextView reasonCharCounter; // Added for character counter
 
+
     private static final int MAX_REASON_LENGTH = 200; // Define max length
 
     @Override
@@ -106,7 +106,7 @@ public class EditMoodActivity extends AppCompatActivity {
                         // Permission granted, fetch location
                         fetchLocation();
                     } else {
-                        Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Location permission required");
                     }
                 }
         );
@@ -199,7 +199,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openCamera(cameraLauncher);
                     } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Camera permission required");
                     }
                 });
 
@@ -209,7 +209,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openGallery(galleryLauncher);
                     } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Storage permission required");
                     }
                 });
 
@@ -327,7 +327,7 @@ public class EditMoodActivity extends AppCompatActivity {
 
                 @Override
                 public void onImageUploadFailure(Exception e) {
-                    Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to upload image: " + e.getMessage());
                 }
             });
             return;
@@ -345,7 +345,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Log.e("Firebase Storage", "Failed to delete image", e);
-                        Toast.makeText(EditMoodActivity.this, "Failed to delete image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to delete image: " + e.getMessage());
                     });
         } else {
             saveToFirestore(updates);
@@ -383,10 +383,10 @@ public class EditMoodActivity extends AppCompatActivity {
         db.collection("moods").document(moodId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(EditMoodActivity.this, "Mood updated!", Toast.LENGTH_SHORT).show();
+                    showMessage("Mood updated!");
                     finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(EditMoodActivity.this, "Failed to update mood", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> showMessage("Failed to update mood"));
     }
 
     @Override
@@ -443,14 +443,13 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
-                Toast.makeText(EditMoodActivity.this, "Group Selection: " + selectedGroup, Toast.LENGTH_SHORT).show();
+
                 return true;
             }
             return false;
         });
         popup.show();
     }
-
 
     /**
      * Displays a popup menu for image options (camera, gallery, remove photo).
@@ -485,7 +484,7 @@ public class EditMoodActivity extends AppCompatActivity {
                         .update("imageUrl", null)
                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
                         .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
-                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
+                showMessage("Image removed");
                 return true;
             }
             return false;
@@ -514,7 +513,7 @@ public class EditMoodActivity extends AppCompatActivity {
             // User chose not to attach location
             isLocationAttached = false;
             currentLocation = null;
-            Toast.makeText(this, "Location not attached", Toast.LENGTH_SHORT).show();
+            showMessage("Location not attached");
         });
         builder.show();
     }
@@ -529,28 +528,25 @@ public class EditMoodActivity extends AppCompatActivity {
                         if (location != null) {
                             currentLocation = location;
                             isLocationAttached = true;
-                            Toast.makeText(this, "Location attached: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                            showMessage("Location attached: " + location.getLatitude() + ", " + location.getLongitude());
                         } else {
-                            Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                            showMessage("Unable to fetch location");
                         }
                     })
                     .addOnFailureListener(this, e -> {
-                        Toast.makeText(this, "Failed to fetch location: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to fetch location: " + e.getMessage());
                     });
         } else {
-            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
+            showMessage("Location permission not granted");
         }
     }
 
     /**
      * Updates the mood in Firestore with the attached location (if any).
      */
-    /**
-     * Updates the mood in Firestore with the attached location (if any).
-     */
     private void updateMoodWithLocation() {
         if (moodId == null) {
-            Toast.makeText(EditMoodActivity.this, "Invalid mood ID", Toast.LENGTH_SHORT).show();
+            showMessage("Invalid mood ID");
             return;
         }
 
@@ -569,13 +565,27 @@ public class EditMoodActivity extends AppCompatActivity {
         moodDataManager.updateMood(moodId, updates, new MoodDataManager.OnMoodUpdatedListener() {
             @Override
             public void onMoodUpdated() {
-                Toast.makeText(EditMoodActivity.this, "Mood updated with location!", Toast.LENGTH_SHORT).show();
+                showMessage("Mood updated with location!");
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(EditMoodActivity.this, "Failed to update mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                showMessage("Failed to update mood: " + errorMessage);
             }
         });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

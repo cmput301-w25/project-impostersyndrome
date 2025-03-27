@@ -15,6 +15,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MoodAdapter;
 import com.example.impostersyndrom.model.MoodFilter;
 import com.example.impostersyndrom.model.MoodItem;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -53,7 +54,7 @@ public class MyMoodsFragment extends Fragment {
     public void fetchMyMoods() {
         if (userId == null) {
             Log.e("MyMoodsFragment", "userId is null, cannot fetch moods");
-            showToast("User not logged in");
+            showMessage("User not logged in");
             return;
         }
 
@@ -69,7 +70,7 @@ public class MyMoodsFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("MyMoodsFragment", "Failed to fetch moods: " + e.getMessage());
-                    showToast("Failed to fetch your moods: " + e.getMessage());
+                    showMessage("Failed to fetch your moods: " + e.getMessage());
                     moodListView.setAdapter(null); // Clear list on failure
                 });
     }
@@ -111,7 +112,9 @@ public class MyMoodsFragment extends Fragment {
             db.collection("users").document(moodUserId)
                     .get()
                     .addOnSuccessListener(userDoc -> {
+                        String username = userDoc.getString("username");
                         moodItems.set(position, new MoodItem(moodDoc, "")); // No username for My Moods
+
                         completedQueries[0]++;
 
                         if (completedQueries[0] == moodDocs.size()) {
@@ -121,6 +124,8 @@ public class MyMoodsFragment extends Fragment {
                                 moodListView.setVisibility(View.GONE);
                                 emptyMessage.setVisibility(View.VISIBLE);
                                 Log.d("MyMoodsFragment", "All items null, showing empty message");
+                                Log.d("MyMoodsFragment", "All items null, clearing adapter");
+                                showMessage("No moods to display");
                             } else {
                                 emptyMessage.setVisibility(View.GONE);
                                 moodListView.setVisibility(View.VISIBLE);
@@ -144,6 +149,7 @@ public class MyMoodsFragment extends Fragment {
                     })
                     .addOnFailureListener(e -> {
                         Log.e("MyMoodsFragment", "Error fetching user details: " + e.getMessage());
+                        showMessage("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
                             moodItems.removeIf(item -> item == null);
@@ -187,9 +193,17 @@ public class MyMoodsFragment extends Fragment {
         return selectedReason;
     }
 
-    private void showToast(String message) {
-        if (!isDetached()) {
-            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View view = getView();
+        if (view != null && !isDetached()) {
+            Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
         }
     }
 

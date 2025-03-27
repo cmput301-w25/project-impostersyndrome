@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -20,6 +19,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MoodAdapter;
 import com.example.impostersyndrom.model.MoodItem;
 import com.example.impostersyndrom.model.ProfileDataManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -56,7 +56,7 @@ public class UserProfileActivity extends AppCompatActivity {
         username = getIntent().getStringExtra("username");
 
         if (userId == null && username == null) {
-            Toast.makeText(this, "Error: User information not provided", Toast.LENGTH_SHORT).show();
+            showMessage("Error: User information not provided");
             finish();
             return;
         }
@@ -95,7 +95,7 @@ public class UserProfileActivity extends AppCompatActivity {
         if (usernameText == null || followersCountText == null || followingCountText == null ||
                 bioText == null || noMoodsText == null || backButton == null || profileImage == null ||
                 swipeRefreshLayout == null || moodListView == null) {
-            Toast.makeText(this, "Error: Unable to initialize views. Please check the layout file.", Toast.LENGTH_LONG).show();
+            showMessage("Error: Unable to initialize views. Please check the layout file.");
             finish();
             return false;
         }
@@ -159,12 +159,12 @@ public class UserProfileActivity extends AppCompatActivity {
                         fetchUserData(userId);
                         fetchRecentMoods(userId);
                     } else {
-                        showErrorMessage("User not found");
+                        showMessage("User not found");
                         setDefaultProfileData();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showErrorMessage("Error finding user: " + e.getMessage());
+                    showMessage("Error finding user: " + e.getMessage());
                     setDefaultProfileData();
                 });
     }
@@ -181,7 +181,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String errorMessage) {
-                showErrorMessage(errorMessage);
+                showMessage(errorMessage);
             }
         });
 
@@ -249,7 +249,7 @@ public class UserProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching recent moods: " + e.getMessage(), e);
-                    Toast.makeText(UserProfileActivity.this, "Failed to load recent moods: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    showMessage("Failed to load recent moods: " + e.getMessage());
                     moodListView.setAdapter(null);
                     swipeRefreshLayout.setRefreshing(false);
                 });
@@ -312,7 +312,7 @@ public class UserProfileActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error fetching user details: " + e.getMessage());
-                        Toast.makeText(UserProfileActivity.this, "Error fetching user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
                             moodItems.removeIf(item -> item == null);
@@ -327,7 +327,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void navigateToMoodDetail(DocumentSnapshot moodDoc) {
         if (moodDoc == null || !moodDoc.exists()) {
-            Toast.makeText(this, "Mood details unavailable.", Toast.LENGTH_SHORT).show();
+            showMessage("Mood details unavailable.");
             return;
         }
 
@@ -368,9 +368,18 @@ public class UserProfileActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(false);
     }
 
-    private void showErrorMessage(String message) {
-        Log.e(TAG, message);
-        Toast.makeText(UserProfileActivity.this, message, Toast.LENGTH_SHORT).show();
-        swipeRefreshLayout.setRefreshing(false);
+    /**
+     * Displays a Snackbar message and stops the refresh animation.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 }
