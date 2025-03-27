@@ -27,9 +27,9 @@ An Android mood tracking application that enables users to:
 ## Core Features
 
 ### Mood Management
-✔ Add/edit/delete mood events  
-✔ 8+ emotional states with visual indicators  
-✔ Optional triggers (text/photo) and social situation tags  
+✔ Add/edit/delete mood events  <br>
+✔ 8+ emotional states with visual indicators  <br>
+✔ Optional triggers (text/photo) and social situation tags  <br>
 
 ### Social Features
 👀 Follow friends' mood journeys
