@@ -134,6 +134,38 @@ public class FollowingAndSharingTest {
         onView(isRoot()).perform(waitFor(5000)); // Increased delay for Firestore update
     }
 
+    @Test
+    public void test4_UnfollowUser() throws Exception {
+        // Precondition: User 2 (NotRoxsksk) is following User 1 (roxsksk)
+
+        // 1. Login as User 2 (NotRoxsksk)
+        login(USER2_EMAIL, USER2_PASSWORD);
+
+        // 2. Go to Following screen
+        onView(withId(R.id.heartButton)).perform(click());
+        waitForView(withId(R.id.tabLayout), 10000);
+
+        // 3. Switch to "Following" tab (index 1)
+        onView(withId(R.id.tabLayout)).perform(selectTabAtPosition(1));
+        waitForView(withId(R.id.listView), 10000);
+        onView(isRoot()).perform(waitFor(2000));
+
+        // 4. Verify "roxsksk" is in the Following list
+        onView(allOf(withId(R.id.usernameTextView), withText(USER1_USERNAME)))
+                .check(matches(isDisplayed()));
+
+        // 5. Unfollow "roxsksk"
+        onView(allOf(withId(R.id.unfollowButton),
+                isDescendantOf(withChild(withText(USER1_USERNAME))), isDisplayed()))
+                .perform(click());
+
+        // 6. Wait for UI update after unfollowing
+        onView(isRoot()).perform(waitFor(5000));
+
+        // 7. Verify "roxsksk" is no longer in the Following list
+        onView(allOf(withId(R.id.usernameTextView), withText(USER1_USERNAME)))
+                .check(doesNotExist());
+    }
 
     // Helper method to login
     private void login(String email, String password) throws TimeoutException {
