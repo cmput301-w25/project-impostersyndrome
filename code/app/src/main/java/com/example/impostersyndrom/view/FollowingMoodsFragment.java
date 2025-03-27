@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class FollowingMoodsFragment extends Fragment {
+    private TextView emptyMessage;
 
     private ListView moodListView;
     private MoodAdapter moodAdapter;
@@ -38,7 +40,7 @@ public class FollowingMoodsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_following_moods, container, false);
         Log.d("FollowingMoodsFragment", "onCreateView called");
-
+        emptyMessage = view.findViewById(R.id.emptyMessage);
         db = FirebaseFirestore.getInstance();
         userId = requireActivity().getIntent().getStringExtra("userId");
         Log.d("FollowingMoodsFragment", "userId: " + userId);
@@ -71,11 +73,13 @@ public class FollowingMoodsFragment extends Fragment {
 
                     if (followingIds.isEmpty()) {
                         Log.d("FollowingMoodsFragment", "No users followed");
-                        showToast("You're not following anyone!");
                         moodListView.setAdapter(null);
+                        moodListView.setVisibility(View.GONE);
+                        emptyMessage.setText("You're not following anyone.");
+                        emptyMessage.setVisibility(View.VISIBLE);
                         return;
                     }
-
+                    emptyMessage.setVisibility(View.GONE);
                     fetchLatestMoodsFromFollowedUsers(followingIds);
                 })
                 .addOnFailureListener(e -> {
@@ -142,17 +146,30 @@ public class FollowingMoodsFragment extends Fragment {
 
 
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
+        this.moodDocs = moodDocs;
         List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
         final int[] completedQueries = {0};
 
         if (moodDocs.isEmpty()) {
             moodListView.setAdapter(null);
-            Log.d("FollowingMoodsFragment", "No moods to display, clearing adapter");
-            showToast("No moods to display");
+            moodListView.setVisibility(View.GONE);
+
+            if (!selectedEmotionalState.isEmpty() || !selectedReason.isEmpty() || filterByRecentWeek) {
+                emptyMessage.setText("No moods match your filters.");
+            } else {
+                emptyMessage.setText("No moods to display.");
+            }
+
+            emptyMessage.setVisibility(View.VISIBLE);
+            Log.d("FollowingMoodsFragment", "No moods to display, showing empty message");
             return;
         }
 
+
+        emptyMessage.setVisibility(View.GONE);
+        moodListView.setVisibility(View.VISIBLE);
         Log.d("FollowingMoodsFragment", "Setting up adapter with " + moodDocs.size() + " items");
+
         for (int i = 0; i < moodDocs.size(); i++) {
             final int position = i;
             DocumentSnapshot moodDoc = moodDocs.get(i);
@@ -167,19 +184,22 @@ public class FollowingMoodsFragment extends Fragment {
                     .addOnSuccessListener(userDoc -> {
                         String username = userDoc.getString("username");
                         moodItems.set(position, new MoodItem(moodDoc, "@" + username));
-
                         completedQueries[0]++;
+
                         if (completedQueries[0] == moodDocs.size()) {
                             moodItems.removeIf(item -> item == null);
                             if (moodItems.isEmpty()) {
                                 moodListView.setAdapter(null);
-                                Log.d("FollowingMoodsFragment", "All items null, clearing adapter");
-                                showToast("No moods to display");
+                                moodListView.setVisibility(View.GONE);
+                                emptyMessage.setVisibility(View.VISIBLE);
+                                Log.d("FollowingMoodsFragment", "All items null, showing empty message");
                             } else {
+                                emptyMessage.setVisibility(View.GONE);
+                                moodListView.setVisibility(View.VISIBLE);
                                 moodAdapter = new MoodAdapter(requireContext(), moodItems, true);
                                 moodListView.setAdapter(moodAdapter);
                                 Log.d("FollowingMoodsFragment", "Adapter set with " + moodItems.size() + " items");
-                                moodListView.invalidate(); // Force redraw
+                                moodListView.invalidate();
 
                                 moodListView.setOnItemClickListener((parent, view, pos, id) -> {
                                     DocumentSnapshot selectedMood = moodDocs.get(pos);
@@ -190,15 +210,17 @@ public class FollowingMoodsFragment extends Fragment {
                     })
                     .addOnFailureListener(e -> {
                         Log.e("FollowingMoodsFragment", "Error fetching user details: " + e.getMessage());
-                        showToast("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
                             moodItems.removeIf(item -> item == null);
-                            moodListView.setAdapter(null); // Clear list on failure
+                            moodListView.setAdapter(null);
+                            moodListView.setVisibility(View.GONE);
+                            emptyMessage.setVisibility(View.VISIBLE);
                         }
                     });
         }
     }
+
 
     public void applyFilter(String emotionalState) {
         this.selectedEmotionalState = emotionalState;
@@ -237,4 +259,12 @@ public class FollowingMoodsFragment extends Fragment {
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchFollowingMoods(); // refresh the list when user comes back
+    }
+
+
 }
