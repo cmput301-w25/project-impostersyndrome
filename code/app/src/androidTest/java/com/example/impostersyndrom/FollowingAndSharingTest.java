@@ -95,6 +95,20 @@ public class FollowingAndSharingTest {
         onView(withId(R.id.logoutContainer)).perform(click());
     }
 
+    @Test
+    public void test2_SendFollowRequestRevised() throws Exception {
+        login(USER2_EMAIL, USER2_PASSWORD);
+
+        // 2. Go to following screen to check pending requests
+        onView(withId(R.id.heartButton)).perform(click());
+        waitForView(withId(R.id.listView), 10000); // Increased timeout for Firestore load
+        onView(isRoot()).perform(waitFor(2000));   // Additional delay for adapter update
+
+        // 3. Verify follow request from User 1 appears in the ListView
+        onView(allOf(withId(R.id.usernameTextView), withText(USER1_USERNAME)))
+                .check(matches(isDisplayed()));
+    }
+
 
     // Helper method to login
     private void login(String email, String password) throws TimeoutException {
