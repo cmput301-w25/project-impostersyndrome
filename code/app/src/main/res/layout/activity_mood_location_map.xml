@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:background="@android:color/transparent"
-        android:src="@drawable/left_arrow"/>
+        android:src="@drawable/ic_back"/>
 
     <!-- Map View -->
     <org.osmdroid.views.MapView

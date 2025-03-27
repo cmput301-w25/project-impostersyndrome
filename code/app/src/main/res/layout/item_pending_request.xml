@@ -15,7 +15,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/default_person"
+        android:src="@drawable/img_default_person"
         app:shapeAppearanceOverlay="@style/CircleImageView"
         android:layout_marginEnd="12dp" />
 
@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:background="@drawable/button_follow"
+        android:background="@drawable/btn_follow"
         android:padding="6dp"
         android:text="Accept"
         android:textColor="@android:color/white"
@@ -44,7 +44,7 @@
         android:id="@+id/rejectButton"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:src="@drawable/clear"
+        android:src="@drawable/img_clear"
         android:padding="6dp"
         android:layout_marginStart="8dp"
         android:scaleType="centerCrop"

@@ -15,7 +15,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/default_person"
+        android:src="@drawable/img_default_person"
         app:shapeAppearanceOverlay="@style/CircleImageView"
         android:layout_marginEnd="12dp" />
 
@@ -37,7 +37,7 @@
         android:text="Unfollow"
         android:textSize="14sp"
         android:textColor="@android:color/white"
-        android:background="@drawable/button_unfollow"
+        android:background="@drawable/btn_unfollow"
         android:padding="6dp"
         android:layout_marginStart="8dp"/>
 </LinearLayout>

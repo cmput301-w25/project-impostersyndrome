@@ -22,7 +22,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -117,11 +116,11 @@ public class EditProfileActivity extends AppCompatActivity {
                         if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
                             Glide.with(this)
                                     .load(currentProfileImageUrl)
-                                    .placeholder(R.drawable.default_person)
-                                    .error(R.drawable.default_person)
+                                    .placeholder(R.drawable.img_default_person)
+                                    .error(R.drawable.img_default_person)
                                     .into(profileImage);
                         } else {
-                            profileImage.setImageResource(R.drawable.default_person);
+                            profileImage.setImageResource(R.drawable.img_default_person);
                         }
                     }
                 })
@@ -137,7 +136,7 @@ public class EditProfileActivity extends AppCompatActivity {
             imageRef.delete()
                     .addOnSuccessListener(aVoid -> {
                         Log.d(TAG, "Old profile image deleted from Storage");
-                        profileImage.setImageResource(R.drawable.default_person);
+                        profileImage.setImageResource(R.drawable.img_default_person);
                         currentProfileImageUrl = null;
                         showMessage("Profile picture removed");
                     })
@@ -146,7 +145,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         showMessage("Failed to remove profile picture");
                     });
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
             showMessage("No profile picture to remove");
         }
     }

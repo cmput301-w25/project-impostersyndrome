@@ -67,11 +67,11 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
         if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
             Glide.with(getContext())
                     .load(user.profileImageUrl)
-                    .placeholder(R.drawable.default_person)
-                    .error(R.drawable.default_person)
+                    .placeholder(R.drawable.img_default_person)
+                    .error(R.drawable.img_default_person)
                     .into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
         }
 
         // Make the TextView clickable and ensure it has proper focus state
