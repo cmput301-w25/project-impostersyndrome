@@ -2,6 +2,7 @@ package com.example.impostersyndrom.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import com.example.impostersyndrom.R;
  * The selected emoji is returned to the calling activity (EditMoodActivity).
  *
  * @author Rayan
+ * @author Roshan
  */
 public class EditEmojiActivity extends AppCompatActivity {
     private String selectedEmoji; // Stores the currently selected emoji
@@ -30,6 +32,7 @@ public class EditEmojiActivity extends AppCompatActivity {
 
         // Initialize UI components
         ImageView currentEmojiView = findViewById(R.id.EditEmojiView);
+        ImageButton backButton = findViewById(R.id.backButton);
         currentEmojiView.setImageResource(EditEmojiResources.getEmojiResource(selectedEmoji));
 
         // Set click listeners for each emoji selection
@@ -41,6 +44,8 @@ public class EditEmojiActivity extends AppCompatActivity {
         findViewById(R.id.emojiVI).setOnClickListener(v -> returnEmoji("emoji_fear"));
         findViewById(R.id.emojiIII).setOnClickListener(v -> returnEmoji("emoji_disgust"));
         findViewById(R.id.emojiVII).setOnClickListener(v -> returnEmoji("emoji_shame"));
+
+        backButton.setOnClickListener(v -> finish());
     }
 
     /**

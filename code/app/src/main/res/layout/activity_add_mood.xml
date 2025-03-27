@@ -145,7 +145,7 @@
                             android:focusable="true"
                             android:padding="8dp"
                             android:scaleType="fitCenter"
-                            android:src="@drawable/location"
+                            android:src="@drawable/ic_location"
                             android:text="Attach Location" />
 
                         <ImageButton
@@ -158,18 +158,20 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:padding="8dp"
-                            android:src="@drawable/person" />
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/privacySwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:text="Private"
-                            android:textColor="@color/white"
-                            android:checked="false" />
+                            android:src="@drawable/ic_person" />
                     </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/privacySwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:checked="false"
+                        android:textColor="@color/black" />
+
                 </LinearLayout>
+
+
             </LinearLayout>
 
             <ImageButton

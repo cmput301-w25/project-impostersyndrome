@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.Comment;
 import com.example.impostersyndrom.model.CommentDataManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
@@ -26,6 +26,7 @@ import com.example.impostersyndrom.network.SpotifyApiService;
 import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
 import com.example.impostersyndrom.spotify.MoodAudioMapper;
 import com.example.impostersyndrom.spotify.SpotifyManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -61,6 +62,8 @@ public class MoodDetailActivity extends AppCompatActivity {
     private int color;
     private String emojiDescription;
     private String imageUrl;
+    private Double latitude;
+    private Double longitude;
 
     // Spotify Integration
     private String accessToken;
@@ -95,12 +98,11 @@ public class MoodDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // NOTE: Ensure your XML layout is wrapped in a ScrollView or NestedScrollView so all content is visible.
         try {
             setContentView(R.layout.activity_mood_detail);
         } catch (Exception e) {
             Log.e(TAG, "Failed to set content view: " + e.getMessage(), e);
-            showToast("Error loading layout: " + e.getMessage());
+            showMessage("Error loading layout: " + e.getMessage());
             finish();
             return;
         }
@@ -130,11 +132,11 @@ public class MoodDetailActivity extends AppCompatActivity {
         // END COMMENT CHANGE
 
         if (!initializeViews()) {
-            showToast("Error initializing views.");
+            showMessage("Error initializing views.");
             finish();
             return;
         }
-
+        retrieveIntentData();
         // COMMENT CHANGE: Retrieve mood extras (including moodId)
         moodId = getIntent().getStringExtra("moodId");
         if (moodId == null) {
@@ -149,14 +151,13 @@ public class MoodDetailActivity extends AppCompatActivity {
         emojiDescription = getIntent().getStringExtra("emojiDescription");
         imageUrl = getIntent().getStringExtra("imageUrl");
         accessToken = getIntent().getStringExtra("accessToken");
-        // END COMMENT CHANGE
+        Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
 
-        logMoodData();
-
-        // Spotify and ViewPager setup (unchanged)
         spotifyManager = SpotifyManager.getInstance();
         moodAudioMapper = new MoodAudioMapper();
+
         setupViewPager();
+
         if (recommendedTracks.isEmpty() && !isFetchingRecommendations) {
             fetchSongRecommendation();
         }
@@ -193,8 +194,9 @@ public class MoodDetailActivity extends AppCompatActivity {
         try {
             backButton = findViewById(R.id.backButton);
             viewPager = findViewById(R.id.viewPager);
+
             if (backButton == null || viewPager == null) {
-                Log.e(TAG, "One or more required views not found in layout.");
+                Log.e(TAG, "One or more views not found in layout.");
                 return false;
             }
             return true;
@@ -204,6 +206,39 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
+    private void retrieveIntentData() {
+        Intent intent = getIntent();
+        if (intent == null) {
+            Log.e(TAG, "Intent is null.");
+            return;
+        }
+
+        // Check if this is an update from EditMoodActivity
+        Mood updatedMood = (Mood) intent.getSerializableExtra("updatedMood");
+        if (updatedMood != null) {
+            emoji = updatedMood.getEmotionalState();
+            Date date = updatedMood.getTimestamp();
+            timestamp = date != null ? new Timestamp(date) : null;
+            reason = updatedMood.getReason();
+            group = updatedMood.getGroup();
+            color = updatedMood.getColor();
+            emojiDescription = updatedMood.getEmojiDescription();
+            imageUrl = updatedMood.getImageUrl();
+            latitude = updatedMood.getLatitude();
+            longitude = updatedMood.getLongitude();
+            Log.d(TAG, "Retrieved from updatedMood - Latitude: " + latitude + ", Longitude: " + longitude);
+        } else {
+            emoji = intent.getStringExtra("emoji");
+            timestamp = intent.getParcelableExtra("timestamp");
+            reason = intent.getStringExtra("reason");
+            group = intent.getStringExtra("group");
+            color = intent.getIntExtra("color", Color.WHITE);
+            emojiDescription = intent.getStringExtra("emojiDescription");
+            imageUrl = intent.getStringExtra("imageUrl");
+            latitude = intent.hasExtra("latitude") ? intent.getDoubleExtra("latitude", 0.0) : null;
+            longitude = intent.hasExtra("longitude") ? intent.getDoubleExtra("longitude", 0.0) : null;
+            Log.d(TAG, "Retrieved from Intent extras - Latitude: " + latitude + ", Longitude: " + longitude);
+        }
     // COMMENT CHANGE: Updated addComment() to append the new comment instead of re-fetching all
     private void addComment(String text) {
         Comment newComment = new Comment(moodId, currentUserId, currentUsername, text, new Date());
@@ -223,7 +258,8 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
     // END COMMENT CHANGE
 
-    // COMMENT CHANGE: Updated fetchComments() to fetch once when mood is clicked.
+        logMoodData();
+    }
     private void fetchComments() {
         commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
             @Override
@@ -238,39 +274,45 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
         });
     }
-    // END COMMENT CHANGE
 
     private void logMoodData() {
         Log.d(TAG, "Mood ID: " + moodId);
         Log.d(TAG, "Emoji: " + emoji);
+        Log.d(TAG, "Timestamp: " + (timestamp != null ? timestamp.toString() : "null"));
         Log.d(TAG, "Reason: " + reason);
         Log.d(TAG, "Group: " + group);
         Log.d(TAG, "Emoji Description: " + emojiDescription);
         Log.d(TAG, "Image URL: " + (imageUrl != null ? imageUrl : "null"));
+        Log.d(TAG, "Latitude: " + latitude);
+        Log.d(TAG, "Longitude: " + longitude);
     }
 
     private void setupViewPager() {
         cardAdapter = new MoodCardAdapter(this);
 
-        // Setup the "Mood Details" card
         cardAdapter.setMoodDetailsListener(holder -> {
-            // Bind your mood data to holder...
+            Log.d(TAG, "Binding Mood Details Card");
+
             if (emoji != null && holder.emojiView != null) {
                 int emojiResId = getResources().getIdentifier(emoji, "drawable", getPackageName());
                 if (emojiResId != 0) {
                     holder.emojiView.setImageResource(emojiResId);
                 } else {
-                    Log.e(TAG, "Could not find drawable for emoji: " + emoji);
+                    Log.e(TAG, "Could not find drawable resource for emoji: " + emoji);
                 }
             }
 
-            if (holder.timeView != null && timestamp != null) {
-                try {
-                    String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault())
-                            .format(timestamp.toDate());
-                    holder.timeView.setText(formattedTime);
-                } catch (Exception e) {
-                    holder.timeView.setText("Invalid time");
+            if (holder.timeView != null) {
+                if (timestamp != null) {
+                    try {
+                        String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
+                        holder.timeView.setText(formattedTime);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error formatting timestamp: " + e.getMessage());
+                        holder.timeView.setText("Invalid time");
+                    }
+                } else {
+                    holder.timeView.setText("Unknown time");
                 }
             }
 
@@ -289,29 +331,49 @@ public class MoodDetailActivity extends AppCompatActivity {
             if (holder.imageUrlView != null) {
                 if (imageUrl != null && !imageUrl.isEmpty()) {
                     holder.imageUrlView.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Loading image from URL: " + imageUrl);
                     try {
-                        Glide.with(this).load(imageUrl).into(holder.imageUrlView);
+                        Glide.with(this)
+                                .load(imageUrl)
+                                .into(holder.imageUrlView);
                     } catch (Exception e) {
+                        Log.e(TAG, "Glide failed to load image: " + e.getMessage());
                         holder.imageUrlView.setVisibility(View.GONE);
                     }
                 } else {
+                    Log.d(TAG, "No image URL provided, hiding ImageView");
                     holder.imageUrlView.setVisibility(View.GONE);
                 }
             }
 
-            // Rounded background
             if (holder.emojiRectangle != null) {
-                GradientDrawable gd = new GradientDrawable();
-                gd.setShape(GradientDrawable.RECTANGLE);
-                gd.setCornerRadius(50);
-                gd.setColor(color);
-                gd.setStroke(2, Color.BLACK);
-                holder.emojiRectangle.setBackground(gd);
+                GradientDrawable gradientDrawable = new GradientDrawable();
+                gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+                gradientDrawable.setCornerRadius(50);
+                gradientDrawable.setColor(color);
+                gradientDrawable.setStroke(2, Color.BLACK);
+                holder.emojiRectangle.setBackground(gradientDrawable);
+            }
+
+            // Location button logic
+            if (holder.locationButton != null) {
+                holder.locationButton.setVisibility(View.VISIBLE); // Always show the button
+                holder.locationButton.setOnClickListener(v -> {
+                    Log.d(TAG, "Location button clicked - Current lat: " + latitude + ", lon: " + longitude);
+                    if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
+                        Log.d(TAG, "Valid location found, opening map with lat: " + latitude + ", lon: " + longitude);
+                        openMap();
+                    } else {
+                        Log.d(TAG, "No valid location: lat=" + latitude + ", lon=" + longitude);
+                    }
+                });
+            } else {
+                Log.e(TAG, "locationButton is null in MoodDetailsViewHolder");
             }
         });
 
-        // Setup the "Song Recommendation" card
         cardAdapter.setSongRecommendationListener(holder -> {
+            Log.d(TAG, "Binding Song Recommendation Card");
             if (!recommendedTracks.isEmpty()) {
                 displayTrackAtCurrentIndex(holder);
             } else if (isFetchingRecommendations) {
@@ -350,7 +412,6 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
         });
 
-        // Attach adapter to ViewPager
         viewPager.setAdapter(cardAdapter);
         viewPager.setOffscreenPageLimit(2);
         viewPager.setBackgroundColor(Color.BLACK);
@@ -360,7 +421,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                Log.d(TAG, "Page selected: " + position + " (0 = Mood Details, 1 = Song Recommendation)");
+                Log.d(TAG, "Page selected: " + position);
             }
         });
     }
@@ -386,8 +447,10 @@ public class MoodDetailActivity extends AppCompatActivity {
                     displayNextTrack(null);
                     cardAdapter.notifyItemChanged(1);
                 } else {
+                    String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
+                    Log.e(TAG, errorMessage);
                     if (response.code() == 401) {
-                        showToast("Spotify session expired. Please reopen this mood.");
+                        showMessage("Spotify session expired. Please reopen this mood.");
                     } else {
                         fetchSongUsingSearch(genre);
                     }
@@ -398,37 +461,42 @@ public class MoodDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<SpotifyRecommendationResponse> call, Throwable t) {
                 isFetchingRecommendations = false;
+                Log.e(TAG, "Recommendation fetch error: " + t.getMessage());
                 cardAdapter.notifyItemChanged(1);
             }
         });
     }
 
     private void displayNextTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
-        // Filter out tracks already shown
-        List<SpotifyRecommendationResponse.Track> unshown = new ArrayList<>();
+        List<SpotifyRecommendationResponse.Track> unshownTracks = new ArrayList<>();
         for (SpotifyRecommendationResponse.Track track : recommendedTracks) {
             if (!shownTrackIds.contains(track.id)) {
-                unshown.add(track);
+                unshownTracks.add(track);
             }
         }
-        if (unshown.isEmpty()) {
+
+        if (unshownTracks.isEmpty()) {
             fetchSongRecommendation();
             return;
         }
-        Random random = new Random();
-        int randomIndex = random.nextInt(unshown.size());
-        SpotifyRecommendationResponse.Track selected = unshown.get(randomIndex);
 
-        shownTrackIds.add(selected.id);
-        shownTracksHistory.add(selected);
+        Random random = new Random();
+        int randomIndex = random.nextInt(unshownTracks.size());
+        SpotifyRecommendationResponse.Track selectedTrack = unshownTracks.get(randomIndex);
+
+        shownTrackIds.add(selectedTrack.id);
+        shownTracksHistory.add(selectedTrack);
         currentTrackIndex = shownTracksHistory.size() - 1;
-        currentTrack = selected;
+        currentTrack = selectedTrack;
 
         updateTrackDisplay(holder);
     }
 
     private void displayPreviousTrack(MoodCardAdapter.SongRecommendationViewHolder holder) {
-        if (currentTrackIndex <= 0) return;
+        if (currentTrackIndex <= 0) {
+            return;
+        }
+
         currentTrackIndex--;
         currentTrack = shownTracksHistory.get(currentTrackIndex);
         updateTrackDisplay(holder);
@@ -460,7 +528,9 @@ public class MoodDetailActivity extends AppCompatActivity {
                         .error(R.drawable.ic_music_note)
                         .into(holder.albumArtImageView);
             } else {
-                Glide.with(this).load(R.drawable.ic_music_note).into(holder.albumArtImageView);
+                Glide.with(this)
+                        .load(R.drawable.ic_music_note)
+                        .into(holder.albumArtImageView);
             }
 
             String trackUri = "spotify:track:" + currentTrack.id;
@@ -489,38 +559,61 @@ public class MoodDetailActivity extends AppCompatActivity {
                     displayNextTrack(null);
                     cardAdapter.notifyItemChanged(1);
                 } else {
+                    Log.e(TAG, "No songs found: " + response.code() + " - " + response.message());
                     cardAdapter.notifyItemChanged(1);
                 }
             }
+
             @Override
             public void onFailure(Call<SpotifyApiService.SearchResponse> call, Throwable t) {
                 isFetchingRecommendations = false;
+                Log.e(TAG, "Search error: " + t.getMessage());
                 cardAdapter.notifyItemChanged(1);
             }
         });
     }
 
     private void playTrackOnSpotify(String trackUri) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(trackUri));
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(trackUri));
         intent.setPackage("com.spotify.music");
         intent.putExtra(Intent.EXTRA_REFERRER, Uri.parse("android-app://" + getPackageName()));
 
         try {
             startActivity(intent);
-        } catch (android.content.ActivityNotFoundException e) {
+        } catch (Exception e) {
             String trackId = trackUri.replace("spotify:track:", "");
             String webUrl = "https://open.spotify.com/track/" + trackId;
             Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
             try {
                 startActivity(webIntent);
-            } catch (android.content.ActivityNotFoundException ex2) {
-                showToast("Spotify is not installed. Redirecting to install...");
+                Log.d(TAG, "Web URL intent launched successfully.");
+            } catch (android.content.ActivityNotFoundException ex) {
+                Log.e(TAG, "No app available to handle web URL: " + ex.getMessage());
+                showMessage("Spotify is not installed. Redirecting to install...");
+
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
-                } catch (android.content.ActivityNotFoundException ex3) {
+                } catch (Exception ex2) {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
                 }
             }
+
+        }
+    }
+
+    private void openMap() {
+        if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
+            Intent intent = new Intent(this, MoodLocationMapActivity.class);
+            intent.putExtra("latitude", latitude);
+            intent.putExtra("longitude", longitude);
+            intent.putExtra("emoji", emoji); // Pass the emoji to display on the map
+            startActivity(intent);
+            Log.d(TAG, "Navigating to MoodLocationMapActivity with lat: " + latitude + ", lon: " + longitude);
+        } else {
+
+            Log.e(TAG, "No valid location data: lat=" + latitude + ", lon=" + longitude);
+
         }
     }
 
@@ -534,6 +627,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     setResult(RESULT_OK, resultIntent);
                     finish();
                 } catch (Exception e) {
+                    Log.e(TAG, "Error handling back button: " + e.getMessage(), e);
                     finish();
                 }
             });
@@ -549,12 +643,25 @@ public class MoodDetailActivity extends AppCompatActivity {
             setResult(RESULT_OK, resultIntent);
             super.onBackPressed();
         } catch (Exception e) {
+            Log.e(TAG, "Error handling back button: " + e.getMessage(), e);
             super.onBackPressed();
         }
     }
 
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        } else {
+            Log.w(TAG, "Cannot show Snackbar: rootView is null or Activity is finishing");
+        }
     }
 
     @Override
