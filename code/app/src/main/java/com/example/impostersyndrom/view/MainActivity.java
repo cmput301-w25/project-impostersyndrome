@@ -383,6 +383,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("emojiDescription", (String) data.getOrDefault("emojiDescription", "No description"));
             intent.putExtra("isMyMoods", viewPager.getCurrentItem() == 0);
             intent.putExtra("accessToken", SpotifyManager.getInstance().getAccessToken());
+            intent.putExtra("moodId", moodDoc.getId());
             startActivity(intent);
         } else {
             showToast("Error loading mood details.");
