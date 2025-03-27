@@ -319,7 +319,7 @@ public class EditMoodActivity extends AppCompatActivity {
 
         if (NetworkUtils.isOffline(this)) {
             Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-            Log.d("OfflineEdit", "Offline branch taken for moodId: " + moodId);
+            Log.d("OfflineEdit", "Offline branch taken for moodId: " + moodId + ", updates: " + updates.toString());
             new MoodDataManager().saveOfflineEdit(this, moodId, updates);
             finish();
             return;

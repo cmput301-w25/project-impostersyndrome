@@ -222,6 +222,14 @@ public class AddMoodActivity extends AppCompatActivity {
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
 
+            // In AddMoodActivity's submitButton onClickListener (offline branch):
+            moodDataManager.saveMoodOffline(this, mood);
+            // Notify MainActivity to refresh the UI with local data
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("newMood", mood); // Ensure Mood is Serializable
+            setResult(RESULT_OK, resultIntent);
+            navigateToMainActivity();
+
             Log.d("MoodSubmit", "Submit button clicked");
 
 

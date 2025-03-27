@@ -208,12 +208,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupButtonListeners() {
+        // Allow addMoodButton to work even offline.
         addMoodButton.setOnClickListener(v -> navigateToEmojiSelection());
-        profileButton.setOnClickListener(v -> navigateToProfile());
-        filterButton.setOnClickListener(v -> showFilterDialog());
-        searchButton.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
-        heartButton.setOnClickListener(v -> startActivity(new Intent(this, FollowingActivity.class)));
-        menuButton.setOnClickListener(v -> toggleNavigationDrawer());
+
+        // Restrict profileButton when offline.
+        profileButton.setOnClickListener(v -> {
+            if (NetworkUtils.isOffline(this)) {
+                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            navigateToProfile();
+        });
+
+        // Restrict filterButton when offline.
+        filterButton.setOnClickListener(v -> {
+            if (NetworkUtils.isOffline(this)) {
+                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showFilterDialog();
+        });
+
+        // Restrict searchButton when offline.
+        searchButton.setOnClickListener(v -> {
+            if (NetworkUtils.isOffline(this)) {
+                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            startActivity(new Intent(MainActivity.this, SearchActivity.class));
+        });
+
+        // Restrict heartButton (for following moods) when offline.
+        heartButton.setOnClickListener(v -> {
+            if (NetworkUtils.isOffline(this)) {
+                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+        });
+
+        // Restrict menuButton if needed (if its functions are not add/edit/delete).
+        menuButton.setOnClickListener(v -> {
+            if (NetworkUtils.isOffline(this)) {
+                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            toggleNavigationDrawer();
+        });
     }
 
     private void setupSwipeRefresh() {
@@ -446,50 +487,29 @@ public class MainActivity extends AppCompatActivity {
             MoodDataManager manager = new MoodDataManager();
 
             // Sync offline added moods
-            List<Mood> offlineMoods = manager.getOfflineMoods(this);
-            Log.d("Sync", "Found " + offlineMoods.size() + " offline moods.");
-            if (!offlineMoods.isEmpty()) {
-                for (Mood mood : offlineMoods) {
-                    // Check if the mood has a local image URI.
-                    if (mood.getImageUrl() != null && mood.getImageUrl().startsWith("file://")) {
-                        ImageHandler offlineImageHandler = new ImageHandler(this, null);
-                        offlineImageHandler.uploadImageFromLocalUri(mood.getImageUrl(), new ImageHandler.OnImageUploadListener() {
-                            @Override
-                            public void onImageUploadSuccess(String url) {
-                                mood.setImageUrl(url); // Update the mood with the remote URL
-                                manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
-                                    @Override
-                                    public void onMoodAdded() {
-                                        Log.d("Sync", "Offline add synced (with image upload): " + mood.getId());
-                                    }
-                                    @Override
-                                    public void onError(String errorMessage) {
-                                        Log.e("Sync", "Add failed: " + errorMessage);
-                                    }
-                                });
-                            }
-                            @Override
-                            public void onImageUploadFailure(Exception e) {
-                                Log.e("Sync", "Failed to upload offline image: " + e.getMessage());
-                            }
-                        });
-                    } else {
-                        // No local image, add the mood normally.
-                        manager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
-                            @Override
-                            public void onMoodAdded() {
-                                Log.d("Sync", "Offline add synced: " + mood.getId());
-                            }
-                            @Override
-                            public void onError(String errorMessage) {
-                                Log.e("Sync", "Add failed: " + errorMessage);
-                            }
-                        });
-                    }
+            // Sync offline edits
+            List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
+            if (!offlineEdits.isEmpty()) {
+                Log.d("Sync", "Syncing offline edits: " + offlineEdits.size());
+                for (MoodDataManager.OfflineEdit edit : offlineEdits) {
+                    // Force update from server by using a get(Source.SERVER) after update.
+                    FirebaseFirestore.getInstance().collection("moods").document(edit.moodId)
+                            .update(edit.updates)
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("Sync", "Offline edit synced: " + edit.moodId);
+                                // Force a fresh reload of this document from the server.
+                                FirebaseFirestore.getInstance().collection("moods").document(edit.moodId)
+                                        .get(com.google.firebase.firestore.Source.SERVER)
+                                        .addOnSuccessListener(documentSnapshot -> {
+                                            Log.d("Sync", "Refreshed mood " + edit.moodId + " from server: reason=" + documentSnapshot.getString("reason"));
+                                            // Optionally, trigger a UI refresh here if needed.
+                                        });
+                            })
+                            .addOnFailureListener(e -> Log.e("Sync", "Edit failed: " + edit.moodId, e));
                 }
-                manager.clearOfflineMoods(this);
+                manager.clearOfflineEdits(this);
             } else {
-                Log.d("Sync", "No offline added moods to sync.");
+                Log.d("Sync", "No offline edits to sync.");
             }
 
             // Sync offline deletes
