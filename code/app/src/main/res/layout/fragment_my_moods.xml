@@ -17,7 +17,7 @@
             android:textColor="@android:color/darker_gray"
             android:textSize="18sp"
             android:gravity="center"
-            android:visibility="gone"
+            android:visibility="visible"
             android:layout_marginTop="50dp"/>
 
         <ListView
@@ -27,6 +27,7 @@
             android:divider="@android:color/transparent"
             android:dividerHeight="8dp"
             android:padding="8dp"
+            android:visibility="gone"
             android:background="@android:color/black" />
     </RelativeLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
