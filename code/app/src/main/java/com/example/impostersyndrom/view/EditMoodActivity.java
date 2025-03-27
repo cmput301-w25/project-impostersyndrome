@@ -318,13 +318,30 @@ public class EditMoodActivity extends AppCompatActivity {
         }
 
         if (NetworkUtils.isOffline(this)) {
-            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-            Log.d("OfflineEdit", "Offline branch taken for moodId: " + moodId + ", updates: " + updates.toString());
-            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
-            finish();
+            // If editing offline and no new image is selected, and there is an original remote image,
+            // convert the remote image to a local URI so it can be displayed offline.
+            if (!imageHandler.hasImage() && originalImageUrl != null && !originalImageUrl.isEmpty() && !originalImageUrl.startsWith("file://")) {
+                imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
+                    if (localUri != null) {
+                        updates.put("imageUrl", localUri);
+                        Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
+                    } else {
+                        Log.e("OfflineEdit", "Failed to download remote image locally.");
+                        // Optionally, you can retain the original URL, but it might not display offline
+                        updates.put("imageUrl", originalImageUrl);
+                    }
+                    Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+                    new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
+                    finish();
+                });
+            } else {
+                // If no new image is selected and the image is already local (or there's no image)
+                Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+                new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+                finish();
+            }
             return;
         }
-
         saveToFirestore(updates);
     }
 

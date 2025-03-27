@@ -221,38 +221,35 @@ public class AddMoodActivity extends AppCompatActivity {
 
         // Submit button with image handling
         submitButton.setOnClickListener(v -> {
-
-            // In AddMoodActivity's submitButton onClickListener (offline branch):
-            moodDataManager.saveMoodOffline(this, mood);
-            // Notify MainActivity to refresh the UI with local data
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("newMood", mood); // Ensure Mood is Serializable
-            setResult(RESULT_OK, resultIntent);
-            navigateToMainActivity();
-
-            Log.d("MoodSubmit", "Submit button clicked");
-
-
             // Ensure the mood object is properly initialized
             if (mood == null) {
-                Toast.makeText(this, "Mood object is null", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddMoodActivity.this, "Mood object is null", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Populate the mood object
+            // Update the mood object with the new values
             mood.setReason(addReasonEdit.getText().toString().trim());
             mood.setGroup(selectedGroup);
             mood.setUserId(User.getInstance().getUserId());
             mood.setPrivateMood(isPrivateMood);
 
+            // If location is attached, update the mood
+            if (isLocationAttached && currentLocation != null) {
+                mood.setLatitude(currentLocation.getLatitude());
+                mood.setLongitude(currentLocation.getLongitude());
+            } else {
+                mood.setLatitude(null);
+                mood.setLongitude(null);
+            }
 
-            boolean isOffline = NetworkUtils.isOffline(this);
-            Log.d("MoodSubmit", "Offline? " + isOffline);
+            // Log the mood details for debugging
+            Log.d("AddMoodActivity", "Mood details: " + mood.toString());
 
-            if (isOffline) {
-                Toast.makeText(this, "You're offline. Your mood will be saved locally.", Toast.LENGTH_LONG).show();
+            // Check connectivity using your NetworkUtils
+            if (NetworkUtils.isOffline(AddMoodActivity.this)) {
+                // Offline branch: Save mood locally
 
-                // If an image is selected, save it locally and store its URI in the mood object.
+                // If an image is selected, save it locally and update the mood's imageUrl
                 if (imageHandler.hasImage()) {
                     String localImageUri = imageHandler.saveImageLocally();
                     if (localImageUri != null) {
@@ -266,44 +263,34 @@ public class AddMoodActivity extends AppCompatActivity {
                     mood.setImageUrl(null);
                 }
 
-                // Add extra logging to verify the mood is being saved offline.
+                // Log and save the mood offline
                 Log.d("OfflineMood", "Saving offline mood: " + mood.toString());
-                moodDataManager.saveMoodOffline(this, mood);
+                moodDataManager.saveMoodOffline(AddMoodActivity.this, mood);
                 Log.d("MoodSubmit", "Mood saved offline: " + mood.getReason());
                 navigateToMainActivity();
-                return;
-            }
-
-            if (isLocationAttached && currentLocation != null) {
-                mood.setLatitude(currentLocation.getLatitude());
-                mood.setLongitude(currentLocation.getLongitude());
             } else {
-                mood.setLatitude(null);
-                mood.setLongitude(null);
-            }
+                // Online branch: Sync directly with Firestore
+                if (imageHandler.hasImage()) {
+                    imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                        @Override
+                        public void onImageUploadSuccess(String url) {
+                            imageUrl = url;
+                            mood.setImageUrl(imageUrl);
+                            saveMood(mood);
+                        }
 
-            // Log the mood details
-            Log.d("AddMoodActivity", "Mood details: " + mood.toString());
-
-            if (imageHandler.hasImage()) {
-                imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                    @Override
-                    public void onImageUploadSuccess(String url) {
-                        imageUrl = url;
-                        mood.setImageUrl(imageUrl);
-                        saveMood(mood);
-                    }
-
-                    @Override
-                    public void onImageUploadFailure(Exception e) {
-                        Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                mood.setImageUrl(null);
-                saveMood(mood);
+                        @Override
+                        public void onImageUploadFailure(Exception e) {
+                            Toast.makeText(AddMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    mood.setImageUrl(null);
+                    saveMood(mood);
+                }
             }
         });
+
     }
     private void fetchLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
