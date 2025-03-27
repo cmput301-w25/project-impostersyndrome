@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -20,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.ImageHandler;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -42,7 +42,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private String userId;
     private ImageHandler imageHandler;
     private String currentProfileImageUrl;
-    private String currentUsername; // Track the current username
+    private String currentUsername;
 
     private static final String TAG = "EditProfileActivity";
 
@@ -51,31 +51,22 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        // Initialize Firestore and Storage
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Initialize views
         usernameEditText = findViewById(R.id.usernameEditText);
         bioEditText = findViewById(R.id.bioEditText);
         saveButton = findViewById(R.id.saveButton);
         backButton = findViewById(R.id.backButton);
         profileImage = findViewById(R.id.profileImage);
 
-        // Initialize ImageHandler
         imageHandler = new ImageHandler(this, profileImage);
 
-        // Set up back button
         backButton.setOnClickListener(v -> finish());
-
-        // Set up change profile image button to show bottom sheet
         profileImage.setOnClickListener(v -> showBottomSheetDialog());
-
-        // Set up save button
         saveButton.setOnClickListener(v -> saveProfile());
 
-        // Load current user data
         loadUserData();
     }
 
@@ -116,7 +107,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        currentUsername = documentSnapshot.getString("username"); // Store current username
+                        currentUsername = documentSnapshot.getString("username");
                         String bio = documentSnapshot.getString("bio");
                         currentProfileImageUrl = documentSnapshot.getString("profileImageUrl");
 
@@ -136,7 +127,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading user data: ", e);
-                    Toast.makeText(this, "Failed to load profile data", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to load profile data");
                 });
     }
 
@@ -148,15 +139,15 @@ public class EditProfileActivity extends AppCompatActivity {
                         Log.d(TAG, "Old profile image deleted from Storage");
                         profileImage.setImageResource(R.drawable.default_person);
                         currentProfileImageUrl = null;
-                        Toast.makeText(this, "Profile picture removed", Toast.LENGTH_SHORT).show();
+                        showMessage("Profile picture removed");
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to delete image from Storage: ", e);
-                        Toast.makeText(this, "Failed to remove profile picture", Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to remove profile picture");
                     });
         } else {
             profileImage.setImageResource(R.drawable.default_person);
-            Toast.makeText(this, "No profile picture to remove", Toast.LENGTH_SHORT).show();
+            showMessage("No profile picture to remove");
         }
     }
 
@@ -165,15 +156,13 @@ public class EditProfileActivity extends AppCompatActivity {
         String newBio = bioEditText.getText().toString().trim();
 
         if (newUsername.isEmpty()) {
-            Toast.makeText(this, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+            showMessage("Username cannot be empty");
             return;
         }
 
-        // If the username hasn't changed, proceed directly to saving
         if (newUsername.equals(currentUsername)) {
             proceedWithSave(newUsername, newBio);
         } else {
-            // Check if the new username is already taken
             checkUsernameAvailability(newUsername, newBio);
         }
     }
@@ -184,16 +173,14 @@ public class EditProfileActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        // Username already exists
-                        Toast.makeText(this, "Username '" + newUsername + "' is already taken", Toast.LENGTH_SHORT).show();
+                        showMessage("Username '" + newUsername + "' is already taken");
                     } else {
-                        // Username is available, proceed with saving
                         proceedWithSave(newUsername, newBio);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error checking username availability: ", e);
-                    Toast.makeText(this, "Error checking username availability", Toast.LENGTH_SHORT).show();
+                    showMessage("Error checking username availability");
                 });
     }
 
@@ -216,7 +203,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 @Override
                 public void onImageUploadFailure(Exception e) {
                     Log.e(TAG, "Failed to upload image: ", e);
-                    Toast.makeText(EditProfileActivity.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to upload profile picture");
                 }
             });
         } else {
@@ -237,13 +224,22 @@ public class EditProfileActivity extends AppCompatActivity {
         db.collection("users").document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    currentUsername = newUsername; // Update current username after successful save
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    currentUsername = newUsername;
+                    showMessage("Profile updated successfully");
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating profile: ", e);
-                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to update profile");
                 });
+    }
+
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

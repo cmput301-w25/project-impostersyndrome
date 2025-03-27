@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
@@ -20,6 +19,7 @@ import com.example.impostersyndrom.network.SpotifyApiService;
 import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
 import com.example.impostersyndrom.spotify.MoodAudioMapper;
 import com.example.impostersyndrom.spotify.SpotifyManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
@@ -77,13 +77,13 @@ public class MoodDetailActivity extends AppCompatActivity {
             setContentView(R.layout.activity_mood_detail);
         } catch (Exception e) {
             Log.e(TAG, "Failed to set content view: " + e.getMessage(), e);
-            showToast("Error loading layout: " + e.getMessage());
+            showMessage("Error loading layout: " + e.getMessage());
             finish();
             return;
         }
 
         if (!initializeViews()) {
-            showToast("Error initializing views.");
+            showMessage("Error initializing views.");
             finish();
             return;
         }
@@ -246,7 +246,6 @@ public class MoodDetailActivity extends AppCompatActivity {
                         openMap();
                     } else {
                         Log.d(TAG, "No valid location: lat=" + latitude + ", lon=" + longitude);
-                        showToast("This mood doesn’t have a location.");
                     }
                 });
             } else {
@@ -332,7 +331,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     String errorMessage = "Failed to fetch recommendation: " + response.code() + " - " + response.message();
                     Log.e(TAG, errorMessage);
                     if (response.code() == 401) {
-                        showToast("Spotify session expired. Please reopen this mood.");
+                        showMessage("Spotify session expired. Please reopen this mood.");
                     } else {
                         fetchSongUsingSearch(genre);
                     }
@@ -469,14 +468,18 @@ public class MoodDetailActivity extends AppCompatActivity {
             Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl));
             try {
                 startActivity(webIntent);
-            } catch (Exception ex) {
-                showToast("Spotify is not installed. Redirecting to install...");
+                Log.d(TAG, "Web URL intent launched successfully.");
+            } catch (android.content.ActivityNotFoundException ex) {
+                Log.e(TAG, "No app available to handle web URL: " + ex.getMessage());
+                showMessage("Spotify is not installed. Redirecting to install...");
+
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
                 } catch (Exception ex2) {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
                 }
             }
+
         }
     }
 
@@ -489,8 +492,9 @@ public class MoodDetailActivity extends AppCompatActivity {
             startActivity(intent);
             Log.d(TAG, "Navigating to MoodLocationMapActivity with lat: " + latitude + ", lon: " + longitude);
         } else {
-            showToast("This mood doesn’t have a location.");
+     
             Log.e(TAG, "No valid location data: lat=" + latitude + ", lon=" + longitude);
+
         }
     }
 
@@ -525,11 +529,19 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void showToast(String message) {
-        try {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Log.e(TAG, "Error showing toast: " + e.getMessage(), e);
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        } else {
+            Log.w(TAG, "Cannot show Snackbar: rootView is null or Activity is finishing");
         }
     }
 

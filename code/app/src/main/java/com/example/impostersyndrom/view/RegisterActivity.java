@@ -9,7 +9,7 @@ import com.example.impostersyndrom.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -136,7 +136,7 @@ public class RegisterActivity extends AppCompatActivity {
                             registerUser(emailText, passwordText, firstNameText, lastNameText, usernameText);
                         }
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Database error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Database error: " + task.getException().getMessage());
                     }
                 });
     }
@@ -169,7 +169,7 @@ public class RegisterActivity extends AppCompatActivity {
                 db.collection("users").document(userId)
                         .set(new UserModel(email, username, firstName, lastName))
                         .addOnSuccessListener(unused -> {
-                            Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+                            showMessage("Registration Successful!");
                             startActivity(new Intent(this, LoginActivity.class));
                             finish();
                         })
@@ -203,5 +203,16 @@ public class RegisterActivity extends AppCompatActivity {
             this.firstName = firstName;
             this.lastName = lastName;
         }
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 }

@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -17,6 +16,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -177,7 +177,23 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void showErrorMessage(String message) {
         Log.e(TAG, message);
-        Toast.makeText(ProfileActivity.this, message, Toast.LENGTH_SHORT).show();
+        showMessage(message);
         swipeRefreshLayout.setRefreshing(false);
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null && !isFinishing()) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+            swipeRefreshLayout.setRefreshing(false);
+        }
+
     }
 }
