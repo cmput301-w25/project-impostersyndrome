@@ -38,7 +38,7 @@ An Android mood tracking application that enables users to:
 
 ### Data Visualization
 🗓️ Filterable timeline (date range, emotion type)  
-🗺️ Geolocation tagging and heatmaps  
+🗺️ Geolocation tagging
 📍 Proximity-based mood event display  
 
 ### Technical Highlights
