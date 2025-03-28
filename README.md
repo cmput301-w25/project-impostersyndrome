@@ -32,9 +32,9 @@ An Android mood tracking application that enables users to:
 ✔ Optional triggers (text/photo) and social situation tags  <br>
 
 ### Social Features
-👀 Follow friends' mood journeys
-💬 Comment on shared moods
-🔒 Public/private post controls
+👀 Follow friends' mood journeys <br>
+💬 Comment on shared moods <br>
+🔒 Public/private post controls <br>
 
 ### Data Visualization
 🗓️ Filterable timeline (date range, emotion type)  
