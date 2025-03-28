@@ -28,9 +28,8 @@
   [ConstraintLayout Docs](https://developer.android.com/training/constraint-layout)
 
 - **Icons8** – Used for emoticons and UI icons, credited as per the Universal Multimedia License Agreement.  
-  [Icons8](https://icons8.com)  
-  [Universal Multimedia License Agreement](https://intercom.help/icons8-7fb7577e8170/en/articles/5534926-universal-multimedia-license-agreement-for-icons8)
-
+  [Icons8](https://icons8.com)
+  
 - **Material Design Guidelines** – Referenced for UI/UX best practices and design consistency.  
   [Material Design](https://material.io/design)
 
