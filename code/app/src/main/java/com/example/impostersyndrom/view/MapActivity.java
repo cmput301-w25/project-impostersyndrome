@@ -10,6 +10,11 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import android.app.AlertDialog;
+import android.widget.CheckBox;
+import android.widget.Spinner;
+import android.widget.EditText;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,6 +42,8 @@ import android.graphics.drawable.BitmapDrawable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Calendar;
 
 public class MapActivity extends AppCompatActivity {
     private MapView mapView;
@@ -45,6 +52,11 @@ public class MapActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 1;
     private MyLocationNewOverlay myLocationOverlay;
     private RotationGestureOverlay rotationGestureOverlay;
+    private ImageButton filterButton;
+    private boolean filterLastWeek = false;
+    private String selectedMoodFilter = "All";
+    private String keywordFilter = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,15 +75,13 @@ public class MapActivity extends AppCompatActivity {
         // Initialize and configure map
         initializeMap();
 
-        // Set up back button
-        ImageButton backButton = findViewById(R.id.backButton);
+        ImageButton backButton = findViewById(R.id.backButtonBlack);
         backButton.setOnClickListener(v -> finish());
-
-        // Request permissions
         requestPermissions();
 
-        // Load moods
         loadMoods();
+        filterButton = findViewById(R.id.filterButton);
+        filterButton.setOnClickListener(v -> showFilterDialog());
     }
 
     private void initializeMap() {
@@ -125,6 +135,101 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    private void showFilterDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View filterView = getLayoutInflater().inflate(R.layout.dialog_map_filter, null);
+        builder.setView(filterView);
+
+        // Initialize filter controls
+        CheckBox lastWeekCheckbox = filterView.findViewById(R.id.lastWeekCheckbox);
+        Spinner moodSpinner = filterView.findViewById(R.id.moodSpinner);
+        EditText keywordSearch = filterView.findViewById(R.id.keywordSearch);
+
+        // Set up mood spinner
+        ArrayList<String> moodOptions = new ArrayList<>();
+        moodOptions.add("All");
+        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Excited", "Tired", "Confused"));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
+            android.R.layout.simple_spinner_item, moodOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        moodSpinner.setAdapter(adapter);
+
+        // Set current filter values
+        lastWeekCheckbox.setChecked(filterLastWeek);
+        moodSpinner.setSelection(moodOptions.indexOf(selectedMoodFilter));
+        keywordSearch.setText(keywordFilter);
+
+        builder.setPositiveButton("Apply", (dialog, which) -> {
+            // Save filter values
+            filterLastWeek = lastWeekCheckbox.isChecked();
+            selectedMoodFilter = moodSpinner.getSelectedItem().toString();
+            keywordFilter = keywordSearch.getText().toString().trim();
+
+            // Refresh map with new filters
+            refreshMapWithFilters();
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        builder.setNeutralButton("Clear Filters", (dialog, which) -> {
+            filterLastWeek = false;
+            selectedMoodFilter = "All";
+            keywordFilter = "";
+            refreshMapWithFilters();
+        });
+
+        builder.show();
+    }
+
+    private void refreshMapWithFilters() {
+        // Clear existing markers
+        mapView.getOverlays().clear();
+        
+        // Re-add non-marker overlays
+        mapView.getOverlays().add(myLocationOverlay);
+        mapView.getOverlays().add(rotationGestureOverlay);
+        
+        // Reload moods
+        loadMoods();
+    }
+
+    private boolean shouldDisplayMood(Mood mood) {
+        if (mood.getLatitude() == 0 && mood.getLongitude() == 0) {
+            return false;
+        }
+
+        // Filter by last week
+        if (filterLastWeek) {
+            Calendar lastWeek = Calendar.getInstance();
+            lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
+            if (mood.getTimestamp().before(lastWeek.getTime())) {
+                return false;
+            }
+        }
+
+        // Filter by mood
+        if (!selectedMoodFilter.equals("All") && 
+            !mood.getEmotionalState().equals(selectedMoodFilter)) {
+            return false;
+        }
+
+        // Filter by keyword
+        if (!keywordFilter.isEmpty()) {
+            String lowerKeyword = keywordFilter.toLowerCase();
+            String lowerReason = mood.getReason().toLowerCase();
+            String lowerEmotionalState = mood.getEmotionalState().toLowerCase();
+            
+            boolean matchesKeyword = lowerReason.contains(lowerKeyword) || 
+                                   lowerEmotionalState.contains(lowerKeyword);
+            
+            if (!matchesKeyword) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void loadMoods() {
         String currentUserId = auth.getCurrentUser().getUid();
 
@@ -135,10 +240,14 @@ public class MapActivity extends AppCompatActivity {
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                     Mood mood = document.toObject(Mood.class);
-                    if (mood.getLatitude() != 0 && mood.getLongitude() != 0) {
+                    if (shouldDisplayMood(mood)) {
                         addMoodMarker(mood, true);
                     }
                 }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error loading moods: " + e.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
             });
 
         // Load following users' moods
@@ -148,8 +257,7 @@ public class MapActivity extends AppCompatActivity {
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    String followedUserId = document.getId();
-                    loadUserMoods(followedUserId);
+                    loadUserMoods(document.getId());
                 }
             });
     }
@@ -157,11 +265,12 @@ public class MapActivity extends AppCompatActivity {
     private void loadUserMoods(String userId) {
         db.collection("moods")
             .whereEqualTo("userId", userId)
+            .whereEqualTo("privateMood", false)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                     Mood mood = document.toObject(Mood.class);
-                    if (mood.getLatitude() != 0 && mood.getLongitude() != 0) {
+                    if (shouldDisplayMood(mood)) {
                         addMoodMarker(mood, false);
                     }
                 }
@@ -199,7 +308,6 @@ public class MapActivity extends AppCompatActivity {
             "Your mood" + " (" + mood.getGroup() + ")" :
             "Mood by " + mood.getUserId() + " (" + mood.getGroup() + ")";
         marker.setSnippet(snippet);
-
 
         mapView.getOverlays().add(marker);
     }
