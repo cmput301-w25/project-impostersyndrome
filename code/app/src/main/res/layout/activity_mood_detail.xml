@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="@color/black">
 
-    <!-- (Optional) Back Button at the very top -->
+    <!-- Back Button at the top -->
     <ImageButton
         android:id="@+id/backButton"
         android:layout_width="wrap_content"
@@ -18,48 +18,57 @@
         android:background="@android:color/transparent"
         app:tint="@color/white" />
 
-    <!-- ViewPager2 for mood details & song recommendations -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:layout_margin="16dp" />
-
-    <!-- Input area for adding a comment (like Twitter: above the list) -->
+    <!-- Container for Mood Details and Comment Input -->
     <LinearLayout
-        android:id="@+id/commentInputContainer"
+        android:id="@+id/moodDetailsContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="@color/white">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/commentEditText"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <!-- ViewPager2 for mood details & song recommendations -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:layout_margin="16dp" />
+
+        <!-- Input area for adding a comment -->
+        <LinearLayout
+            android:id="@+id/commentInputContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Write a comment..."
-            android:textColor="@android:color/black"
-            android:padding="8dp" />
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@color/white">
 
-        <ImageButton
-            android:id="@+id/sendCommentButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/checkmark"
-            android:contentDescription="Send Comment"
-            android:background="@android:color/transparent"
-            android:padding="8dp" />
+            <EditText
+                android:id="@+id/commentEditText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="Write a comment..."
+                android:textColor="@android:color/black"
+                android:padding="8dp" />
+
+            <ImageButton
+                android:id="@+id/sendCommentButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/checkmark"
+                android:contentDescription="Send Comment"
+                android:background="@android:color/transparent"
+                android:padding="8dp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- RecyclerView to display comments (below the input) -->
+    <!-- RecyclerView to display comments -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3"
+        android:layout_weight="1"
         android:padding="8dp" />
 
 </LinearLayout>
