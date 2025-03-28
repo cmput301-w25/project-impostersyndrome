@@ -176,7 +176,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         sendCommentButton.setOnClickListener(v -> {
             String text = commentEditText.getText().toString().trim();
             if (text.isEmpty()) {
-                Toast.makeText(MoodDetailActivity.this, "Please enter a comment", Toast.LENGTH_SHORT).show();
+                showMessage("Please enter a comment");
                 return;
             }
             addComment(text);
@@ -239,38 +239,38 @@ public class MoodDetailActivity extends AppCompatActivity {
             longitude = intent.hasExtra("longitude") ? intent.getDoubleExtra("longitude", 0.0) : null;
             Log.d(TAG, "Retrieved from Intent extras - Latitude: " + latitude + ", Longitude: " + longitude);
         }
+        logMoodData();
+    }
+
     // COMMENT CHANGE: Updated addComment() to append the new comment instead of re-fetching all
     private void addComment(String text) {
         Comment newComment = new Comment(moodId, currentUserId, currentUsername, text, new Date());
-        commentDataManager.addComment(newComment, new CommentDataManager.OnCommentAddedListener() {
+        // Note: For a top-level comment, newComment.parentId will be null.
+        commentDataManager.addComment(moodId, newComment, new CommentDataManager.OnCommentAddedListener() {
             @Override
             public void onCommentAdded() {
-                showToast("Comment added");
+                showMessage("Comment added");
                 commentEditText.setText("");
-                // Instead of fetching all comments, append the new comment to the adapter.
                 commentsAdapter.addComment(newComment);
             }
             @Override
             public void onError(String errorMessage) {
-                showToast("Error adding comment: " + errorMessage);
+                showMessage("Error adding comment: " + errorMessage);
             }
         });
     }
     // END COMMENT CHANGE
-
-        logMoodData();
-    }
     private void fetchComments() {
         commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
             @Override
             public void onCommentsFetched(List<Comment> comments) {
                 Log.d(TAG, "Fetched " + comments.size() + " comments for moodId: " + moodId);
-                // Set the adapter's list (this should call notifyDataSetChanged() in your adapter)
                 commentsAdapter.setComments(comments);
             }
             @Override
             public void onError(String errorMessage) {
-                showToast("Error fetching comments: " + errorMessage);
+                showMessage("Error fetching comments: " + errorMessage);
+
             }
         });
     }
