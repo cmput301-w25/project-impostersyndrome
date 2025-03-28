@@ -70,5 +70,9 @@
     <string name="username">Username</string>
     <string name="profile">Profile</string>">
     <string name="requested">Requested</string>
+    <string name="followers">Followers</string>
+    <string name="user_profile">User Profile</string>
+    <string name="recent_moods">Recent Moods</string>
+    <string name="no_recent_public_moods">No recent public moods</string>
 
 </resources>
