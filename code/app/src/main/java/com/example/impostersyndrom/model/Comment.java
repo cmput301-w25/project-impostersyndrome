@@ -24,6 +24,17 @@ public class Comment implements Serializable {
         this.parentId = null;
         this.replyCount = 0;
     }
+    // Implemented deserialized constructor with no argument in order to work with Firebase
+    public Comment() {
+        this.id = UUID.randomUUID().toString();
+        this.moodId = "";
+        this.userId = "";
+        this.username = "";
+        this.text = "";
+        this.timestamp = new Date();
+        this.parentId = null;
+        this.replyCount = 0;
+    }
 
     public Comment(String moodId, String userId, String username, String text, Date timestamp, String parentId) {
         this.id = UUID.randomUUID().toString();
