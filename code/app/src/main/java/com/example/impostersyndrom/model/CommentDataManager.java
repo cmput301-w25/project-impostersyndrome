@@ -8,9 +8,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -24,7 +21,7 @@ public class CommentDataManager {
         db = FirebaseFirestore.getInstance();
     }
 
-    // Helper: returns the comments subcollection for a given mood
+    // Returns the comments subcollection for a given mood
     private CollectionReference getCommentsCollection(String moodId) {
         return db.collection("moods").document(moodId).collection("comments");
     }
@@ -41,15 +38,6 @@ public class CommentDataManager {
         void onError(String errorMessage);
     }
 
-
-    /**
-     * Adds a comment to the comments subcollection for the specified mood.
-     * For a top-level comment, ensure that parentId is null.
-     *
-     * @param moodId   The ID of the mood document.
-     * @param comment  The Comment object to add.
-     * @param listener Callback for success or error.
-     */
     public void addComment(String moodId, Comment comment, final OnCommentAddedListener listener) {
         String newId = getCommentsCollection(moodId).document().getId();
         comment.setId(newId);
@@ -77,13 +65,6 @@ public class CommentDataManager {
         void onError(String errorMessage);
     }
 
-    /**
-     * Fetches all top-level comments (parentId == null) for the specified mood.
-     * Comments are ordered by the "timestamp" field in ascending order.
-     *
-     * @param moodId   The ID of the mood document.
-     * @param listener Callback with the list of comments or an error.
-     */
     public void fetchComments(String moodId, final OnCommentsFetchedListener listener) {
         getCommentsCollection(moodId)
                 .whereEqualTo("parentId", null)
@@ -131,16 +112,8 @@ public class CommentDataManager {
 
         void onError(String errorMessage);
     }
-
-    /**
-     * Deletes a comment from the comments subcollection for the specified mood.
-     *
-     * @param moodId    The ID of the mood document.
-     * @param commentId The ID of the comment to delete.
-     * @param listener  Callback for success or error.
-     */
     public void deleteCommentAndReplies(String moodId, String commentId, final OnCommentDeletedListener listener) {
-        // First, retrieve the comment to know if it is a reply.
+        // First, retrieve the comment to know if it is a reply
         DocumentReference commentRef = getCommentsCollection(moodId).document(commentId);
         commentRef.get().addOnSuccessListener(documentSnapshot -> {
             Comment comment = documentSnapshot.toObject(Comment.class);
@@ -148,7 +121,7 @@ public class CommentDataManager {
                 if (listener != null) listener.onError("Comment not found");
                 return;
             }
-            // If this comment is a reply, decrement the parent's replyCount.
+            // If this comment is a reply, decrement the parent's replyCount
             if (comment.getParentId() != null) {
                 getCommentsCollection(moodId).document(comment.getParentId())
                         .update("replyCount", FieldValue.increment(-1));
@@ -163,7 +136,7 @@ public class CommentDataManager {
                         for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                             deletionTasks.add(deleteCommentAndRepliesTask(moodId, doc.getId()));
                         }
-                        // After all child deletions are done, delete this comment.
+                        // After all child deletions are done, delete this comment
                         Tasks.whenAll(deletionTasks)
                                 .addOnSuccessListener(aVoid -> commentRef.delete()
                                         .addOnSuccessListener(aVoid2 -> {
@@ -184,7 +157,7 @@ public class CommentDataManager {
         });
     }
 
-    // Helper method to wrap the recursive deletion in a Task:
+    // Helper method to wrap the recursive deletion in a Task
     private Task<Void> deleteCommentAndRepliesTask(String moodId, String commentId) {
         TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
         deleteCommentAndReplies(moodId, commentId, new OnCommentDeletedListener() {

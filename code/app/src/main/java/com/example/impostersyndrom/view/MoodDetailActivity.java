@@ -85,15 +85,11 @@ public class MoodDetailActivity extends AppCompatActivity {
     private ImageButton sendCommentButton;
     private CommentsAdapter commentsAdapter;
     private CommentDataManager commentDataManager;
-
-    // Current user info (user is guaranteed logged in)
     private String currentUserId;
     private String currentUsername;
 
-    // Adapter for ViewPager2 (Spotify code remains unchanged)
     private MoodCardAdapter cardAdapter;
 
-    // Profile manager to fetch username from Firestore
     private ProfileDataManager profileDataManager;
 
     @Override
@@ -108,7 +104,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // COMMENT CHANGE: Get current user info for comments
+        // Get current user info for comments
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         currentUserId = user.getUid();
         currentUsername = user.getDisplayName();
@@ -130,7 +126,6 @@ public class MoodDetailActivity extends AppCompatActivity {
                 Log.e(TAG, "Failed to fetch profile: " + errorMessage);
             }
         });
-        // END COMMENT CHANGE
 
         if (!initializeViews()) {
             showMessage("Error initializing views.");
@@ -138,7 +133,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             return;
         }
         retrieveIntentData();
-        // COMMENT CHANGE: Retrieve mood extras (including moodId)
+        // Retrieve mood extras (including moodId)
         moodId = getIntent().getStringExtra("moodId");
         if (moodId == null) {
             moodId = "";
@@ -163,19 +158,18 @@ public class MoodDetailActivity extends AppCompatActivity {
             fetchSongRecommendation();
         }
 
-        // COMMENT CHANGE: Setup Comments UI components
+        // Setup Comments UI components
         commentsRecyclerView = findViewById(R.id.commentsRecyclerView);
         commentEditText = findViewById(R.id.commentEditText);
         sendCommentButton = findViewById(R.id.sendCommentButton);
         commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         commentsAdapter = new CommentsAdapter();
-        // NEW: Pass currentUserId to the adapter so it can hide the delete button for others' comments
+        // Pass currentUserId to the adapter so it can hide the delete button for others' comments
         commentsAdapter.setCurrentUserId(currentUserId);
         commentsRecyclerView.setAdapter(commentsAdapter);
         commentDataManager = new CommentDataManager();
-        // END COMMENT CHANGE
 
-        // COMMENT CHANGE: Setup delete listener for comments
+        // Setup delete listener for comments
         commentsAdapter.setOnCommentDeleteListener(comment -> {
             if (!currentUserId.equals(comment.getUserId())) {
                 showMessage("You can only delete your own comments.");
@@ -212,9 +206,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     .show();
         });
 
-        // END COMMENT CHANGE
-
-        // COMMENT CHANGE: Setup send comment button
+        // Setup send comment button
         sendCommentButton.setOnClickListener(v -> {
             String text = commentEditText.getText().toString().trim();
             if (text.isEmpty()) {
@@ -223,11 +215,8 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
             addComment(text);
         });
-        // END COMMENT CHANGE
 
-        // COMMENT CHANGE: Fetch existing comments for this mood on activity open
         fetchComments();
-        // END COMMENT CHANGE
 
         setupBackButton();
 
@@ -245,9 +234,8 @@ public class MoodDetailActivity extends AppCompatActivity {
                         @Override
                         public void onCommentAdded() {
                             showMessage("Reply added");
-                            // Update the parent's local replyCount
                             parentComment.setReplyCount(parentComment.getReplyCount() + 1);
-                            // Immediately update the UI for this comment's replies:
+                            // Immediately update the UI for this comment's replies
                             updateRepliesForParent(parentComment);
                         }
                         @Override
@@ -314,7 +302,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         logMoodData();
     }
 
-    // COMMENT CHANGE: Updated addComment() to append the new comment instead of re-fetching all
+    // Updated addComment to append the new comment instead of re fetching all
     private void addComment(String text) {
         Comment newComment = new Comment(moodId, currentUserId, currentUsername, text, new Date());
         // Note: For a top-level comment, newComment.parentId will be null.
@@ -331,7 +319,6 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
         });
     }
-    // END COMMENT CHANGE
 
     private void fetchComments() {
         commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
