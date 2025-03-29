@@ -148,7 +148,8 @@ public class MapActivity extends AppCompatActivity {
         // Set up mood spinner
         ArrayList<String> moodOptions = new ArrayList<>();
         moodOptions.add("All");
-        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Excited", "Tired", "Confused", "Shame", "Surprised"));
+        moodOptions.addAll(Arrays.asList("emoji_happy", "emoji_sad", "emoji_angry", "emoji_fear", 
+            "emoji_confused", "emoji_shame", "emoji_surprised", "emoji_disgust"));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
             android.R.layout.simple_spinner_item, moodOptions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -156,13 +157,13 @@ public class MapActivity extends AppCompatActivity {
 
         // Set current filter values
         lastWeekCheckbox.setChecked(filterLastWeek);
-        moodSpinner.setSelection(moodOptions.indexOf(selectedMoodFilter));
+        moodSpinner.setSelection(moodOptions.indexOf(selectedMoodFilter.toLowerCase()));
         keywordSearch.setText(keywordFilter);
 
         builder.setPositiveButton("Apply", (dialog, which) -> {
             // Save filter values
             filterLastWeek = lastWeekCheckbox.isChecked();
-            selectedMoodFilter = moodSpinner.getSelectedItem().toString();
+            selectedMoodFilter = moodSpinner.getSelectedItem().toString().toLowerCase();
             keywordFilter = keywordSearch.getText().toString().trim();
 
             // Refresh map with new filters
@@ -207,9 +208,9 @@ public class MapActivity extends AppCompatActivity {
             }
         }
 
-        // Filter by mood
-        if (!selectedMoodFilter.equals("All") && 
-            !mood.getEmotionalState().equals(selectedMoodFilter)) {
+        // Filter by mood (case-insensitive comparison)
+        if (!selectedMoodFilter.equals("All") &&
+            !mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
             return false;
         }
 
