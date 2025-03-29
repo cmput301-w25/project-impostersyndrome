@@ -3,17 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/black"
-    >
+    android:background="@color/black">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
-        android:gravity="center_horizontal"
-        >
+        android:gravity="center_horizontal">
 
+        <!-- FrameLayout for Emoji Section -->
         <FrameLayout
             android:paddingTop="20dp"
             android:layout_width="wrap_content"
@@ -23,69 +22,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-
                 android:padding="16dp">
-
-                <ImageButton
-                    android:id="@+id/backButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="8dp"
-                    android:src="@drawable/left_arrow"
-                    android:layout_gravity="center_vertical"/>
-
-                <!-- This acts like a placeholder -->
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="53dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Choose a different mood"
-                    android:textColor="@color/black"
-                    android:textSize="25sp"
-                    android:textStyle="bold" />
-
-                <!-- Checkmark Button -->
-                <ImageButton
-                    android:id="@+id/submitButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="8dp"
-                    android:src="@drawable/white_checkmark"/>
 
             </LinearLayout>
 
 
-
             <LinearLayout
                 android:id="@+id/EditEmojiRectangle"
-                android:layout_width="match_parent"
+                android:layout_width="359dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="65sp"
+                android:minHeight="346dp"
+                android:layout_marginTop="65dp"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingBottom="16dp">
 
                 <ImageView
-                    android:layout_width="100sp"
-                    android:layout_height="100sp"
                     android:id="@+id/EditEmoji"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginTop="25dp"
                     android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:layout_marginTop="25dp"/>
+                    android:scaleType="fitCenter" />
 
                 <TextView
                     android:id="@+id/EditEmojiDescription"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-
                     android:gravity="center"
                     android:textColor="@color/white"
                     android:textSize="35sp"
@@ -95,8 +59,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/EditDateTimeView"
@@ -106,6 +70,7 @@
                         android:textSize="12sp"
                         android:textStyle="bold"/>
 
+                    <!-- Reason field with character count -->
                     <LinearLayout
                         android:layout_width="280dp"
                         android:layout_height="wrap_content"
@@ -124,17 +89,23 @@
                                 android:layout_height="wrap_content"
                                 android:background="@null"
                                 android:hint="@string/EditReasonHint"
-                                android:maxLength="20"
+                                android:maxLength="200"
                                 android:padding="8dp"
-                                android:singleLine="true"
                                 android:textColor="@color/black"
                                 android:textColorHint="#D3D3D3"/>
 
-                            <!-- Image Preview - positioned below reason field -->
-
-
-
                         </FrameLayout>
+
+                        <!-- Character Counter -->
+                        <TextView
+                            android:id="@+id/reasonCharCounter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:text="0/200"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp"/>
 
                         <ImageView
                             android:id="@+id/EditImagePreview"
@@ -147,125 +118,98 @@
                             android:adjustViewBounds="true"
                             android:scaleType="fitCenter"
                             android:visibility="gone" />
-
                     </LinearLayout>
 
-
+                    <!-- Button row for camera, location and group icons -->
                     <LinearLayout
-                        android:layout_width="280dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="vertical">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
-
-                        </FrameLayout>
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
 
+                        <ImageButton
+                            android:id="@+id/EditCameraMenuButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+
+                            android:layout_gravity="center"
+
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/camera_menu_description"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_camera" />
+
+                        <ImageButton
+
+                            android:id="@+id/attachLocationButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="16dp"
+                            android:background="@null"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="8dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_location" />
+
+                        <ImageButton
+
+                            android:id="@+id/EditGroupButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="16dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+
+                            android:contentDescription="@string/group_button_description"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_person" />
                     </LinearLayout>
 
-
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent">
-
-                    <ImageButton
-                        android:id="@+id/EditCameraMenuButton"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/camera_menu_description"
-                        android:padding="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_camera" />
-
-                    <ImageButton
-                        android:id="@+id/EditGroupButton"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="16dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:layout_gravity="center"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="8dp"
-                        android:src="@drawable/person" />
-                    <ImageButton
-                        android:id="@+id/attachLocationButton"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="16dp"
-                        android:background="@null"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:padding="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/location"
-                        android:text="Attach Location" />
+                    <!-- Privacy Switch - positioned below the button row -->
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/privacySwitch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="Private"
-                        android:textColor="@color/white"
-                        android:checked="false" />
+                        android:layout_gravity="center"
+                        android:checked="false"
+                        android:textColor="@color/black" />
 
 
                 </LinearLayout>
-
-                <!-- Group button -->
-
-
             </LinearLayout>
 
+            <!-- Back Button (top-left) -->
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/back_button_description"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/left_arrow"
+                android:layout_gravity="top|start" />
 
+            <!-- Submit Button (top-right) -->
+            <ImageButton
+                android:id="@+id/submitButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/submit_button_description"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:src="@drawable/white_checkmark"
+                android:layout_gravity="top|end" />
         </FrameLayout>
-
     </LinearLayout>
 
 </ScrollView>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -118,7 +118,7 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
                 User.getInstance().setUserId(userId);
-                showToast("Login Successful!");
+
 
                 // Pre-fetch mood data before navigating to MainActivity
                 prefetchMoodData(userId);
@@ -163,7 +163,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         } catch (ApiException e) {
             // Google Sign-In failed
-            showToast("Google Sign-In failed: " + e.getMessage());
         }
     }
 
@@ -178,13 +177,11 @@ public class LoginActivity extends AppCompatActivity {
                         // Sign-in success
                         String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
                         User.getInstance().setUserId(userId);
-                        showToast("Google Sign-In Successful!");
 
                         // Pre-fetch mood data before navigating to MainActivity
                         prefetchMoodData(userId);
                     } else {
                         // Sign-in failed
-                        showToast("Google Sign-In failed: " + Objects.requireNonNull(task.getException()).getMessage());
                     }
                 });
     }
@@ -228,10 +225,5 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Displays a toast message.
-     */
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
+
 }

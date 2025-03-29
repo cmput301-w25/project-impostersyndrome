@@ -10,9 +10,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.FollowingAdapter;
 import com.example.impostersyndrom.model.UserData; // Import UserData
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -76,6 +78,7 @@ public class FollowingFragment extends Fragment {
                         }
                     }
 
+                    // Step 2: Fetch usernames from the "users" collection
                     if (userIds.isEmpty()) {
                         emptyMessage.setText("You're not following anyone yet");
                         emptyMessage.setVisibility(View.VISIBLE);
@@ -126,6 +129,19 @@ public class FollowingFragment extends Fragment {
         super.onDestroyView();
         if (followingListener != null) {
             followingListener.remove();
+        }
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        if (getView() != null) {
+            Snackbar.make(getView(), message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
         }
     }
 }
