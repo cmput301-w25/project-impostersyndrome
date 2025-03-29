@@ -9,8 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +18,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.CommentsAdapter;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.Comment;
 import com.example.impostersyndrom.model.CommentDataManager;
@@ -168,8 +169,49 @@ public class MoodDetailActivity extends AppCompatActivity {
         sendCommentButton = findViewById(R.id.sendCommentButton);
         commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         commentsAdapter = new CommentsAdapter();
+        // NEW: Pass currentUserId to the adapter so it can hide the delete button for others' comments
+        commentsAdapter.setCurrentUserId(currentUserId);
         commentsRecyclerView.setAdapter(commentsAdapter);
         commentDataManager = new CommentDataManager();
+        // END COMMENT CHANGE
+
+        // COMMENT CHANGE: Setup delete listener for comments
+        commentsAdapter.setOnCommentDeleteListener(comment -> {
+            if (!currentUserId.equals(comment.getUserId())) {
+                showMessage("You can only delete your own comments.");
+                return;
+            }
+            new AlertDialog.Builder(MoodDetailActivity.this)
+                    .setTitle("Delete Comment")
+                    .setMessage("Are you sure you want to delete this comment?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        commentDataManager.deleteCommentAndReplies(comment.getMoodId(), comment.getId(), new CommentDataManager.OnCommentDeletedListener() {
+                            @Override
+                            public void onCommentDeleted() {
+                                showMessage("Comment deleted");
+                                if (comment.getParentId() == null) {
+                                    // It's a top-level comment: just refresh all comments
+                                    fetchComments();
+                                } else {
+                                    // It's a reply: find the parent comment in the adapter
+                                    for (Comment c : commentsAdapter.getComments()) {
+                                        if (c.getId().equals(comment.getParentId())) {
+                                            updateRepliesForParent(c);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            @Override
+                            public void onError(String errorMessage) {
+                                showMessage("Error deleting comment: " + errorMessage);
+                            }
+                        });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
         // END COMMENT CHANGE
 
         // COMMENT CHANGE: Setup send comment button
@@ -188,6 +230,36 @@ public class MoodDetailActivity extends AppCompatActivity {
         // END COMMENT CHANGE
 
         setupBackButton();
+
+        commentsAdapter.setOnReplyListener(parentComment -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MoodDetailActivity.this);
+            builder.setTitle("Reply to " + parentComment.getUsername());
+            final EditText input = new EditText(MoodDetailActivity.this);
+            builder.setView(input);
+            builder.setPositiveButton("Send", (dialog, which) -> {
+                String replyText = input.getText().toString().trim();
+                if (!replyText.isEmpty()) {
+                    // Create a reply using the constructor that includes a parentId
+                    Comment replyComment = new Comment(parentComment.getMoodId(), currentUserId, currentUsername, replyText, new Date(), parentComment.getId());
+                    commentDataManager.addComment(parentComment.getMoodId(), replyComment, new CommentDataManager.OnCommentAddedListener() {
+                        @Override
+                        public void onCommentAdded() {
+                            showMessage("Reply added");
+                            // Update the parent's local replyCount
+                            parentComment.setReplyCount(parentComment.getReplyCount() + 1);
+                            // Immediately update the UI for this comment's replies:
+                            updateRepliesForParent(parentComment);
+                        }
+                        @Override
+                        public void onError(String errorMessage) {
+                            showMessage("Error adding reply: " + errorMessage);
+                        }
+                    });
+                }
+            });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+            builder.show();
+        });
     }
 
     private boolean initializeViews() {
@@ -260,6 +332,7 @@ public class MoodDetailActivity extends AppCompatActivity {
         });
     }
     // END COMMENT CHANGE
+
     private void fetchComments() {
         commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
             @Override
@@ -274,6 +347,22 @@ public class MoodDetailActivity extends AppCompatActivity {
             }
         });
     }
+
+    // Helper method to update replies for a given parent comment
+    private void updateRepliesForParent(Comment parentComment) {
+        commentDataManager.fetchReplies(parentComment.getMoodId(), parentComment.getId(),
+                new CommentDataManager.OnRepliesFetchedListener() {
+                    @Override
+                    public void onRepliesFetched(List<Comment> replies) {
+                        commentsAdapter.updateRepliesForComment(parentComment, replies);
+                    }
+                    @Override
+                    public void onError(String errorMessage) {
+                        showMessage("Error refreshing replies: " + errorMessage);
+                    }
+                });
+    }
+
 
     private void logMoodData() {
         Log.d(TAG, "Mood ID: " + moodId);

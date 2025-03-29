@@ -18,20 +18,18 @@
         android:background="@android:color/transparent"
         app:tint="@color/white" />
 
-    <!-- Container for Mood Details and Comment Input -->
+    <!-- Top container for the mood details (ViewPager) + comment input -->
     <LinearLayout
         android:id="@+id/moodDetailsContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <!-- ViewPager2 for mood details & song recommendations -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
+            android:layout_height="wrap_content"
             android:layout_margin="16dp" />
 
         <!-- Input area for adding a comment -->
@@ -41,7 +39,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="8dp"
-            android:background="@color/white">
+            android:background="@color/black">
 
             <EditText
                 android:id="@+id/commentEditText"
@@ -49,17 +47,20 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:hint="Write a comment..."
-                android:textColor="@android:color/black"
-                android:padding="8dp" />
+                android:textColor="@android:color/darker_gray"
+                android:textColorHint="@android:color/darker_gray"
+                android:padding="8dp"
+                android:background="@drawable/comment_field_bg" />
 
             <ImageButton
                 android:id="@+id/sendCommentButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@drawable/checkmark"
-                android:contentDescription="Send Comment"
                 android:background="@android:color/transparent"
-                android:padding="8dp" />
+                android:padding="8dp"
+                app:srcCompat="@drawable/add"
+                android:scaleType="centerInside"
+                android:adjustViewBounds="true" />
         </LinearLayout>
     </LinearLayout>
 
@@ -67,8 +68,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:padding="8dp" />
 
 </LinearLayout>
