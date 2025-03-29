@@ -75,7 +75,7 @@ public class MapActivity extends AppCompatActivity {
         // Initialize and configure map
         initializeMap();
 
-        ImageButton backButton = findViewById(R.id.backButtonBlack);
+        ImageButton backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(v -> finish());
         requestPermissions();
 
