@@ -310,4 +310,8 @@ public class ImageHandler {
             }
         }).start();
     }
+
+    public String getLocalImageUri() {
+        return saveImageLocally();
+    }
 }

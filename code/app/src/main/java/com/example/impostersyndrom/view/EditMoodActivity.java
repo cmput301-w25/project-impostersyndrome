@@ -277,23 +277,54 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("group", selectedGroup);
         }
 
+        // Check if device is offline before attempting any image upload.
+        if (NetworkUtils.isOffline(this)) {
+            if (imageUrl == null && imageHandler.hasImage()) {
+                // Get a local URI for the image using the helper method you'll add to ImageHandler.
+                String localUri = imageHandler.getLocalImageUri();
+                if (localUri != null) {
+                    updates.put("imageUrl", localUri);
+                } else {
+                    updates.put("imageUrl", null);
+                }
+            } else if (imageUrl == null && originalImageUrl != null) {
+                // If no new image was selected and the original image is remote, convert it locally.
+                if (!originalImageUrl.startsWith("file://")) {
+                    imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
+                        if (localUri != null) {
+                            updates.put("imageUrl", localUri);
+                            Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
+                        } else {
+                            updates.put("imageUrl", originalImageUrl);
+                        }
+                        Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+                        new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
+                        finish();
+                    });
+                    return;
+                } else {
+                    updates.put("imageUrl", originalImageUrl);
+                }
+            }
+            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+            finish();
+            return;
+        }
+
+        // If online, handle image upload if a new image is selected.
         if (imageUrl == null && imageHandler.hasImage()) {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
-                    // If there's an existing image, delete it from Firebase Storage
+                    // Delete the old image if it exists.
                     if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
                         StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
                         oldImageRef.delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("Firebase Storage", "Old image permanently deleted after new upload");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e("Firebase Storage", "Failed to delete old image", e);
-                                });
+                                .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Old image deleted"))
+                                .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete old image", e));
                     }
-                    // Set the new image URL and update Firestore
-                    EditMoodActivity.this.imageUrl = url;
+                    imageUrl = url;
                     updates.put("imageUrl", url);
                     saveToFirestore(updates);
                 }
@@ -308,40 +339,15 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("imageUrl", imageUrl);
         }
 
-        // If no image is selected and there was an original image, delete it from Firebase Storage
+        // If no image is selected but an original image existed, remove it.
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
-                    .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image permanently deleted"))
+                    .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Image deleted"))
                     .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete image", e));
             updates.put("imageUrl", null);
         }
 
-        if (NetworkUtils.isOffline(this)) {
-            // If editing offline and no new image is selected, and there is an original remote image,
-            // convert the remote image to a local URI so it can be displayed offline.
-            if (!imageHandler.hasImage() && originalImageUrl != null && !originalImageUrl.isEmpty() && !originalImageUrl.startsWith("file://")) {
-                imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
-                    if (localUri != null) {
-                        updates.put("imageUrl", localUri);
-                        Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
-                    } else {
-                        Log.e("OfflineEdit", "Failed to download remote image locally.");
-                        // Optionally, you can retain the original URL, but it might not display offline
-                        updates.put("imageUrl", originalImageUrl);
-                    }
-                    Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-                    new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
-                    finish();
-                });
-            } else {
-                // If no new image is selected and the image is already local (or there's no image)
-                Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-                new MoodDataManager().saveOfflineEdit(this, moodId, updates);
-                finish();
-            }
-            return;
-        }
         saveToFirestore(updates);
     }
 
