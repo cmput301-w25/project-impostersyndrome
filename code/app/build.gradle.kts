@@ -48,6 +48,8 @@ dependencies {
     implementation ("com.google.android.material:material:1.9.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation(libs.play.services.location)
+    implementation(libs.espresso.intents)
+    implementation(libs.uiautomator)
     implementation(libs.play.services.maps)
     testImplementation("junit:junit:4.13.2")
     implementation("com.github.bumptech.glide:glide:4.12.0")
