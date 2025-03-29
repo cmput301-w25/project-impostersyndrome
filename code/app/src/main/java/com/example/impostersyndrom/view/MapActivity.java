@@ -148,7 +148,7 @@ public class MapActivity extends AppCompatActivity {
         // Set up mood spinner
         ArrayList<String> moodOptions = new ArrayList<>();
         moodOptions.add("All");
-        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Excited", "Tired", "Confused"));
+        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Excited", "Tired", "Confused", "Shame", "Surprised"));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
             android.R.layout.simple_spinner_item, moodOptions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -194,7 +194,7 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private boolean shouldDisplayMood(Mood mood) {
-        if (mood.getLatitude() == 0 && mood.getLongitude() == 0) {
+        if (mood.getLatitude() == null || mood.getLongitude() == null) {
             return false;
         }
 
