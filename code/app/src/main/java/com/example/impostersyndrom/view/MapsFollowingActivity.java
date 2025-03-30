@@ -149,27 +149,20 @@ public class MapsFollowingActivity extends AppCompatActivity {
     private void addRadiusOverlay(GeoPoint center, double radiusKm) {
         Log.d(TAG, "Adding 5km radius overlay at " + center.getLatitude() + ", " + center.getLongitude());
 
-        // Create a circular polygon with points around the center
         Polygon circle = new Polygon();
 
-        // Calculate the points around the circle
         List<GeoPoint> circlePoints = new ArrayList<>();
 
-        // Earth's radius in kilometers
         double earthRadius = 6371;
 
-        // Calculate the angular distance in radians
         double angularDistance = radiusKm / earthRadius;
 
-        // Convert center point to radians
         double centerLatRad = Math.toRadians(center.getLatitude());
         double centerLonRad = Math.toRadians(center.getLongitude());
 
-        // Create points for the circle (100 points for a smooth circle)
         for (int i = 0; i <= 100; i++) {
-            double bearing = Math.toRadians(i * 3.6); // 360 degrees / 100 points
+            double bearing = Math.toRadians(i * 3.6);
 
-            // Calculate new point
             double lat = Math.asin(
                     Math.sin(centerLatRad) * Math.cos(angularDistance) +
                             Math.cos(centerLatRad) * Math.sin(angularDistance) * Math.cos(bearing)
@@ -180,22 +173,18 @@ public class MapsFollowingActivity extends AppCompatActivity {
                     Math.cos(angularDistance) - Math.sin(centerLatRad) * Math.sin(lat)
             );
 
-            // Convert back to degrees
             double latDegrees = Math.toDegrees(lat);
             double lonDegrees = Math.toDegrees(lon);
 
             circlePoints.add(new GeoPoint(latDegrees, lonDegrees));
         }
 
-        // Set the points for the polygon
         circle.setPoints(circlePoints);
 
-        // Style the polygon
         circle.setFillColor(Color.argb(70, 0, 0, 255)); // Transparent blue
         circle.setStrokeColor(Color.argb(100, 0, 0, 255)); // Slightly more opaque blue border
         circle.setStrokeWidth(2);
 
-        // Add to map
         mapView.getOverlays().add(circle);
 
         Log.d(TAG, "5km radius overlay added successfully");
