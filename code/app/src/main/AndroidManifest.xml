@@ -90,6 +90,7 @@
         <!-- MoodDetailActivity -->
         <activity
             android:name=".view.MoodDetailActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity android:name=".view.EditMoodActivity" />

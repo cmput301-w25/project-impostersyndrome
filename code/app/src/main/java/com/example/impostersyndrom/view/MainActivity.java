@@ -390,6 +390,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("latitude", latitude != null ? latitude : 0.0);
             intent.putExtra("longitude", longitude != null ? longitude : 0.0);
 
+            intent.putExtra("moodId", moodDoc.getId());
             startActivity(intent);
         } else {
             showMessage("Error loading mood details.");
