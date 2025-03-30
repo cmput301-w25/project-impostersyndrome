@@ -26,7 +26,6 @@
 
             </LinearLayout>
 
-
             <LinearLayout
                 android:id="@+id/EditEmojiRectangle"
                 android:layout_width="359dp"
@@ -102,7 +101,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="end"
-                            android:text="0/200"
+                            android:text="@string/char_count_initial"
                             android:textColor="@color/white"
                             android:textSize="12sp"
                             android:layout_marginTop="4dp"/>
@@ -128,14 +127,11 @@
                         android:gravity="center"
                         android:orientation="horizontal">
 
-
                         <ImageButton
                             android:id="@+id/EditCameraMenuButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
-
                             android:layout_gravity="center"
-
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/camera_menu_description"
                             android:padding="8dp"
@@ -143,7 +139,6 @@
                             android:src="@drawable/ic_camera" />
 
                         <ImageButton
-
                             android:id="@+id/attachLocationButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
@@ -153,16 +148,15 @@
                             android:focusable="true"
                             android:padding="8dp"
                             android:scaleType="fitCenter"
-                            android:src="@drawable/ic_location" />
+                            android:src="@drawable/ic_location"
+                            android:contentDescription="@string/attach_location" />
 
                         <ImageButton
-
                             android:id="@+id/EditGroupButton"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:layout_marginStart="16dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-
                             android:contentDescription="@string/group_button_description"
                             android:clickable="true"
                             android:focusable="true"
@@ -171,7 +165,6 @@
                     </LinearLayout>
 
                     <!-- Privacy Switch - positioned below the button row -->
-
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/privacySwitch"
                         android:layout_width="wrap_content"
@@ -179,8 +172,6 @@
                         android:layout_gravity="center"
                         android:checked="false"
                         android:textColor="@color/black" />
-
-
                 </LinearLayout>
             </LinearLayout>
 
@@ -211,5 +202,4 @@
                 android:layout_gravity="top|end" />
         </FrameLayout>
     </LinearLayout>
-
 </ScrollView>

@@ -19,12 +19,12 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:contentDescription="Back" />
+            android:contentDescription="@string/back_button_description" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Profile"
+            android:text="@string/profile"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
@@ -39,8 +39,7 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:scaleType="centerInside"
-            android:padding="8dp"
-            android:contentDescription="Edit Profile" />
+            android:padding="8dp"/>
     </RelativeLayout>
 
     <!-- Thin divider line -->
@@ -86,7 +85,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/default_person"
-                        android:contentDescription="Profile Picture" />
+                        android:contentDescription="@string/profile_picture_description" />
                 </androidx.cardview.widget.CardView>
 
                 <!-- Username -->
@@ -128,7 +127,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Followers"
+                            android:text="@string/followers"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -153,7 +152,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Following"
+                            android:text="@string/following"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -171,7 +170,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Bio"
+                    android:text="@string/bio_label"
                     android:textColor="@android:color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -216,7 +215,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_home"
-            android:contentDescription="Home" />
+            android:contentDescription="@string/home_button_description" />
 
         <!-- Search Button -->
         <ImageButton
@@ -227,7 +226,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/search"
-            android:contentDescription="Search" />
+            android:contentDescription="@string/search_button_description" />
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -238,7 +237,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/add"
-            android:contentDescription="Add Mood" />
+            android:contentDescription="@string/add_mood" />
 
         <!-- Heart Button -->
         <ImageButton
@@ -249,7 +248,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_heart"
-            android:contentDescription="Favorites" />
+            android:contentDescription="@string/favorites_button_description" />
 
         <!-- Profile Button -->
         <ImageButton
@@ -260,6 +259,6 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/white_profile"
-            android:contentDescription="Profile" />
+            android:contentDescription="@string/profile_button_description" />
     </LinearLayout>
 </RelativeLayout>

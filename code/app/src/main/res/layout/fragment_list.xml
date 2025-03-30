@@ -7,7 +7,7 @@
         android:id="@+id/emptyMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No requests."
+        android:text="@string/no_request"
         android:textColor="@android:color/darker_gray"
         android:textSize="18sp"
         android:gravity="center"

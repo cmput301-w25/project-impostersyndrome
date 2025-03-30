@@ -39,7 +39,7 @@
                 android:layout_marginTop="16dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
-                android:contentDescription="Emoji" />
+                />
 
             <!-- Emoji Description -->
             <TextView
@@ -94,7 +94,6 @@
                     android:padding="8dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_location"
-                    android:contentDescription="View Location"
                     android:visibility="gone" />
             </LinearLayout>
 
@@ -120,7 +119,6 @@
                 android:layout_marginBottom="16dp"
                 android:layout_marginHorizontal="8dp"
                 android:adjustViewBounds="true"
-                android:contentDescription="Mood Image"
                 android:scaleType="fitCenter"
                 android:visibility="visible" />
         </LinearLayout>
