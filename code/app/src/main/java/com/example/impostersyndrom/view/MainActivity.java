@@ -185,7 +185,9 @@ public class MainActivity extends AppCompatActivity {
         innerNavigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.maps) {
-                startActivity(new Intent(this, MapActivity.class));
+                Intent intent = new Intent(this, MapActivity.class);
+                intent.putExtra("userId", userId); // Add userId to the Intent
+                startActivity(intent);
             } else if (id == R.id.nav_settings) {
                 // Handle settings action
             }

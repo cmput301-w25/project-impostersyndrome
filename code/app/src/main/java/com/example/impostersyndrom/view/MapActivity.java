@@ -67,6 +67,7 @@ public class MapActivity extends AppCompatActivity {
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
         setContentView(R.layout.activity_mood_location_map);
+        String userId = getIntent().getStringExtra("userId");
 
         // Initialize Firebase
         db = FirebaseFirestore.getInstance();
@@ -89,7 +90,9 @@ public class MapActivity extends AppCompatActivity {
                     showMyMoods();
                     return true;
                 } else if (itemId == R.id.nav_following_moods) {
-                    showFollowingMoods();
+                    Intent intent = new Intent(MapActivity.this, MapsFollowingActivity.class);
+                    intent.putExtra("userId", userId);
+                    startActivity(intent);
                     return true;
                 }
                 return false;
