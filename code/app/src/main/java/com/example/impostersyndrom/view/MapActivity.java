@@ -26,6 +26,7 @@ import com.example.impostersyndrom.model.Mood;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.Query;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -44,6 +45,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.concurrent.atomic.AtomicInteger;
+import android.util.Log;
 
 public class MapActivity extends AppCompatActivity {
     private MapView mapView;
@@ -56,6 +59,8 @@ public class MapActivity extends AppCompatActivity {
     private boolean filterLastWeek = false;
     private String selectedMoodFilter = "All";
     private String keywordFilter = "";
+    private boolean filterFollowing = false;
+    private static final String TAG = "MapActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +80,6 @@ public class MapActivity extends AppCompatActivity {
         // Initialize and configure map
         initializeMap();
 
-        ImageButton backButton = findViewById(R.id.backButton);
-        backButton.setOnClickListener(v -> finish());
-        requestPermissions();
 
         loadMoods();
         filterButton = findViewById(R.id.filterButton);
@@ -142,6 +144,7 @@ public class MapActivity extends AppCompatActivity {
 
         // Initialize filter controls
         CheckBox lastWeekCheckbox = filterView.findViewById(R.id.lastWeekCheckbox);
+        CheckBox followingCheckbox = filterView.findViewById(R.id.followingMoods);
         Spinner moodSpinner = filterView.findViewById(R.id.moodSpinner);
         EditText keywordSearch = filterView.findViewById(R.id.keywordSearch);
 
@@ -157,13 +160,22 @@ public class MapActivity extends AppCompatActivity {
 
         // Set current filter values
         lastWeekCheckbox.setChecked(filterLastWeek);
-        moodSpinner.setSelection(moodOptions.indexOf(selectedMoodFilter.toLowerCase()));
+        followingCheckbox.setChecked(filterFollowing);
+        
+        // Find the correct index for the selected mood filter
+        int selectedIndex = moodOptions.indexOf(selectedMoodFilter);
+        if (selectedIndex == -1) {
+            selectedIndex = 0; // Default to "All" if not found
+        }
+        moodSpinner.setSelection(selectedIndex);
+        
         keywordSearch.setText(keywordFilter);
 
         builder.setPositiveButton("Apply", (dialog, which) -> {
             // Save filter values
             filterLastWeek = lastWeekCheckbox.isChecked();
-            selectedMoodFilter = moodSpinner.getSelectedItem().toString().toLowerCase();
+            filterFollowing = followingCheckbox.isChecked();
+            selectedMoodFilter = moodSpinner.getSelectedItem().toString();
             keywordFilter = keywordSearch.getText().toString().trim();
 
             // Refresh map with new filters
@@ -174,6 +186,7 @@ public class MapActivity extends AppCompatActivity {
 
         builder.setNeutralButton("Clear Filters", (dialog, which) -> {
             filterLastWeek = false;
+            filterFollowing = false;
             selectedMoodFilter = "All";
             keywordFilter = "";
             refreshMapWithFilters();
@@ -195,7 +208,10 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private boolean shouldDisplayMood(Mood mood) {
+        Log.d(TAG, "Checking if mood should be displayed: " + mood.getEmotionalState());
+        
         if (mood.getLatitude() == null || mood.getLongitude() == null) {
+            Log.d(TAG, "Mood filtered out: Invalid location data");
             return false;
         }
 
@@ -204,14 +220,19 @@ public class MapActivity extends AppCompatActivity {
             Calendar lastWeek = Calendar.getInstance();
             lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
             if (mood.getTimestamp().before(lastWeek.getTime())) {
+                Log.d(TAG, "Mood filtered out: Older than last week");
                 return false;
             }
         }
 
         // Filter by mood (case-insensitive comparison)
-        if (!selectedMoodFilter.equals("All") &&
-            !mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
-            return false;
+        if (!selectedMoodFilter.equals("All")) {
+            Log.d(TAG, "Checking mood filter: Selected=" + selectedMoodFilter + 
+                ", Mood=" + mood.getEmotionalState().toLowerCase());
+            if (!mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
+                Log.d(TAG, "Mood filtered out: Doesn't match selected mood filter");
+                return false;
+            }
         }
 
         // Filter by keyword
@@ -220,97 +241,258 @@ public class MapActivity extends AppCompatActivity {
             String lowerReason = mood.getReason().toLowerCase();
             String lowerEmotionalState = mood.getEmotionalState().toLowerCase();
             
+            Log.d(TAG, "Checking keyword filter: Keyword=" + lowerKeyword + 
+                ", Reason=" + lowerReason + ", EmotionalState=" + lowerEmotionalState);
+            
             boolean matchesKeyword = lowerReason.contains(lowerKeyword) || 
                                    lowerEmotionalState.contains(lowerKeyword);
             
             if (!matchesKeyword) {
+                Log.d(TAG, "Mood filtered out: Doesn't match keyword filter");
                 return false;
             }
         }
 
+        Log.d(TAG, "Mood passed all filters and will be displayed");
         return true;
     }
 
     private void loadMoods() {
         String currentUserId = auth.getCurrentUser().getUid();
 
-        // Load user's own moods
+        // Only load user's own moods if not filtering by following
+        if (!filterFollowing) {
+            // Load user's own moods
+            db.collection("moods")
+                .whereEqualTo("userId", currentUserId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Mood mood = document.toObject(Mood.class);
+                        if (shouldDisplayMood(mood)) {
+                            addMoodMarker(mood, true);
+                        }
+                    }
+
+                    // Load all public moods from other users
+                    db.collection("moods")
+                        .whereNotEqualTo("userId", currentUserId)
+                        .whereEqualTo("isPublic", true)
+                        .get()
+                        .addOnSuccessListener(otherMoods -> {
+                            for (QueryDocumentSnapshot document : otherMoods) {
+                                Mood mood = document.toObject(Mood.class);
+                                if (shouldDisplayMood(mood)) {
+                                    addMoodMarker(mood, false);
+                                }
+                            }
+                        });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading moods: " + e.getMessage());
+                });
+        } else {
+            // If filtering by following, only load moods from followed users
+            Log.d(TAG, "Starting following filter with current user ID: " + currentUserId);
+            
+            // Query the following collection with the correct structure
+            db.collection("following")
+                .whereEqualTo("followerId", currentUserId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Log.d(TAG, "Following collection query completed. Found " + querySnapshot.size() + " documents");
+                    
+                    // Log all documents to see their structure
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        Log.d(TAG, "Following document ID: " + doc.getId());
+                        Log.d(TAG, "Following document data: " + doc.getData().toString());
+                    }
+                    
+                    if (querySnapshot.isEmpty()) {
+                        Log.d(TAG, "No following documents found for user: " + currentUserId);
+                        Toast.makeText(this, "You are not following any users", 
+                            Toast.LENGTH_SHORT).show();
+                    }
+                    
+                    List<String> followingIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        String followingId = doc.getString("followingId");
+                        if (followingId != null) {
+                            followingIds.add(followingId);
+                            Log.d(TAG, "Added following ID: " + followingId);
+                        } else {
+                            Log.d(TAG, "Document " + doc.getId() + " has no followingId field");
+                        }
+                    }
+
+                    Log.d(TAG, "Total following IDs found: " + followingIds.size());
+
+                    // Load moods for each followed user
+                    for (String followedUserId : followingIds) {
+                        Log.d(TAG, "Loading moods for followed user: " + followedUserId);
+                        loadUserMoods(followedUserId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error querying following collection: " + e.getMessage());
+                });
+        }
+    }
+
+    private void loadUserMoods(String userId) {
+        Log.d(TAG, "Querying moods for user: " + userId);
+        
+        // Log the query details
+        Log.d(TAG, "Mood query parameters: userId=" + userId);
+        
+        // Query all moods for the user first
         db.collection("moods")
-            .whereEqualTo("userId", currentUserId)
+            .whereEqualTo("userId", userId)
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
+                Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " moods for user " + userId);
+                
+                if (queryDocumentSnapshots.isEmpty()) {
+                    Log.d(TAG, "No moods found for user: " + userId);
+                    return;
+                }
+
+                // Log all document data
                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    String moodInfo = "Mood Details:\n" +
+                        "ID: " + document.getId() + "\n" +
+                        "User ID: " + document.getString("userId") + "\n" +
+                        "Emotional State: " + document.getString("emotionalState") + "\n" +
+                        "Reason: " + document.getString("reason") + "\n" +
+                        "Latitude: " + document.getDouble("latitude") + "\n" +
+                        "Longitude: " + document.getDouble("longitude") + "\n" +
+                        "Timestamp: " + document.getTimestamp("timestamp") + "\n" +
+                        "Is Public: " + document.getBoolean("isPublic") + "\n" +
+                        "Private Mood: " + document.getBoolean("privateMood") + "\n" +
+                        "Group: " + document.getString("group") + "\n" +
+                        "Raw Data: " + document.getData().toString();
+                    
+                    Log.d(TAG, moodInfo);
+                }
+
+                AtomicInteger validMoods = new AtomicInteger(0);
+                AtomicInteger processedMoods = new AtomicInteger(0);
+                
+                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    // Check if the mood is public (either isPublic is true or privateMood is false)
+                    Boolean isPublic = document.getBoolean("isPublic");
+                    Boolean privateMood = document.getBoolean("privateMood");
+                    
+                    // Skip if the mood is explicitly private
+                    if (Boolean.TRUE.equals(privateMood)) {
+                        Log.d(TAG, "Skipping private mood: " + document.getId());
+                        continue;
+                    }
+                    
                     Mood mood = document.toObject(Mood.class);
+                    processedMoods.incrementAndGet();
+                    
+                    Log.d(TAG, "Processing mood " + processedMoods.get() + "/" + 
+                        queryDocumentSnapshots.size() + ": " + mood.getEmotionalState() + 
+                        " at " + mood.getLatitude() + ", " + mood.getLongitude());
+                    
                     if (shouldDisplayMood(mood)) {
-                        addMoodMarker(mood, true);
+                        // Run on UI thread to ensure marker is added properly
+                        runOnUiThread(() -> {
+                            addMoodMarker(mood, false);
+                            validMoods.incrementAndGet();
+                            Log.d(TAG, "Added marker for mood: " + mood.getEmotionalState() + 
+                                " at " + mood.getLatitude() + ", " + mood.getLongitude());
+                            
+                            // Check if we've processed all moods
+                            if (processedMoods.get() == queryDocumentSnapshots.size()) {
+                                String finalMessage = "Finished processing all moods for user " + userId + 
+                                    ". Added " + validMoods.get() + " markers.";
+                                Log.d(TAG, finalMessage);
+                            }
+                        });
+                    } else {
+                        Log.d(TAG, "Mood filtered out: " + mood.getEmotionalState());
                     }
                 }
             })
             .addOnFailureListener(e -> {
-                Toast.makeText(this, "Error loading moods: " + e.getMessage(), 
-                    Toast.LENGTH_SHORT).show();
-            });
-
-        // Load following users' moods
-        db.collection("users")
-            .document(currentUserId)
-            .collection("following")
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    loadUserMoods(document.getId());
-                }
-            });
-    }
-
-    private void loadUserMoods(String userId) {
-        db.collection("moods")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("privateMood", false)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    Mood mood = document.toObject(Mood.class);
-                    if (shouldDisplayMood(mood)) {
-                        addMoodMarker(mood, false);
-                    }
-                }
+                Log.e(TAG, "Error loading moods for user " + userId + ": " + e.getMessage());
             });
     }
 
     private void addMoodMarker(Mood mood, boolean isOwnMood) {
-        Marker marker = new Marker(mapView);
-        marker.setPosition(new GeoPoint(mood.getLatitude(), mood.getLongitude()));
+        try {
+            Log.d(TAG, "Starting to add marker for mood: " + mood.getEmotionalState() + 
+                " at " + mood.getLatitude() + ", " + mood.getLongitude());
+            
+            // Create marker
+            Marker marker = new Marker(mapView);
+            
+            // Set position with null check
+            if (mood.getLatitude() != null && mood.getLongitude() != null) {
+                GeoPoint position = new GeoPoint(mood.getLatitude(), mood.getLongitude());
+                marker.setPosition(position);
+                Log.d(TAG, "Marker position set to: " + position);
+            } else {
+                String errorMessage = "Invalid location data for mood: " + mood.getEmotionalState();
+                Log.e(TAG, errorMessage);
+                return;
+            }
 
-        // Store the mood object in the marker for later retrieval
-        marker.setRelatedObject(mood);
+            // Store the mood object in the marker for later retrieval
+            marker.setRelatedObject(mood);
 
-        // Set marker icon based on mood emoji drawable ID and resize it
-        if (mood.getEmojiDrawableId() != 0) {
-            Drawable originalDrawable = getResources().getDrawable(mood.getEmojiDrawableId());
+            // Set marker icon based on mood emoji drawable ID and resize it
+            if (mood.getEmojiDrawableId() != 0) {
+                Drawable originalDrawable = getResources().getDrawable(mood.getEmojiDrawableId());
+                Log.d(TAG, "Original drawable loaded with ID: " + mood.getEmojiDrawableId());
 
-            // Convert drawable to bitmap and resize it
-            Bitmap originalBitmap = ((BitmapDrawable) originalDrawable).getBitmap();
-            int newWidth = 20;  // Width in pixels
-            int newHeight = 20; // Height in pixels
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+                // Convert drawable to bitmap and resize it
+                Bitmap originalBitmap = ((BitmapDrawable) originalDrawable).getBitmap();
+                int newWidth = 20;  // Width in pixels
+                int newHeight = 20; // Height in pixels
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
 
-            // Convert back to drawable
-            Drawable resizedDrawable = new BitmapDrawable(getResources(), resizedBitmap);
-            marker.setIcon(resizedDrawable);
+                // Convert back to drawable
+                Drawable resizedDrawable = new BitmapDrawable(getResources(), resizedBitmap);
+                marker.setIcon(resizedDrawable);
+                Log.d(TAG, "Marker icon set successfully");
+            } else {
+                Log.d(TAG, "No emoji drawable ID found for mood");
+            }
+
+            // Set marker title with emotional state and reason
+            String title = mood.getEmotionalState() + " - " + mood.getReason();
+            marker.setTitle(title);
+            Log.d(TAG, "Marker title set to: " + title);
+
+            // Set marker snippet with timestamp and group context
+            String snippet = isOwnMood ?
+                "Your mood" + " (" + mood.getGroup() + ")" :
+                "Mood by " + mood.getUserId() + " (" + mood.getGroup() + ")";
+            marker.setSnippet(snippet);
+            Log.d(TAG, "Marker snippet set to: " + snippet);
+
+            // Add click listener to the marker
+            marker.setOnMarkerClickListener((marker1, mapView) -> {
+                Mood clickedMood = (Mood) marker1.getRelatedObject();
+                if (clickedMood != null) {
+                    Log.d(TAG, "Marker clicked, opening mood detail for: " + clickedMood.getEmotionalState());
+                    openMoodDetail(clickedMood);
+                }
+                return true;
+            });
+
+            // Add the marker to the map and ensure it's visible
+            mapView.getOverlays().add(marker);
+            mapView.invalidate(); // Force map to redraw
+            String successMessage = "Marker added to map for mood: " + mood.getEmotionalState() + 
+                " at " + mood.getLatitude() + ", " + mood.getLongitude();
+            Log.d(TAG, successMessage);
+        } catch (Exception e) {
+            Log.e(TAG, "Error adding marker: " + e.getMessage());
         }
-
-        // Set marker title with emotional state and reason
-        String title = mood.getEmotionalState() + " - " + mood.getReason();
-        marker.setTitle(title);
-
-        // Set marker snippet with timestamp and group context
-        String snippet = isOwnMood ?
-            "Your mood" + " (" + mood.getGroup() + ")" :
-            "Mood by " + mood.getUserId() + " (" + mood.getGroup() + ")";
-        marker.setSnippet(snippet);
-
-        mapView.getOverlays().add(marker);
     }
 
     private void openMoodDetail(Mood mood) {
