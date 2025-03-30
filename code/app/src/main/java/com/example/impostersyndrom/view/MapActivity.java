@@ -23,6 +23,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.Mood;
+import com.google.android.material.bottomnavigation.BottomNavigationItemView;
+import com.google.android.material.bottomnavigation.BottomNavigationMenuView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -99,6 +101,8 @@ public class MapActivity extends AppCompatActivity {
 
         // Load initial view (My Moods)
         bottomNavigationView.setSelectedItemId(R.id.nav_my_moods);
+        bottomNavigationView.setItemIconTintList(null);
+        bottomNavigationView.setItemTextColor(null);
         showMyMoods();
     }
 

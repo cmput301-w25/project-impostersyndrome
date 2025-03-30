@@ -15,11 +15,13 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="65dp"
         android:layout_alignParentBottom="true"
-        android:background="#212121"
-        app:itemIconTint="@android:color/white"
+        android:background="#80000000"
+        app:itemIconSize="0dp"
         app:itemTextColor="@android:color/white"
+        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Body1"
+        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Body1"
         app:menu="@menu/bottom_nav_menu" />
 
     <!-- Filter Button -->
@@ -29,9 +31,6 @@
         android:layout_height="48dp"
         android:layout_margin="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_filter_black"
-        android:layout_above="@id/bottom_navigation"
-        android:layout_alignParentEnd="true"
-        android:contentDescription="Filter moods"/>
+        android:src="@drawable/ic_filter_black" />
 
 </RelativeLayout>
