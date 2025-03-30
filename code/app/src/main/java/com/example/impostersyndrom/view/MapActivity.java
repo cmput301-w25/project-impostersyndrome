@@ -80,9 +80,6 @@ public class MapActivity extends AppCompatActivity {
         // Initialize and configure map
         initializeMap();
 
-        ImageButton backButton = findViewById(R.id.backButton);
-        backButton.setOnClickListener(v -> finish());
-        requestPermissions();
 
         loadMoods();
         filterButton = findViewById(R.id.filterButton);
