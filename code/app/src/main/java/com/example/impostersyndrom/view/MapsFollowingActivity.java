@@ -479,8 +479,8 @@ public class MapsFollowingActivity extends AppCompatActivity {
         Log.d(TAG, "Getting current location");
         // implementing location retrieval
         Location defaultLocation = new Location("");
-        defaultLocation.setLatitude(37.4227);
-        defaultLocation.setLongitude(-122.0807); // Mountain View, CA
+        defaultLocation.setLatitude(53.5461);
+        defaultLocation.setLongitude(-113.4937); // Mountain View, CA
         Log.d(TAG, "Using default location: " + defaultLocation.getLatitude() +
                 ", " + defaultLocation.getLongitude());
         return defaultLocation;
