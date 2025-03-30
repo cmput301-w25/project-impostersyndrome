@@ -137,7 +137,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
                     }
                 });
             } else {
-                deleteCommentButton.setVisibility(View.GONE);
+                deleteCommentButton.setVisibility(View.INVISIBLE);
             }
 
             // Show reply button only for top level comments
