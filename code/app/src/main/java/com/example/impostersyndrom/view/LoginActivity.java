@@ -73,9 +73,6 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.loginBtn).setOnClickListener(v -> loginUser());
         findViewById(R.id.forgotPassword).setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
         findViewById(R.id.newUserSignUp).setOnClickListener(v -> startActivity(new Intent(this, RegisterActivity.class)));
-
-        // Set click listener for Google Sign-In button
-        findViewById(R.id.googleSignInButton).setOnClickListener(v -> signInWithGoogle());
     }
 
     /**

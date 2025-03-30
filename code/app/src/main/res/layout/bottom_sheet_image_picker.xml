@@ -14,7 +14,6 @@
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
-        android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
         android:layout_gravity="center_horizontal"
         android:background="@android:color/darker_gray" />
@@ -30,7 +29,7 @@
             android:id="@+id/option_gallery"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose from Gallery"
+            android:text="@string/choose_from_gallery"
             android:textSize="18sp"
             android:padding="12dp"
             android:textColor="@color/white"
@@ -47,7 +46,7 @@
             android:id="@+id/option_remove"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Remove Image"
+            android:text="@string/remove_image"
             android:textSize="18sp"
             android:padding="12dp"
             android:textColor="@color/red"
