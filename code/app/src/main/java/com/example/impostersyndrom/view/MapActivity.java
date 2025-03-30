@@ -9,19 +9,21 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.Mood;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -46,8 +48,7 @@ public class MapActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private MyLocationNewOverlay myLocationOverlay;
     private ImageButton filterButton;
-    private Button myMoodsButton;
-    private Button followingMoodsButton;
+    private BottomNavigationView bottomNavigationView;
     private boolean showingMyMoods = true;
     private boolean filterLastWeek = false;
     private String selectedMoodFilter = "All";
@@ -72,18 +73,32 @@ public class MapActivity extends AppCompatActivity {
         // Initialize views
         mapView = findViewById(R.id.mapView);
         filterButton = findViewById(R.id.filterButton);
-        myMoodsButton = findViewById(R.id.my_moods_button);
-        followingMoodsButton = findViewById(R.id.following_moods_button);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         // Initialize and configure map
         initializeMap();
 
-        // Set button listeners
-        myMoodsButton.setOnClickListener(v -> showMyMoods());
-        followingMoodsButton.setOnClickListener(v -> showFollowingMoods());
+        // Set up bottom navigation
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.nav_my_moods) {
+                    showMyMoods();
+                    return true;
+                } else if (itemId == R.id.nav_following_moods) {
+                    showFollowingMoods();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        // Set filter button listener
         filterButton.setOnClickListener(v -> showFilterDialog());
 
         // Load initial view (My Moods)
+        bottomNavigationView.setSelectedItemId(R.id.nav_my_moods);
         showMyMoods();
     }
 
@@ -101,16 +116,12 @@ public class MapActivity extends AppCompatActivity {
     private void showMyMoods() {
         showingMyMoods = true;
         filterFollowing = false;  // Reset to show only my moods
-        myMoodsButton.setEnabled(false);
-        followingMoodsButton.setEnabled(true);
         refreshMapWithFilters();
     }
 
     private void showFollowingMoods() {
         showingMyMoods = false;
         filterFollowing = true;  // Set to show following moods
-        myMoodsButton.setEnabled(true);
-        followingMoodsButton.setEnabled(false);
         refreshMapWithFilters();
     }
 
@@ -359,7 +370,7 @@ public class MapActivity extends AppCompatActivity {
             filterLastWeek = lastWeekCheckbox.isChecked();
             selectedMoodFilter = moodSpinner.getSelectedItem().toString();
             keywordFilter = keywordSearch.getText().toString().trim();
-            refreshMapWithFilters();  // Refresh the map with new filters
+            refreshMapWithFilters();
         });
 
         builder.setNegativeButton("Cancel", null);
@@ -369,7 +380,7 @@ public class MapActivity extends AppCompatActivity {
             filterFollowing = false;
             selectedMoodFilter = "All";
             keywordFilter = "";
-            showMyMoods();  // Reset to My Moods view and refresh
+            showMyMoods();
         });
 
         builder.show();
