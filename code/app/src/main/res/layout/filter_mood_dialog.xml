@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_background"
+    android:background="@drawable/bg_dialog"
     android:padding="24dp">
 
     <!-- Tick Button -->
@@ -10,7 +10,7 @@
         android:id="@+id/tickButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/white_checkmark"
+        android:src="@drawable/ic_tick"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="8dp"
@@ -81,7 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/reasonLabel"
         android:padding="12dp"
-        android:background="@drawable/filter_reason_background"
+        android:background="@drawable/bg_filter_reason"
         android:textColor="@android:color/white"
         android:hint="@string/filter_reason_hint"
         android:textColorHint="#808080"

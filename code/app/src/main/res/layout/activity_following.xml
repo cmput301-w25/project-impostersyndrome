@@ -106,8 +106,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/search"
-            android:contentDescription="@string/search_button_description" />
+
+            android:src="@drawable/ic_search"
+            android:contentDescription="Search" />
+
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -117,8 +119,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/add"
-            android:contentDescription="@string/add_mood" />
+
+            android:src="@drawable/ic_add"
+            android:contentDescription="Add Mood" />
+
 
         <!-- Heart Button -->
         <ImageButton
