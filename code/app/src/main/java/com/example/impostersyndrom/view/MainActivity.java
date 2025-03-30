@@ -24,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -186,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         innerNavigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.maps) {
-                // Handle maps action
+                startActivity(new Intent(this, MapActivity.class));
             } else if (id == R.id.nav_settings) {
                 // Handle settings action
             }

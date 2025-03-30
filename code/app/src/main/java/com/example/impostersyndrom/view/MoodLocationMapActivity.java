@@ -27,7 +27,6 @@ public class MoodLocationMapActivity extends AppCompatActivity {
 
     private static final String TAG = "MoodLocationMapActivity";
     private MapView mapView;
-    private ImageButton backButton;
     private Double latitude;
     private Double longitude;
     private String emoji;
@@ -50,7 +49,6 @@ public class MoodLocationMapActivity extends AppCompatActivity {
 
         // Initialize views
         mapView = findViewById(R.id.mapView);
-        backButton = findViewById(R.id.backButton);
 
         // Set up the map
         setupMap();
@@ -62,8 +60,6 @@ public class MoodLocationMapActivity extends AppCompatActivity {
             Log.e(TAG, "Invalid location or emoji data: lat=" + latitude + ", lon=" + longitude + ", emoji=" + emoji);
         }
 
-        // Set up back button
-        backButton.setOnClickListener(v -> finish());
     }
 
     private void setupMap() {

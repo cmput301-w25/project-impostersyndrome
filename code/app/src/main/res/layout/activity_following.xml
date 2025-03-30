@@ -23,7 +23,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="IS"
+                android:text="@string/app_short_name"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/white"
@@ -52,13 +52,13 @@
                 android:id="@+id/tab_pending"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pending Requests"/>
+                android:text="@string/pending_requests"/>
 
             <com.google.android.material.tabs.TabItem
                 android:id="@+id/tab_following"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Following"/>
+                android:text="@string/following"/>
         </com.google.android.material.tabs.TabLayout>
 
         <androidx.viewpager2.widget.ViewPager2
@@ -96,7 +96,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_home"
-            android:contentDescription="Home" />
+            android:contentDescription="@string/home_button_description" />
 
         <!-- Search Button -->
         <ImageButton
@@ -106,8 +106,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/search"
+
+            android:src="@drawable/ic_search"
             android:contentDescription="Search" />
+
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -117,8 +119,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/add"
+
+            android:src="@drawable/ic_add"
             android:contentDescription="Add Mood" />
+
 
         <!-- Heart Button -->
         <ImageButton
@@ -129,7 +133,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_heart"
-            android:contentDescription="Favorites" />
+            android:contentDescription="@string/favorites_button_description" />
 
         <!-- Profile Button -->
         <ImageButton
@@ -140,7 +144,6 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/white_profile"
-            android:contentDescription="Profile" />
+            android:contentDescription="@string/profile_button_description" />
     </LinearLayout>
-
 </RelativeLayout>

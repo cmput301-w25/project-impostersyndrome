@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Back Button at the top -->
+        <!-- Back Button -->
         <ImageButton
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
