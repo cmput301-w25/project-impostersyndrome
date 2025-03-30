@@ -1,14 +1,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="10dp">
+    android:layout_height="match_parent">
 
-    <!-- Empty Message (Now Centered in the Middle of the Screen) -->
+    <!-- Empty Message  -->
     <TextView
         android:id="@+id/emptyMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No requests."
+        android:text="@string/no_request"
         android:textColor="@android:color/darker_gray"
         android:textSize="18sp"
         android:gravity="center"

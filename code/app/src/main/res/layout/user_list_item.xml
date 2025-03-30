@@ -26,7 +26,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="User Name"
+        android:text="@string/username"
         android:textSize="18sp"
         android:textColor="@android:color/white" />
 
@@ -45,7 +45,7 @@
         android:id="@+id/unfollowButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Unfollow"
+        android:text="@string/unfollow"
         android:textSize="14sp"
         android:textColor="@android:color/white"
         android:background="@drawable/bg_search_bar"
@@ -57,7 +57,7 @@
         android:id="@+id/requestedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Requested"
+        android:text="@string/requested"
         android:textSize="14sp"
         android:textColor="@android:color/white"
         android:background="@drawable/bg_search_bar"

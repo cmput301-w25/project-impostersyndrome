@@ -15,7 +15,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
-        android:contentDescription="Apply Filter" />
+        android:contentDescription="@string/apply_filter_description" />
 
     <!-- Title -->
     <TextView
@@ -25,7 +25,7 @@
         android:layout_below="@id/tickButton"
         android:layout_marginTop="-27dp"
         android:layout_marginBottom="16dp"
-        android:text="Filter Mood"
+        android:text="@string/filter_mood_title"
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -35,7 +35,7 @@
         android:id="@+id/checkboxRecentWeek"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Show Mood from most recent week"
+        android:text="@string/show_recent_week"
         android:textSize="16sp"
         android:textColor="@android:color/white"
         android:padding="8dp"
@@ -47,7 +47,7 @@
         android:id="@+id/emotionalStateLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Emotional State"
+        android:text="@string/emotional_state_label"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:layout_below="@id/checkboxRecentWeek"
@@ -67,7 +67,7 @@
         android:id="@+id/reasonLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Reason"
+        android:text="@string/reason_label"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:layout_below="@id/emotionalStateSpinner"
@@ -83,9 +83,8 @@
         android:padding="12dp"
         android:background="@drawable/bg_filter_reason"
         android:textColor="@android:color/white"
-        android:hint="Enter reason to filter"
+        android:hint="@string/filter_reason_hint"
         android:textColorHint="#808080"
         android:inputType="text"
         android:layout_marginTop="4dp" />
-
 </RelativeLayout>

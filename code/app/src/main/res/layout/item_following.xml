@@ -25,7 +25,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Username"
+        android:text="@string/username"
         android:textSize="16sp"
         android:textColor="@android:color/white" />
 
@@ -34,7 +34,7 @@
         android:id="@+id/unfollowButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Unfollow"
+        android:text="@string/unfollow"
         android:textSize="14sp"
         android:textColor="@android:color/white"
         android:background="@drawable/btn_unfollow"
