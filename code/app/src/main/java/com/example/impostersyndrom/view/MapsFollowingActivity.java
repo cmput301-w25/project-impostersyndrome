@@ -2,6 +2,7 @@ package com.example.impostersyndrom.view;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
 import org.osmdroid.views.overlay.OverlayItem;
+import org.osmdroid.views.overlay.Polygon;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,16 +131,74 @@ public class MapsFollowingActivity extends AppCompatActivity {
         // Center map on current location if available
         if (currentLocation != null) {
             GeoPoint center = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
-            mapView.getController().setZoom(15.0);
+            mapView.getController().setZoom(13.0);
             mapView.getController().setCenter(center);
+
+            // Add the 5km radius circle
+            addRadiusOverlay(center, MAX_DISTANCE_KM);
         } else {
             // Default to a fallback location
             GeoPoint defaultLocation = new GeoPoint(49.2827, -123.1207); // Vancouver, BC
-            mapView.getController().setZoom(15.0);
+            mapView.getController().setZoom(10.0);
             mapView.getController().setCenter(defaultLocation);
         }
         mapView.invalidate();
         Log.d(TAG, "Map setup complete");
+    }
+
+    private void addRadiusOverlay(GeoPoint center, double radiusKm) {
+        Log.d(TAG, "Adding 5km radius overlay at " + center.getLatitude() + ", " + center.getLongitude());
+
+        // Create a circular polygon with points around the center
+        Polygon circle = new Polygon();
+
+        // Calculate the points around the circle
+        List<GeoPoint> circlePoints = new ArrayList<>();
+
+        // Earth's radius in kilometers
+        double earthRadius = 6371;
+
+        // Calculate the angular distance in radians
+        double angularDistance = radiusKm / earthRadius;
+
+        // Convert center point to radians
+        double centerLatRad = Math.toRadians(center.getLatitude());
+        double centerLonRad = Math.toRadians(center.getLongitude());
+
+        // Create points for the circle (100 points for a smooth circle)
+        for (int i = 0; i <= 100; i++) {
+            double bearing = Math.toRadians(i * 3.6); // 360 degrees / 100 points
+
+            // Calculate new point
+            double lat = Math.asin(
+                    Math.sin(centerLatRad) * Math.cos(angularDistance) +
+                            Math.cos(centerLatRad) * Math.sin(angularDistance) * Math.cos(bearing)
+            );
+
+            double lon = centerLonRad + Math.atan2(
+                    Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(centerLatRad),
+                    Math.cos(angularDistance) - Math.sin(centerLatRad) * Math.sin(lat)
+            );
+
+            // Convert back to degrees
+            double latDegrees = Math.toDegrees(lat);
+            double lonDegrees = Math.toDegrees(lon);
+
+            circlePoints.add(new GeoPoint(latDegrees, lonDegrees));
+        }
+
+        // Set the points for the polygon
+        circle.setPoints(circlePoints);
+
+        // Style the polygon
+        circle.setFillColor(Color.argb(70, 0, 0, 255)); // Transparent blue
+        circle.setStrokeColor(Color.argb(100, 0, 0, 255)); // Slightly more opaque blue border
+        circle.setStrokeWidth(2);
+
+        // Add to map
+        mapView.getOverlays().add(circle);
+
+        Log.d(TAG, "5km radius overlay added successfully");
     }
 
     private void loadFollowedUsersMoodEvents() {
@@ -193,9 +253,16 @@ public class MapsFollowingActivity extends AppCompatActivity {
     private void getRecentMoodEvents(List<String> userIds) {
         Log.d(TAG, "Starting getRecentMoodEvents for " + userIds.size() + " users");
 
-        // Clear existing markers
+        // Clear existing markers, but keep the radius overlay
         mapView.getOverlays().clear();
         Log.d(TAG, "Cleared existing map overlays");
+
+        // Re-add the radius overlay after clearing
+        if (currentLocation != null) {
+            GeoPoint center = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+            addRadiusOverlay(center, MAX_DISTANCE_KM);
+            Log.d(TAG, "Re-added radius overlay after clearing");
+        }
 
         // add current user's location marker if available
         if (currentLocation != null) {
@@ -428,5 +495,31 @@ public class MapsFollowingActivity extends AppCompatActivity {
         Log.d(TAG, "Using default location: " + defaultLocation.getLatitude() +
                 ", " + defaultLocation.getLongitude());
         return defaultLocation;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.postDelayed(refreshRunnable, REFRESH_INTERVAL);
+        }
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (refreshHandler != null && refreshRunnable != null) {
+            refreshHandler.removeCallbacks(refreshRunnable);
+        }
     }
 }
