@@ -197,7 +197,7 @@ public class MapsFollowingActivity extends AppCompatActivity {
         mapView.getOverlays().clear();
         Log.d(TAG, "Cleared existing map overlays");
 
-        // Add current user's location marker if available
+        // add current user's location marker if available
         if (currentLocation != null) {
             addCurrentLocationMarker();
             Log.d(TAG, "Added current user location marker at: " +
@@ -206,11 +206,11 @@ public class MapsFollowingActivity extends AppCompatActivity {
             Log.d(TAG, "Current location is null, skipping current location marker");
         }
 
-        // For each followed user, get their most recent mood event with location
+        // for each followed user, get their most recent mood event with location
         for (String userId : userIds) {
             Log.d(TAG, "Querying mood events for user: " + userId);
 
-            db.collection("mood")
+            db.collection("moods")
                     .whereEqualTo("userId", userId)
                     .whereNotEqualTo("latitude", null)  // Changed from "location" to "latitude"
                     .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -277,7 +277,7 @@ public class MapsFollowingActivity extends AppCompatActivity {
         Log.d(TAG, "Finished initiating mood queries for all users");
     }
 
-    // Updated helper method to get the distance in km for logging
+    // helper method to get distance in km and to log
     private float getDistanceInKm(Double latitude, Double longitude) {
         if (currentLocation == null || latitude == null || longitude == null) return -1;
 
@@ -288,7 +288,7 @@ public class MapsFollowingActivity extends AppCompatActivity {
         return currentLocation.distanceTo(eventLoc) / 1000; // Convert to km
     }
 
-    // Updated isWithinDistance method to use latitude/longitude
+    // method to use latitude/longitude to calculate if area within distance of 5km
     private boolean isWithinDistance(Double latitude, Double longitude) {
         if (currentLocation == null || latitude == null || longitude == null) {
             Log.d(TAG, "Current location or coordinates are null, can't calculate distance");
@@ -343,17 +343,12 @@ public class MapsFollowingActivity extends AppCompatActivity {
 
         Drawable emojiDrawable = getEmojiDrawable(emoji);
         if (emojiDrawable == null) {
-            Log.e(TAG, "Emoji drawable not found for: " + emoji);
             return;
         }
-        Log.d(TAG, "Got emoji drawable for: " + emoji);
-
         Bitmap markerBitmap = drawableToBitmap(emojiDrawable);
         if (markerBitmap == null) {
-            Log.e(TAG, "Failed to convert drawable to bitmap for emoji: " + emoji);
             return;
         }
-        Log.d(TAG, "Converted emoji drawable to bitmap");
 
         List<OverlayItem> items = new ArrayList<>();
         OverlayItem moodItem = new OverlayItem("Mood Event", "User's mood", location);
@@ -368,7 +363,6 @@ public class MapsFollowingActivity extends AppCompatActivity {
                         // Show more info about this mood event
                         Toast.makeText(MapsFollowingActivity.this,
                                 "Mood by user: " + userId, Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "User tapped on mood marker for user: " + userId);
                         return true;
                     }
 
@@ -385,7 +379,6 @@ public class MapsFollowingActivity extends AppCompatActivity {
 
     private Drawable getEmojiDrawable(String emojiName) {
         if (emojiName == null) {
-            Log.e(TAG, "Emoji name is null");
             return null;
         }
 
@@ -393,7 +386,7 @@ public class MapsFollowingActivity extends AppCompatActivity {
         int resId = getResources().getIdentifier(emojiName, "drawable", getPackageName());
 
         if (resId != 0) {
-            Log.d(TAG, "Found emoji drawable resource ID: " + resId);
+            Log.d(TAG, "found emoji drawable resource ID: " + resId);
             Drawable drawable = ContextCompat.getDrawable(this, resId);
             if (drawable == null) {
                 Log.e(TAG, "Got null drawable from resource ID: " + resId);
@@ -414,24 +407,21 @@ public class MapsFollowingActivity extends AppCompatActivity {
         try {
             int width = 60;
             int height = 60;
-            Log.d(TAG, "Creating bitmap of size: " + width + "x" + height);
 
             Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
 
-            Log.d(TAG, "Successfully converted drawable to bitmap");
             return bitmap;
         } catch (Exception e) {
-            Log.e(TAG, "Error converting drawable to bitmap", e);
             return null;
         }
     }
 
     private Location getCurrentLocation() {
         Log.d(TAG, "Getting current location");
-        // implement location retrieval using FusedLocationProviderClient
+        // implementing location retrieval
         Location defaultLocation = new Location("");
         defaultLocation.setLatitude(37.4227);
         defaultLocation.setLongitude(-122.0807); // Mountain View, CA
