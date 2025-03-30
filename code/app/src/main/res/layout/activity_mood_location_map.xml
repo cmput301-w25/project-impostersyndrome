@@ -7,9 +7,53 @@
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_panel" />
 
-    <!-- Filter Button -->
+    <!-- Bottom Panel -->
+    <LinearLayout
+        android:id="@+id/bottom_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MyMoods"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/my_moods_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="My Moods Map"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/following_moods_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Following Moods"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Filter Button (moved above bottom panel) -->
     <ImageButton
         android:id="@+id/filterButton"
         android:layout_width="48dp"
@@ -17,7 +61,8 @@
         android:layout_margin="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_filter_black"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/bottom_panel"
+        android:layout_alignParentEnd="true"
         android:contentDescription="Filter moods"/>
 
 </RelativeLayout>
