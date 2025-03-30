@@ -1,5 +1,6 @@
 package com.example.impostersyndrom.view;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,8 +10,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +35,8 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
@@ -42,6 +49,10 @@ public class MapActivity extends AppCompatActivity {
     private Button myMoodsButton;
     private Button followingMoodsButton;
     private boolean showingMyMoods = true;
+    private boolean filterLastWeek = false;
+    private String selectedMoodFilter = "All";
+    private String keywordFilter = "";
+    private boolean filterFollowing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,33 +100,25 @@ public class MapActivity extends AppCompatActivity {
 
     private void showMyMoods() {
         showingMyMoods = true;
+        filterFollowing = false;  // Reset to show only my moods
         myMoodsButton.setEnabled(false);
         followingMoodsButton.setEnabled(true);
-
-        // Clear existing markers
-        mapView.getOverlays().clear();
-        mapView.getOverlays().add(myLocationOverlay);
-
-        loadMoods(true);
+        refreshMapWithFilters();
     }
 
     private void showFollowingMoods() {
         showingMyMoods = false;
+        filterFollowing = true;  // Set to show following moods
         myMoodsButton.setEnabled(true);
         followingMoodsButton.setEnabled(false);
-
-        // Clear existing markers
-        mapView.getOverlays().clear();
-        mapView.getOverlays().add(myLocationOverlay);
-
-        loadMoods(false);
+        refreshMapWithFilters();
     }
 
-    private void loadMoods(boolean loadMyMoodsOnly) {
+    private void loadMoods() {
         String currentUserId = auth.getCurrentUser().getUid();
-        Log.d(TAG, "Loading moods for user: " + currentUserId + ", MyMoodsOnly: " + loadMyMoodsOnly);
+        Log.d(TAG, "Loading moods for user: " + currentUserId + ", filterFollowing: " + filterFollowing);
 
-        if (loadMyMoodsOnly) {
+        if (!filterFollowing) {
             // Load user's own moods
             db.collection("moods")
                     .whereEqualTo("userId", currentUserId)
@@ -127,8 +130,10 @@ public class MapActivity extends AppCompatActivity {
                         }
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             Mood mood = document.toObject(Mood.class);
-                            Log.d(TAG, "Adding my mood: " + mood.getEmotionalState() + " at " + mood.getLatitude() + "," + mood.getLongitude());
-                            addMoodMarker(mood, true);
+                            if (shouldDisplayMood(mood)) {
+                                Log.d(TAG, "Adding my mood: " + mood.getEmotionalState() + " at " + mood.getLatitude() + "," + mood.getLongitude());
+                                addMoodMarker(mood, true);
+                            }
                         }
                         mapView.invalidate();
                     })
@@ -137,7 +142,7 @@ public class MapActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error loading your moods", Toast.LENGTH_SHORT).show();
                     });
         } else {
-            // Load moods from followed users (matching original code)
+            // Load moods from followed users
             Log.d(TAG, "Starting following filter with current user ID: " + currentUserId);
 
             db.collection("following")
@@ -158,8 +163,6 @@ public class MapActivity extends AppCompatActivity {
                             if (followingId != null) {
                                 followingIds.add(followingId);
                                 Log.d(TAG, "Added following ID: " + followingId);
-                            } else {
-                                Log.w(TAG, "Document " + doc.getId() + " has no followingId field");
                             }
                         }
 
@@ -171,25 +174,26 @@ public class MapActivity extends AppCompatActivity {
                         }
 
                         Log.d(TAG, "Total following IDs found: " + followingIds.size());
-                        int[] processedUsers = {0};  // Counter for processed users
+                        int[] processedUsers = {0};
                         for (String followedUserId : followingIds) {
                             Log.d(TAG, "Loading moods for followed user: " + followedUserId);
                             db.collection("moods")
                                     .whereEqualTo("userId", followedUserId)
-                                    .get()  // Note: Removed isPublic filter to match original code's loadUserMoods
+                                    .get()
                                     .addOnSuccessListener(queryDocumentSnapshots -> {
                                         Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " moods for user " + followedUserId);
                                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                                            Boolean isPublic = document.getBoolean("isPublic");
                                             Boolean privateMood = document.getBoolean("privateMood");
                                             if (Boolean.TRUE.equals(privateMood)) {
                                                 Log.d(TAG, "Skipping private mood: " + document.getId());
-                                                continue;  // Skip private moods as in original code
+                                                continue;
                                             }
                                             Mood mood = document.toObject(Mood.class);
-                                            Log.d(TAG, "Adding following mood: " + mood.getEmotionalState() + " at " +
-                                                    mood.getLatitude() + "," + mood.getLongitude() + " by " + mood.getUserId());
-                                            addMoodMarker(mood, false);
+                                            if (shouldDisplayMood(mood)) {
+                                                Log.d(TAG, "Adding following mood: " + mood.getEmotionalState() + " at " +
+                                                        mood.getLatitude() + "," + mood.getLongitude() + " by " + mood.getUserId());
+                                                addMoodMarker(mood, false);
+                                            }
                                         }
                                         processedUsers[0]++;
                                         if (processedUsers[0] == followingIds.size()) {
@@ -212,6 +216,56 @@ public class MapActivity extends AppCompatActivity {
                         mapView.invalidate();
                     });
         }
+    }
+
+    private boolean shouldDisplayMood(Mood mood) {
+        Log.d(TAG, "Checking if mood should be displayed: " + mood.getEmotionalState());
+
+        if (mood.getLatitude() == null || mood.getLongitude() == null) {
+            Log.d(TAG, "Mood filtered out: Invalid location data");
+            return false;
+        }
+
+        // Filter by last week
+        if (filterLastWeek) {
+            Calendar lastWeek = Calendar.getInstance();
+            lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
+            if (mood.getTimestamp().before(lastWeek.getTime())) {
+                Log.d(TAG, "Mood filtered out: Older than last week");
+                return false;
+            }
+        }
+
+        // Filter by mood type
+        if (!selectedMoodFilter.equals("All")) {
+            Log.d(TAG, "Checking mood filter: Selected=" + selectedMoodFilter +
+                    ", Mood=" + mood.getEmotionalState().toLowerCase());
+            if (!mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
+                Log.d(TAG, "Mood filtered out: Doesn't match selected mood filter");
+                return false;
+            }
+        }
+
+        // Filter by keyword
+        if (!keywordFilter.isEmpty()) {
+            String lowerKeyword = keywordFilter.toLowerCase();
+            String lowerReason = mood.getReason().toLowerCase();
+            String lowerEmotionalState = mood.getEmotionalState().toLowerCase();
+
+            Log.d(TAG, "Checking keyword filter: Keyword=" + lowerKeyword +
+                    ", Reason=" + lowerReason + ", EmotionalState=" + lowerEmotionalState);
+
+            boolean matchesKeyword = lowerReason.contains(lowerKeyword) ||
+                    lowerEmotionalState.contains(lowerKeyword);
+
+            if (!matchesKeyword) {
+                Log.d(TAG, "Mood filtered out: Doesn't match keyword filter");
+                return false;
+            }
+        }
+
+        Log.d(TAG, "Mood passed all filters and will be displayed");
+        return true;
     }
 
     private void addMoodMarker(Mood mood, boolean isOwnMood) {
@@ -275,16 +329,57 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void showFilterDialog() {
-        // TODO: Implement filter dialog if needed
-        Toast.makeText(this, "Filter functionality to be implemented", Toast.LENGTH_SHORT).show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View filterView = getLayoutInflater().inflate(R.layout.dialog_map_filter, null);
+        builder.setView(filterView);
+
+        // Initialize filter controls
+        CheckBox lastWeekCheckbox = filterView.findViewById(R.id.lastWeekCheckbox);
+        Spinner moodSpinner = filterView.findViewById(R.id.moodSpinner);
+        EditText keywordSearch = filterView.findViewById(R.id.keywordSearch);
+
+        // Set up mood spinner
+        ArrayList<String> moodOptions = new ArrayList<>();
+        moodOptions.add("All");
+        moodOptions.addAll(Arrays.asList("emoji_happy", "emoji_sad", "emoji_angry", "emoji_fear",
+                "emoji_confused", "emoji_shame", "emoji_surprised", "emoji_disgust"));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, moodOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        moodSpinner.setAdapter(adapter);
+
+        // Set current filter values
+        lastWeekCheckbox.setChecked(filterLastWeek);
+        int selectedIndex = moodOptions.indexOf(selectedMoodFilter);
+        if (selectedIndex == -1) selectedIndex = 0;
+        moodSpinner.setSelection(selectedIndex);
+        keywordSearch.setText(keywordFilter);
+
+        builder.setPositiveButton("Apply", (dialog, which) -> {
+            filterLastWeek = lastWeekCheckbox.isChecked();
+            selectedMoodFilter = moodSpinner.getSelectedItem().toString();
+            keywordFilter = keywordSearch.getText().toString().trim();
+            refreshMapWithFilters();  // Refresh the map with new filters
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        builder.setNeutralButton("Clear Filters", (dialog, which) -> {
+            filterLastWeek = false;
+            filterFollowing = false;
+            selectedMoodFilter = "All";
+            keywordFilter = "";
+            showMyMoods();  // Reset to My Moods view and refresh
+        });
+
+        builder.show();
     }
 
     private void refreshMapWithFilters() {
-        if (showingMyMoods) {
-            showMyMoods();
-        } else {
-            showFollowingMoods();
-        }
+        // Clear existing markers
+        mapView.getOverlays().clear();
+        mapView.getOverlays().add(myLocationOverlay);
+        loadMoods();
     }
 
     private void openMoodDetail(Mood mood) {
