@@ -275,4 +275,13 @@ public class Mood implements Serializable {
      * @param privateMood the mood status
      */
     public void setPrivateMood(boolean privateMood) {this.privateMood = privateMood;}
+
+    public void setLocation(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public boolean hasLocation() {
+        return latitude != null && longitude != null;
+    }
 }

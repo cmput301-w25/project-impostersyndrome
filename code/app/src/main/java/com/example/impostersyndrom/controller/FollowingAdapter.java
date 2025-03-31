@@ -25,7 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 public class FollowingAdapter extends ArrayAdapter<UserData> {
-    private FirebaseFirestore db;
+    public FirebaseFirestore db;
     private String currentUserId;
     private List<UserData> followingUsers;
     private TextView emptyMessage;
