@@ -494,8 +494,8 @@ public class MapActivity extends AppCompatActivity {
 
         ArrayList<String> moodOptions = new ArrayList<>();
         moodOptions.add("All");
-        moodOptions.addAll(Arrays.asList("emoji_happy", "emoji_sad", "emoji_angry", "emoji_fear",
-                "emoji_confused", "emoji_shame", "emoji_surprised", "emoji_disgust"));
+        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Fear",
+                "Confused", "Shame", "Surprised", "Disgust"));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, moodOptions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
