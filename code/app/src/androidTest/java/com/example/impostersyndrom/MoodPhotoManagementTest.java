@@ -96,8 +96,8 @@ public class MoodPhotoManagementTest {
 
     @Test
     public void testRemovePhotoFromMood() throws Exception {
-        // 1. Wait for moods to load (with timeout)
-
+        // Prerequisite: The top mood in MyMoodsActivity must have a photo attached for this test to be valid.
+        // Ensure that the first mood in the list (position 0) has an imageUrl set in Firestore before running this test.
         onView(isRoot()).perform(waitFor(2000));
         onData(anything())
                 .inAdapterView(withId(R.id.moodListView))
