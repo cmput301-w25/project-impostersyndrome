@@ -100,7 +100,7 @@ public class UserProfileActivity extends AppCompatActivity {
             return false;
         }
 
-        profileImage.setImageResource(R.drawable.default_person);
+        profileImage.setImageResource(R.drawable.img_default_person);
         setupSwipeRefresh();
         setupListViewScrollListener();
         return true;
@@ -348,9 +348,9 @@ public class UserProfileActivity extends AppCompatActivity {
         bioText.setText(document.getString("bio") != null ? document.getString("bio") : "Exploring emotional awareness.");
         String profileImageUrl = document.getString("profileImageUrl");
         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-            Glide.with(this).load(profileImageUrl).placeholder(R.drawable.default_person).error(R.drawable.default_person).into(profileImage);
+            Glide.with(this).load(profileImageUrl).placeholder(R.drawable.img_default_person).error(R.drawable.img_default_person).into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
         }
         swipeRefreshLayout.setRefreshing(false);
     }
@@ -358,7 +358,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private void setDefaultProfileData() {
         usernameText.setText(username != null ? username : "username");
         bioText.setText("Exploring emotional awareness.");
-        profileImage.setImageResource(R.drawable.default_person);
+        profileImage.setImageResource(R.drawable.img_default_person);
         followersCountText.setText("0");
         followingCountText.setText("0");
         moodListView.setAdapter(null);

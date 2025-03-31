@@ -13,17 +13,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
-import com.example.impostersyndrom.model.EmojiUtils;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.example.impostersyndrom.model.ProfileDataManager;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -75,7 +70,7 @@ public class ProfileActivity extends AppCompatActivity {
         bioText = findViewById(R.id.bioText);
         backButton = findViewById(R.id.backButton);
         profileImage = findViewById(R.id.profileImage);
-        profileImage.setImageResource(R.drawable.default_person);
+        profileImage.setImageResource(R.drawable.img_default_person);
         homeButton = findViewById(R.id.homeButton);
         searchButton = findViewById(R.id.searchButton);
         addMoodButton = findViewById(R.id.addMoodButton);
@@ -159,9 +154,9 @@ public class ProfileActivity extends AppCompatActivity {
         bioText.setText(document.getString("bio") != null ? document.getString("bio") : "Exploring emotional awareness.");
         String profileImageUrl = document.getString("profileImageUrl");
         if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
-            Glide.with(this).load(profileImageUrl).placeholder(R.drawable.default_person).error(R.drawable.default_person).into(profileImage);
+            Glide.with(this).load(profileImageUrl).placeholder(R.drawable.img_default_person).error(R.drawable.img_default_person).into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
         }
         swipeRefreshLayout.setRefreshing(false);
     }
@@ -169,7 +164,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void setDefaultProfileData() {
         usernameText.setText("username");
         bioText.setText("Exploring emotional awareness.");
-        profileImage.setImageResource(R.drawable.default_person);
+        profileImage.setImageResource(R.drawable.img_default_person);
         followersCountText.setText("0");
         followingCountText.setText("0");
         swipeRefreshLayout.setRefreshing(false);

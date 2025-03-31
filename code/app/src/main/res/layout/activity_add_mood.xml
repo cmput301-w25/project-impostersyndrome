@@ -74,7 +74,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:background="@drawable/edit_text_background">
+                            android:background="@drawable/bg_edit_text">
 
                             <EditText
                                 android:id="@+id/addReasonEdit"
@@ -134,7 +134,6 @@
                             android:src="@drawable/ic_camera" />
 
                         <!-- Group button -->
-
                         <ImageButton
                             android:id="@+id/attachLocationButton"
                             android:layout_width="40dp"
@@ -146,7 +145,7 @@
                             android:padding="8dp"
                             android:scaleType="fitCenter"
                             android:src="@drawable/ic_location"
-                            android:text="Attach Location" />
+                            android:contentDescription="@string/attach_location" />
 
                         <ImageButton
                             android:id="@+id/groupButton"
@@ -171,7 +170,6 @@
 
                 </LinearLayout>
 
-
             </LinearLayout>
 
             <ImageButton
@@ -183,9 +181,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="16dp"
-                android:src="@drawable/left_arrow"
+                android:src="@drawable/ic_back"
                 android:layout_gravity="top|start" />
-
 
             <!-- Submit Button -->
             <ImageButton
@@ -197,7 +194,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="16dp"
-                android:src="@drawable/white_checkmark"
+                android:src="@drawable/ic_tick"
                 android:layout_gravity="top|end" />
         </FrameLayout>
     </LinearLayout>
