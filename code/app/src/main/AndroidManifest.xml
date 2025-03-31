@@ -27,6 +27,10 @@
         tools:targetApi="31">
 
         <activity
+            android:name=".view.MapActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".view.MoodLocationMapActivity"
             android:exported="false" />
 
@@ -86,6 +90,7 @@
         <!-- MoodDetailActivity -->
         <activity
             android:name=".view.MoodDetailActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity android:name=".view.EditMoodActivity" />

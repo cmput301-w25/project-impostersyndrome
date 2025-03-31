@@ -22,7 +22,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
-            android:src="@drawable/left_arrow"
+            android:src="@drawable/ic_back"
             android:layout_gravity="center_vertical"/>
 
     </LinearLayout>

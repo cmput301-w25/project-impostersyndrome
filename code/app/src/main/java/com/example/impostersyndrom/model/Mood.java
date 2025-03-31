@@ -59,6 +59,23 @@ public class Mood implements Serializable {
 
 
     /**
+     * No-argument constructor required by Firebase Firestore for deserialization.
+     */
+    public Mood() {
+        // Initialize with default values
+        this.id = UUID.randomUUID().toString();
+        this.emotionalState = "";
+        this.emojiDescription = "";
+        this.timestamp = new Date();
+        this.color = 0;
+        this.reason = "";
+        this.group = "alone";
+        this.imageUrl = null;
+        this.latitude = 0.0;
+        this.longitude = 0.0;
+    }
+
+    /**
      * Constructor for the Mood class.
      *
      * @param emotionalState   The emotional state (e.g., happy, sad).

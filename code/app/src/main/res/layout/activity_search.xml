@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/bg_search_bar"
         android:padding="10dp"
         android:gravity="center_vertical">
 
@@ -47,7 +47,7 @@
             android:id="@+id/clearSearch"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/clear"
+            android:src="@drawable/img_clear"
             android:layout_marginEnd="5dp"
             android:scaleType="centerCrop"
             android:background="@android:color/transparent"
@@ -107,8 +107,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/search"
-            android:contentDescription="@string/search_button_description" />
+
+            android:src="@drawable/ic_search"
+            android:contentDescription="Search" />
+
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -118,8 +120,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/add"
-            android:contentDescription="@string/add_mood" />
+
+            android:src="@drawable/ic_add"
+            android:contentDescription="Add Mood" />
+
 
         <!-- Heart Button -->
         <ImageButton
