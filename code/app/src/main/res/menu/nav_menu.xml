@@ -3,7 +3,7 @@
     <item
         android:id="@+id/maps"
         android:title="Maps"
-        android:icon="@drawable/white_profile" />
+        android:icon="@drawable/ic_map" />
     <item
         android:id="@+id/nav_settings"
         android:title="Settings"
