@@ -66,3 +66,10 @@
 
 - **JUnit** – Used for unit testing.  
   [JUnit Documentation](https://junit.org/junit5/docs/current/user-guide/)
+
+## Camera and Gallery Permissions
+- [Camera and Gallery Activity](https://stackoverflow.com/questions/67115099/how-do-i-use-registerforactivityresult-to-launch-camera?utm_source=chatgpt.com)
+- [Camera and Gallery Setup](https://www.youtube.com/watch?v=nOtlFl1aUCw)
+
+## Image Compression
+- [Image Bitmap Compression](https://www.youtube.com/watch?v=j4h_L2pzZs0&t=2s)
