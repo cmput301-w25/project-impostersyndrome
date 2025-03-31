@@ -190,14 +190,14 @@ public class MoodDataManager {
         Log.d("OfflineMood", "Offline mood stored. Total offline moods: " + moodList.size());
     }
 
-    public List<Mood> getOfflineMoods(Context context) {
+    public List<Mood> getOfflineMoodsList(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString("moodList", "[]");
         return gson.fromJson(json, new TypeToken<List<Mood>>() {}.getType());
     }
 
-    public void clearOfflineMoods(Context context) {
+    public void clearOfflineMoodsList(Context context) {
         context.getSharedPreferences("OfflineMoods", Context.MODE_PRIVATE)
                 .edit().remove("moodList").apply();
     }
@@ -258,5 +258,68 @@ public class MoodDataManager {
         }
     }
 
+    public static class OfflineMood {
+        public String emoji;
+        public String reason;
+        public String group;
+        public int color;
+        public String imageUrl;
+        public long timestamp;
+        public boolean privateMood;
 
+        public OfflineMood(String emoji, String reason, String group, int color, String imageUrl, long timestamp, boolean privateMood) {
+            this.emoji = emoji;
+            this.reason = reason;
+            this.group = group;
+            this.color = color;
+            this.imageUrl = imageUrl;
+            this.timestamp = timestamp;
+            this.privateMood = privateMood;
+        }
+    }
+
+    private static final String PREF_OFFLINE_EDITS = "offline_edits";
+    private static final String PREF_OFFLINE_DELETES = "offline_deletes";
+    private static final String PREF_OFFLINE_MOODS = "offline_moods";
+    private static final String PREF_OFFLINE_MOODS_COUNT = "offline_moods_count";
+
+    public void saveOfflineMood(Context context, OfflineMood mood) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_OFFLINE_MOODS, Context.MODE_PRIVATE);
+        int count = prefs.getInt(PREF_OFFLINE_MOODS_COUNT, 0);
+        String moodJson = new Gson().toJson(mood);
+        prefs.edit()
+                .putString("mood_" + count, moodJson)
+                .putInt(PREF_OFFLINE_MOODS_COUNT, count + 1)
+                .apply();
+    }
+
+    public List<OfflineMood> getOfflineMoods(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_OFFLINE_MOODS, Context.MODE_PRIVATE);
+        int count = prefs.getInt(PREF_OFFLINE_MOODS_COUNT, 0);
+        List<OfflineMood> moods = new ArrayList<>();
+        Gson gson = new Gson();
+
+        for (int i = 0; i < count; i++) {
+            String moodJson = prefs.getString("mood_" + i, null);
+            if (moodJson != null) {
+                OfflineMood mood = gson.fromJson(moodJson, OfflineMood.class);
+                moods.add(mood);
+            }
+        }
+
+        return moods;
+    }
+
+    public void clearOfflineMoods(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_OFFLINE_MOODS, Context.MODE_PRIVATE);
+        int count = prefs.getInt(PREF_OFFLINE_MOODS_COUNT, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        
+        for (int i = 0; i < count; i++) {
+            editor.remove("mood_" + i);
+        }
+        
+        editor.putInt(PREF_OFFLINE_MOODS_COUNT, 0)
+                .apply();
+    }
 }

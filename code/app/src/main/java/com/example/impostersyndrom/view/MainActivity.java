@@ -55,6 +55,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -477,9 +479,41 @@ public class MainActivity extends AppCompatActivity {
     private void refreshCurrentFragment() {
         Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
         if (currentFragment instanceof MyMoodsFragment) {
-            ((MyMoodsFragment) currentFragment).fetchMyMoods();
+            if (NetworkUtils.isOffline(this)) {
+                // In offline mode, show offline status and pending changes
+                MoodDataManager manager = new MoodDataManager();
+                List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
+                Set<String> offlineDeletes = manager.getOfflineDeletes(this);
+                
+                StringBuilder message = new StringBuilder("You're offline. ");
+                if (!offlineEdits.isEmpty() || !offlineDeletes.isEmpty()) {
+                    message.append("You have ");
+                    if (!offlineEdits.isEmpty()) {
+                        message.append(offlineEdits.size()).append(" edit(s) ");
+                    }
+                    if (!offlineEdits.isEmpty() && !offlineDeletes.isEmpty()) {
+                        message.append("and ");
+                    }
+                    if (!offlineDeletes.isEmpty()) {
+                        message.append(offlineDeletes.size()).append(" delete(s) ");
+                    }
+                    message.append("pending. Changes will sync when you're back online.");
+                } else {
+                    message.append("Your changes will sync when you're back online.");
+                }
+                showMessage(message.toString());
+                Log.d("MainActivity", "Offline mode - skipping refresh");
+                return;
+            }
+            // Use refreshMoods instead of fetchMyMoods to properly handle pagination
+            ((MyMoodsFragment) currentFragment).refreshMoods();
             Log.d("MainActivity", "Refreshing MyMoodsFragment");
         } else if (currentFragment instanceof FollowingMoodsFragment) {
+            if (NetworkUtils.isOffline(this)) {
+                showMessage("You're offline. Your changes will sync when you're back online.");
+                Log.d("MainActivity", "Offline mode - skipping refresh");
+                return;
+            }
             ((FollowingMoodsFragment) currentFragment).fetchFollowingMoods();
             Log.d("MainActivity", "Refreshing FollowingMoodsFragment");
         } else {
@@ -517,10 +551,50 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d("MainActivity", "onResume called");
-        syncOfflineMoodsIfNeeded();
-        refreshCurrentFragment();
-        viewPagerAdapter.notifyDataSetChanged();
-        viewPager.setCurrentItem(viewPager.getCurrentItem(), false);
+        
+        // Handle offline sync if we're online
+        if (!NetworkUtils.isOffline(this)) {
+            syncOfflineMoodsIfNeeded();
+            // Only show sync message if there were actual changes
+            MoodDataManager manager = new MoodDataManager();
+            List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
+            Set<String> offlineDeletes = manager.getOfflineDeletes(this);
+            List<MoodDataManager.OfflineMood> offlineMoods = manager.getOfflineMoods(this);
+            
+            if (!offlineEdits.isEmpty() || !offlineDeletes.isEmpty() || !offlineMoods.isEmpty()) {
+                // Show sync success message
+                StringBuilder message = new StringBuilder("Synced ");
+                boolean hasMultipleChanges = false;
+                
+                if (!offlineMoods.isEmpty()) {
+                    message.append(offlineMoods.size()).append(" new mood(s)");
+                    hasMultipleChanges = true;
+                }
+                
+                if (!offlineEdits.isEmpty()) {
+                    if (hasMultipleChanges) message.append(", ");
+                    message.append(offlineEdits.size()).append(" edit(s)");
+                    hasMultipleChanges = true;
+                }
+                
+                if (!offlineDeletes.isEmpty()) {
+                    if (hasMultipleChanges) message.append(", ");
+                    message.append(offlineDeletes.size()).append(" delete(s)");
+                }
+                
+                message.append(" successfully!");
+                showMessage(message.toString());
+                
+                // Only refresh if we actually synced changes
+                new Handler().postDelayed(() -> refreshCurrentFragment(), 1000);
+            }
+        }
+        
+        // Only update the ViewPager if needed
+        if (viewPagerAdapter != null) {
+            viewPagerAdapter.notifyDataSetChanged();
+            viewPager.setCurrentItem(viewPager.getCurrentItem(), false);
+        }
     }
 
     private void syncOfflineMoodsIfNeeded() {
@@ -528,6 +602,30 @@ public class MainActivity extends AppCompatActivity {
             MoodDataManager manager = new MoodDataManager();
 
             // Sync offline added moods
+            List<MoodDataManager.OfflineMood> offlineMoods = manager.getOfflineMoods(this);
+            if (!offlineMoods.isEmpty()) {
+                Log.d("Sync", "Syncing offline moods: " + offlineMoods.size());
+                for (MoodDataManager.OfflineMood mood : offlineMoods) {
+                    Map<String, Object> moodData = new HashMap<>();
+                    moodData.put("emotionalState", mood.emoji);
+                    moodData.put("reason", mood.reason);
+                    moodData.put("group", mood.group);
+                    moodData.put("color", mood.color);
+                    moodData.put("imageUrl", mood.imageUrl);
+                    moodData.put("timestamp", new Timestamp(new Date(mood.timestamp)));
+                    moodData.put("privateMood", mood.privateMood);
+                    moodData.put("userId", userId);
+
+                    db.collection("moods")
+                            .add(moodData)
+                            .addOnSuccessListener(documentReference -> {
+                                Log.d("Sync", "Offline mood synced: " + documentReference.getId());
+                            })
+                            .addOnFailureListener(e -> Log.e("Sync", "Mood sync failed", e));
+                }
+                manager.clearOfflineMoods(this);
+            }
+
             // Sync offline edits
             List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(this);
             if (!offlineEdits.isEmpty()) {
@@ -575,6 +673,13 @@ public class MainActivity extends AppCompatActivity {
         public void onAvailable(Network network) {
             runOnUiThread(() -> {
                 Log.d("NetworkCallback", "Network available - syncing offline data");
+                MoodDataManager manager = new MoodDataManager();
+                List<MoodDataManager.OfflineEdit> offlineEdits = manager.getOfflineEdits(MainActivity.this);
+                Set<String> offlineDeletes = manager.getOfflineDeletes(MainActivity.this);
+                
+                if (!offlineEdits.isEmpty() || !offlineDeletes.isEmpty()) {
+                    showMessage("Back online! Syncing your offline changes...");
+                }
                 syncOfflineMoodsIfNeeded();
                 // Delay the UI refresh for 2 seconds to allow async tasks to complete.
                 new android.os.Handler().postDelayed(() -> refreshCurrentFragment(), 2000);
