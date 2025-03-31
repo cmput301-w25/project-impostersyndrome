@@ -34,7 +34,7 @@ public class MoodLocationMapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mood_location_map);
+        setContentView(R.layout.activity_map);
 
         // Initialize osmdroid configuration
         Configuration.getInstance().load(getApplicationContext(), getSharedPreferences("osmdroid", MODE_PRIVATE));
