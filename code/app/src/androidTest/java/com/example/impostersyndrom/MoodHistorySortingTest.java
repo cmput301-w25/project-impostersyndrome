@@ -11,24 +11,35 @@ import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
+import static androidx.test.espresso.matcher.RootMatchers.isPlatformPopup;
 import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static com.example.impostersyndrom.MoodEventFlowTest.waitFor;
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.not;
+import android.graphics.Color;
 
 import android.view.View;
 
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.view.LoginActivity;
 import com.example.impostersyndrom.view.MainActivity;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -39,6 +50,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
 @RunWith(AndroidJUnit4.class)
@@ -66,28 +80,134 @@ public class MoodHistorySortingTest {
         addMoodUnique("Mood2");
         Thread.sleep(1000);
         addMoodUnique("Mood3");
-
-        Thread.sleep(2000);
+        Thread.sleep(1000);
+        
         onData(anything())
                 .inAdapterView(withId(R.id.moodListView))
                 .atPosition(0)
                 .onChildView(withId(R.id.reasonView))
                 .check(matches(withText("Mood3")));
-
         onData(anything())
                 .inAdapterView(withId(R.id.moodListView))
                 .atPosition(1)
                 .onChildView(withId(R.id.reasonView))
                 .check(matches(withText("Mood2")));
-
         onData(anything())
                 .inAdapterView(withId(R.id.moodListView))
                 .atPosition(2)
                 .onChildView(withId(R.id.reasonView))
                 .check(matches(withText("Mood1")));
 
-        onView(withId(R.id.moodListView)).check(matches(isDisplayed()));
-        tearDown();
+        //onView(isRoot()).perform(waitForIdle());
+    }
+
+    @Test
+    public void testDateFilter() throws Exception {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference moodsRef = db.collection("moods");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+        Date oldDate = sdf.parse("01-01-2025 00:00");
+        Date currentDate = new Date();
+
+        Mood oldMood = new Mood("emoji_happy", "Happy", oldDate, Color.parseColor("#FFCC00"), "Old Mood");
+        oldMood.setId("oldMood123");
+        oldMood.setUserId("hLuJvhlYpqRPBXrHJlhg2n6QduJ3");
+
+        Mood newMood = new Mood("emoji_angry", "Angry", currentDate, Color.parseColor("#FF4D00"), "New Mood");
+        newMood.setId("newMood123");
+        newMood.setUserId("hLuJvhlYpqRPBXrHJlhg2n6QduJ3");
+
+        moodsRef.document(oldMood.getId()).set(oldMood);
+        moodsRef.document(newMood.getId()).set(newMood);
+
+        Thread.sleep(2000);
+        onView(withId(R.id.swipeRefreshLayout)).perform(ViewActions.swipeDown());
+        Thread.sleep(3000);
+
+        onView(withId(R.id.filterButton)).perform(click());
+        waitForView(withText("Filter Mood"), 5000);
+        onView(withId(R.id.checkboxRecentWeek)).perform(click());
+        onView(withId(R.id.tickButton)).perform(click());
+        waitForView(withId(R.id.moodListView), 10000);
+
+        onView(withText("Old Mood")).check(doesNotExist());
+
+        onView(withId(R.id.filterButton)).perform(click());
+        waitForView(withText("Filter Mood"), 5000);
+        onView(withId(R.id.checkboxRecentWeek)).perform(click());
+        onView(withId(R.id.tickButton)).perform(click());
+    }
+
+    @Test
+    public void testEmotionFilter() throws Exception {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference moodsRef = db.collection("moods");
+
+        Date now = new Date();
+
+        Mood happyMood = new Mood("emoji_happy", "Happy", now, Color.parseColor("#FFCC00"), "Feeling joyful!");
+        happyMood.setId("happyMood123");
+        happyMood.setUserId("hLuJvhlYpqRPBXrHJlhg2n6QduJ3");
+
+        Mood sadMood = new Mood("emoji_sad", "Sad", now, Color.parseColor("#0099CC"), "Feeling blue.");
+        sadMood.setId("sadMood123");
+        sadMood.setUserId("hLuJvhlYpqRPBXrHJlhg2n6QduJ3");
+
+        moodsRef.document(happyMood.getId()).set(happyMood);
+        moodsRef.document(sadMood.getId()).set(sadMood);
+
+        // Refresh mood list
+        Thread.sleep(2000);
+        onView(withId(R.id.swipeRefreshLayout)).perform(ViewActions.swipeDown());
+        Thread.sleep(3000);
+
+        onView(withId(R.id.filterButton)).perform(click());
+        waitForView(withText("Filter Mood"), 5000);
+
+        onView(withId(R.id.emotionalStateSpinner)).perform(click());
+        Thread.sleep(500);
+        onData(anything())
+                .inRoot(isPlatformPopup())
+                .atPosition(1)
+                .perform(click());
+        Thread.sleep(500);
+        onView(withId(R.id.tickButton)).perform(click());
+        waitForView(withId(R.id.moodListView), 10000);
+
+        onView(withText("Feeling blue.")).check(doesNotExist());
+        Thread.sleep(3000);
+
+        onView(withId(R.id.filterButton)).perform(click());
+        waitForView(withText("Filter Mood"), 5000);
+        onView(withId(R.id.emotionalStateSpinner)).perform(click());
+        Thread.sleep(500);
+        onData(anything())
+                .inRoot(isPlatformPopup())
+                .atPosition(0)
+                .perform(click());
+        Thread.sleep(500);
+        onView(withId(R.id.tickButton)).perform(click());
+        Thread.sleep(2000);
+    }
+
+    public static ViewAction waitForIdle() {
+        return new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                return isRoot();
+            }
+
+            @Override
+            public String getDescription() {
+                return "Wait for UI thread to be idle";
+            }
+
+            @Override
+            public void perform(UiController uiController, View view) {
+                uiController.loopMainThreadUntilIdle();
+            }
+        };
     }
 
     // Helper method to perform login.
@@ -112,17 +232,6 @@ public class MoodHistorySortingTest {
         waitForView(withId(R.id.moodListView), 10000);
     }
 
-    private void seedMood() throws Exception {
-        onView(withId(R.id.addMoodButton)).perform(click());
-        waitForView(withId(R.id.emoji1), 5000);
-        onView(withId(R.id.emoji1)).perform(click());
-        waitForView(withId(R.id.addReasonEdit), 5000);
-        onView(withId(R.id.addReasonEdit))
-                .perform(typeText("I feel happy"), ViewActions.closeSoftKeyboard());
-        onView(withId(R.id.submitButton)).perform(click());
-        waitForView(withId(R.id.moodListView), 10000);
-    }
-
     // Helper method to wait for a view to be displayed within a given timeout.
     private void waitForView(final Matcher<View> viewMatcher, long timeoutMillis) throws TimeoutException {
         long startTime = System.currentTimeMillis();
@@ -141,39 +250,27 @@ public class MoodHistorySortingTest {
         throw new TimeoutException("Timed out waiting for view: " + viewMatcher.toString());
     }
 
-    public void tearDown() {
-        // The moods we added have reasons "Mood1", "Mood2", "Mood3".
-        String[] moodReasons = {"Mood1", "Mood2", "Mood3"};
-        for (String reason : moodReasons) {
+    @After
+    public void tearDown() throws Exception {
+        while (true) {
             try {
-                // If the mood is displayed, delete it.
-                onView(withText(reason)).perform(longClick());
+                // Try long-clicking the first item in the mood list (position 0).
+                onData(anything())
+                        .inAdapterView(withId(R.id.moodListView))
+                        .atPosition(0)
+                        .perform(longClick());
+
+                // Wait for the "Delete Mood" option to appear and perform the delete action.
                 waitForView(withText("Delete Mood"), 5000);
                 onView(withId(R.id.deleteMoodOption)).perform(click());
-                Thread.sleep(2000); // Allow deletion to process.
+
+                // Pause briefly to allow deletion to complete.
+                Thread.sleep(2000);
             } catch (Exception e) {
-                // Ignore if not found.
+                // If no more moods exist (adapter is empty), exit the loop.
+                break;
             }
         }
-    }
-
-    private ViewAssertion isBelowOf(final Matcher<View> upperViewMatcher) {
-        return (lowerView, noViewException) -> {
-            if (noViewException != null) throw noViewException;
-
-            final int[] upperLocation = new int[2];
-            final int[] lowerLocation = new int[2];
-
-            View upperView = getViewFromMatcher(upperViewMatcher);
-            if (upperView == null) throw new AssertionError("Upper view not found.");
-
-            upperView.getLocationOnScreen(upperLocation);
-            lowerView.getLocationOnScreen(lowerLocation);
-
-            if (lowerLocation[1] <= upperLocation[1]) {
-                throw new AssertionError("Expected lower view to be below upper view, but it wasn't.");
-            }
-        };
     }
 
     private View getViewFromMatcher(final Matcher<View> matcher) {
