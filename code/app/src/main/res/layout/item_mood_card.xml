@@ -41,40 +41,39 @@
                 android:scaleType="fitCenter"
                 android:contentDescription="Emoji" />
 
-            <!-- Emoji Description and Location Icon in a horizontal layout -->
-            <LinearLayout
+            <!-- Container for emoji description and location icon -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
                 android:layout_marginTop="16dp">
 
-                <!-- Emoji Description -->
+                <!-- Emoji Description - centered -->
                 <TextView
                     android:id="@+id/emojiDescription"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
+                    android:layout_centerHorizontal="true"
                     android:textColor="@color/white"
                     android:textSize="32sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed"/>
 
-            </LinearLayout>
-
-            <!-- Location Icon -->
-            <ImageButton
-                android:id="@+id/locationButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@null"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_location"
-                android:visibility="gone" />
+                <!-- Location Icon - aligned to right of description -->
+                <ImageButton
+                    android:id="@+id/locationButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_toEndOf="@id/emojiDescription"
+                    android:layout_marginStart="8dp"
+                    android:layout_centerVertical="true"
+                    android:background="@null"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_location"
+                    android:visibility="gone" />
+            </RelativeLayout>
 
             <!-- Time TextView -->
             <TextView
