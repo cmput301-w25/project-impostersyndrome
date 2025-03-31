@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Manages mood data operations with Firestore and handles offline storage.
  *
- * @author [Your Name]
+ * @author Rayan
  * @author Roshan
  */
 public class MoodDataManager {
