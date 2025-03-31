@@ -31,7 +31,7 @@ import java.util.List;
  *
  */
 public class FollowingAdapter extends ArrayAdapter<UserData> {
-    private FirebaseFirestore db;
+    public FirebaseFirestore db;
     private String currentUserId;
     private List<UserData> followingUsers;
     private TextView emptyMessage;
@@ -80,13 +80,43 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
         return convertView;
     }
 
+
     /**
      * Navigates to the user profile activity for a given username.
      *
      * @param username The username of the user whose profile to display
      */
-    private void navigateToUserProfile(String username) {
-        // Implementation details omitted for brevity
+    public void navigateToUserProfile(String username) {
+        Log.d(TAG, "Attempting to navigate to profile for: " + username);
+
+        db.collection("users")
+                .whereEqualTo("username", username)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        String userId = querySnapshot.getDocuments().get(0).getId();
+                        Log.d(TAG, "Found user ID: " + userId + " for username: " + username);
+
+                        try {
+                            Intent intent = new Intent(getContext(), UserProfileActivity.class);
+                            intent.putExtra("userId", userId);
+                            intent.putExtra("username", username);
+                            Log.d(TAG, "Starting UserProfileActivity with userId: " + userId);
+                            getContext().startActivity(intent);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error starting UserProfileActivity", e);
+                            showMessage("Error opening profile: " + e.getMessage());
+                        }
+                    } else {
+                        Log.d(TAG, "User not found with username: " + username);
+                        showMessage("User not found");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error finding user: " + e.getMessage());
+                    showMessage("Error finding user");
+                });
+
     }
 
     /**

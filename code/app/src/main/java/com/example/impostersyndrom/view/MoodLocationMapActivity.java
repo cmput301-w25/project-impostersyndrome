@@ -32,6 +32,7 @@ import java.util.List;
 public class MoodLocationMapActivity extends AppCompatActivity {
 
     private static final String TAG = "MoodLocationMapActivity";
+    private ImageButton backButton;
     private MapView mapView;
     private Double latitude;
     private Double longitude;
@@ -55,10 +56,10 @@ public class MoodLocationMapActivity extends AppCompatActivity {
 
         // Initialize views
         mapView = findViewById(R.id.mapView);
-
+        backButton = findViewById(R.id.backButton);
         // Set up the map
         setupMap();
-
+        backButton.setOnClickListener(v -> finish());
         // Add the mood marker
         if (latitude != 0.0 && longitude != 0.0 && emoji != null) {
             addMoodMarker();

@@ -29,13 +29,20 @@ import java.util.Set;
  */
 public class MoodDataManager {
     private final CollectionReference moodsRef;
+    private final FirebaseWrapper firebaseWrapper;
 
     /**
      * Constructs a new MoodDataManager with a Firestore moods collection reference.
      */
     public MoodDataManager() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        moodsRef = db.collection("moods");
+        this.firebaseWrapper = new FirebaseWrapper();
+        moodsRef = firebaseWrapper.collection("moods");
+    }
+
+    // Constructor for testing
+    public MoodDataManager(FirebaseWrapper firebaseWrapper) {
+        this.firebaseWrapper = firebaseWrapper;
+        moodsRef = firebaseWrapper.collection("moods");
     }
 
     /**
