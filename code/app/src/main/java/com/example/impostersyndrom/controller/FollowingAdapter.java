@@ -144,7 +144,7 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
         return convertView;
     }
 
-    private void navigateToUserProfile(String username) {
+    public void navigateToUserProfile(String username) {
         Log.d(TAG, "Attempting to navigate to profile for: " + username);
 
         db.collection("users")

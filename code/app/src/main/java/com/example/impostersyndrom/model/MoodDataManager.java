@@ -16,10 +16,17 @@ import java.util.Map;
 
 public class MoodDataManager {
     private final CollectionReference moodsRef;
+    private final FirebaseWrapper firebaseWrapper;
 
     public MoodDataManager() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        moodsRef = db.collection("moods");
+        this.firebaseWrapper = new FirebaseWrapper();
+        moodsRef = firebaseWrapper.collection("moods");
+    }
+
+    // Constructor for testing
+    public MoodDataManager(FirebaseWrapper firebaseWrapper) {
+        this.firebaseWrapper = firebaseWrapper;
+        moodsRef = firebaseWrapper.collection("moods");
     }
 
     /**

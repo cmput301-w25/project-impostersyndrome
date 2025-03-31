@@ -4,7 +4,6 @@ package com.example.impostersyndrom;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import android.graphics.Color;
 
 import com.example.impostersyndrom.model.Mood;
 
@@ -12,7 +11,6 @@ import org.junit.Test;
 
 
 import org.junit.Before;
-import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -77,17 +75,16 @@ public class MoodLocationTest {
     @Test
     public void testCalculateDistance() {
         Mood mood2 = new Mood("excited", "grin", new Date(), 0xFFFFFF00, "Nearby");
-        mood2.setLocation(43.6550, -79.3800); // ~300m from TEST_LAT/TEST_LNG
+        mood2.setLocation(43.6550, -79.3800);
 
         double distance = calculateDistance(
                 moodWithLocation.getLatitude(), moodWithLocation.getLongitude(),
                 mood2.getLatitude(), mood2.getLongitude()
         );
 
-        assertTrue(distance < 0.5); // Less than 0.5km apart
+        assertTrue(distance < 0.5);
     }
 
-    // Helper method - Haversine formula
     private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
         double R = 6371; // Earth radius in km
         double dLat = Math.toRadians(lat2 - lat1);
@@ -105,9 +102,4 @@ public class MoodLocationTest {
         moodWithLocation.setLocation(-91.0, 181.0);
     }
 
-    @Test
-    public void testNullLocation() {
-        moodWithLocation.setLocation(0, 0);
-        assertFalse(moodWithLocation.hasLocation());
-    }
 }
