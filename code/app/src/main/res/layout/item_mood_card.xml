@@ -41,17 +41,39 @@
                 android:scaleType="fitCenter"
                 />
 
-            <!-- Emoji Description -->
-            <TextView
-                android:id="@+id/emojiDescription"
-                android:layout_width="wrap_content"
+            <!-- Container for emoji description and location icon -->
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:textColor="@color/white"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
+                android:layout_marginTop="16dp">
+
+                <!-- Emoji Description - centered -->
+                <TextView
+                    android:id="@+id/emojiDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/white"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"/>
+
+                <!-- Location Icon - aligned to right of description -->
+                <ImageButton
+                    android:id="@+id/locationButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_toEndOf="@id/emojiDescription"
+                    android:layout_marginStart="8dp"
+                    android:layout_centerVertical="true"
+                    android:background="@null"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_location"
+                    android:visibility="gone" />
+            </RelativeLayout>
 
             <!-- Time TextView -->
             <TextView
@@ -63,39 +85,17 @@
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-condensed"/>
 
-            <!-- Reason and Location Icon in a horizontal layout -->
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <!-- Reason TextView -->
+            <TextView
+                android:id="@+id/reasonView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
-                android:layout_marginTop="4dp">
-
-                <!-- Reason TextView -->
-                <TextView
-                    android:id="@+id/reasonView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textColor="@color/black"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"/>
-
-                <!-- Location Icon -->
-                <ImageButton
-                    android:id="@+id/locationButton"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="5dp"
-                    android:background="@null"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_location"
-                    android:visibility="gone" />
-            </LinearLayout>
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"/>
 
             <!-- Group/Context TextView -->
             <TextView

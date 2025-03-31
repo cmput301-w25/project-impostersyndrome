@@ -51,7 +51,6 @@ public class UserProfileActivity extends AppCompatActivity {
         setContentView(R.layout.user_profile_activity);
 
         db = FirebaseFirestore.getInstance();
-        // Get the userId and username from the intent
         userId = getIntent().getStringExtra("userId");
         username = getIntent().getStringExtra("username");
 
@@ -61,14 +60,12 @@ public class UserProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Initialize views and check for null
         if (!initializeViews()) {
-            return; // Stop execution if views failed to initialize
+            return;
         }
 
         profileDataManager = new ProfileDataManager();
 
-        // If we have a userId, fetch directly; otherwise, find userId by username
         if (userId != null) {
             fetchUserData(userId);
             fetchRecentMoods(userId);
@@ -91,7 +88,6 @@ public class UserProfileActivity extends AppCompatActivity {
         moodListView = findViewById(R.id.moodListView);
         scrollView = findViewById(R.id.scrollView);
 
-        // Null checks
         if (usernameText == null || followersCountText == null || followingCountText == null ||
                 bioText == null || noMoodsText == null || backButton == null || profileImage == null ||
                 swipeRefreshLayout == null || moodListView == null) {
@@ -120,27 +116,21 @@ public class UserProfileActivity extends AppCompatActivity {
     private void setupListViewScrollListener() {
         moodListView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                // Not needed for this use case
-            }
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                // Check if the ListView is at the top
                 boolean isAtTop = firstVisibleItem == 0 && (view.getChildCount() == 0 || view.getChildAt(0).getTop() >= 0);
-                // Enable SwipeRefreshLayout only when the ListView is at the top
                 swipeRefreshLayout.setEnabled(isAtTop);
-                Log.d(TAG, "ListView scroll - isAtTop: " + isAtTop + ", SwipeRefreshLayout enabled: " + swipeRefreshLayout.isEnabled());
+                Log.d(TAG, "ListView scroll - isAtTop: " + isAtTop);
             }
         });
 
-        // Also monitor the ScrollView to ensure SwipeRefreshLayout is enabled when scrolling the outer layout
         if (scrollView != null) {
             scrollView.setOnScrollChangeListener((View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) -> {
-                // Enable SwipeRefreshLayout when the ScrollView is at the top
                 boolean isScrollViewAtTop = scrollY == 0;
                 swipeRefreshLayout.setEnabled(isScrollViewAtTop);
-                Log.d(TAG, "ScrollView scrollY: " + scrollY + ", SwipeRefreshLayout enabled: " + swipeRefreshLayout.isEnabled());
+                Log.d(TAG, "ScrollView scrollY: " + scrollY);
             });
         }
     }
@@ -172,7 +162,6 @@ public class UserProfileActivity extends AppCompatActivity {
     private void fetchUserData(String userId) {
         swipeRefreshLayout.setRefreshing(true);
 
-        // Fetch profile information
         profileDataManager.fetchUserProfile(userId, new ProfileDataManager.OnProfileFetchedListener() {
             @Override
             public void onProfileFetched(DocumentSnapshot profileDoc) {
@@ -185,7 +174,6 @@ public class UserProfileActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch followers count
         profileDataManager.fetchFollowersCount(userId, new ProfileDataManager.OnCountFetchedListener() {
             @Override
             public void onCountFetched(int count) {
@@ -199,7 +187,6 @@ public class UserProfileActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch following count
         profileDataManager.fetchFollowingCount(userId, new ProfileDataManager.OnCountFetchedListener() {
             @Override
             public void onCountFetched(int count) {
@@ -215,7 +202,6 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void fetchRecentMoods(String userId) {
-        // Fetch all moods for the user
         db.collection("moods")
                 .whereEqualTo("userId", userId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -224,20 +210,16 @@ public class UserProfileActivity extends AppCompatActivity {
                     List<DocumentSnapshot> allMoods = queryDocumentSnapshots.getDocuments();
                     Log.d(TAG, "Fetched " + allMoods.size() + " total moods for userId: " + userId);
 
-                    // Filter for public (non-private) moods
                     List<DocumentSnapshot> publicMoods = new ArrayList<>();
                     for (DocumentSnapshot doc : allMoods) {
                         Boolean privateMood = doc.getBoolean("privateMood");
-                        // Treat null or false as public
                         if (privateMood == null || !privateMood) {
                             publicMoods.add(doc);
+                            Log.d(TAG, "Mood ID: " + doc.getId() + ", Timestamp: " + doc.getTimestamp("timestamp"));
                         }
                     }
 
-                    // Log the number of public moods found
                     Log.d(TAG, "Filtered to " + publicMoods.size() + " public moods");
-
-                    // If there are more than 3 public moods, take the top 3 (already sorted by timestamp)
                     if (publicMoods.size() > 3) {
                         publicMoods = publicMoods.subList(0, 3);
                         Log.d(TAG, "Limited to the 3 most recent public moods");
@@ -257,6 +239,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void setupMoodAdapter(List<DocumentSnapshot> moodDocs) {
         List<MoodItem> moodItems = new ArrayList<>(Collections.nCopies(moodDocs.size(), null));
+        List<DocumentSnapshot> filteredMoodDocs = new ArrayList<>(moodDocs);
         final int[] completedQueries = {0};
 
         if (moodDocs.isEmpty()) {
@@ -279,6 +262,7 @@ public class UserProfileActivity extends AppCompatActivity {
             String moodUserId = moodDoc.getString("userId");
             if (moodUserId == null) {
                 completedQueries[0]++;
+                filteredMoodDocs.set(position, null);
                 continue;
             }
 
@@ -290,7 +274,13 @@ public class UserProfileActivity extends AppCompatActivity {
 
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocs.size()) {
-                            moodItems.removeIf(item -> item == null);
+                            for (int j = moodItems.size() - 1; j >= 0; j--) {
+                                if (moodItems.get(j) == null) {
+                                    moodItems.remove(j);
+                                    filteredMoodDocs.remove(j);
+                                }
+                            }
+
                             if (moodItems.isEmpty()) {
                                 moodListView.setAdapter(null);
                                 if (noMoodsText != null) {
@@ -300,12 +290,18 @@ public class UserProfileActivity extends AppCompatActivity {
                             } else {
                                 moodAdapter = new MoodAdapter(this, moodItems, true);
                                 moodListView.setAdapter(moodAdapter);
+                                this.moodDocs = filteredMoodDocs;
                                 Log.d(TAG, "Adapter set with " + moodItems.size() + " items");
-                                moodListView.invalidate(); // Force redraw
+                                moodListView.invalidate();
 
                                 moodListView.setOnItemClickListener((parent, view, pos, id) -> {
-                                    DocumentSnapshot selectedMood = moodDocs.get(pos);
-                                    navigateToMoodDetail(selectedMood);
+                                    if (pos >= 0 && pos < this.moodDocs.size()) {
+                                        DocumentSnapshot selectedMood = this.moodDocs.get(pos);
+                                        navigateToMoodDetail(selectedMood);
+                                    } else {
+                                        showMessage("Invalid mood selection");
+                                        Log.e(TAG, "Position " + pos + " out of bounds for moodDocs size " + this.moodDocs.size());
+                                    }
                                 });
                             }
                         }
@@ -314,11 +310,20 @@ public class UserProfileActivity extends AppCompatActivity {
                         Log.e(TAG, "Error fetching user details: " + e.getMessage());
                         showMessage("Error fetching user details: " + e.getMessage());
                         completedQueries[0]++;
+                        filteredMoodDocs.set(position, null);
                         if (completedQueries[0] == moodDocs.size()) {
-                            moodItems.removeIf(item -> item == null);
-                            moodListView.setAdapter(null);
-                            if (noMoodsText != null) {
-                                noMoodsText.setVisibility(View.VISIBLE);
+                            for (int j = moodItems.size() - 1; j >= 0; j--) {
+                                if (moodItems.get(j) == null) {
+                                    moodItems.remove(j);
+                                    filteredMoodDocs.remove(j);
+                                }
+                            }
+                            this.moodDocs = filteredMoodDocs;
+                            if (moodItems.isEmpty()) {
+                                moodListView.setAdapter(null);
+                                if (noMoodsText != null) {
+                                    noMoodsText.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
                     });
@@ -332,14 +337,20 @@ public class UserProfileActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent(this, MoodDetailActivity.class);
+        intent.putExtra("moodId", moodDoc.getId());
         intent.putExtra("emoji", moodDoc.getString("emotionalState"));
-        intent.putExtra("timestamp", moodDoc.getTimestamp("timestamp"));
+        // Always include timestamp, default to current time if missing
+        long timestampMillis = moodDoc.getTimestamp("timestamp") != null
+                ? moodDoc.getTimestamp("timestamp").toDate().getTime()
+                : System.currentTimeMillis();
+        intent.putExtra("timestamp", timestampMillis);
+        Log.d(TAG, "Navigating to MoodDetail - Mood ID: " + moodDoc.getId() + ", Timestamp: " + timestampMillis);
         intent.putExtra("reason", moodDoc.getString("reason"));
         intent.putExtra("group", moodDoc.getString("group"));
         intent.putExtra("color", moodDoc.getLong("color") != null ? moodDoc.getLong("color").intValue() : 0);
         intent.putExtra("imageUrl", moodDoc.getString("imageUrl"));
         intent.putExtra("emojiDescription", moodDoc.getString("emojiDescription"));
-        intent.putExtra("isMyMoods", false); // Since this is a user profile, not "My Moods"
+        intent.putExtra("isMyMoods", false);
         startActivity(intent);
     }
 
@@ -368,17 +379,10 @@ public class UserProfileActivity extends AppCompatActivity {
         swipeRefreshLayout.setRefreshing(false);
     }
 
-    /**
-     * Displays a Snackbar message and stops the refresh animation.
-     *
-     * @param message The message to display.
-     */
     private void showMessage(String message) {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null && !isFinishing()) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
-                    .setAction("OK", null)
-                    .show();
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).setAction("OK", null).show();
             swipeRefreshLayout.setRefreshing(false);
         }
     }

@@ -1,140 +1,486 @@
 package com.example.impostersyndrom.view;
 
-import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.Toast;
-import android.app.AlertDialog;
-import android.widget.CheckBox;
-import android.widget.Spinner;
-import android.widget.EditText;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.Mood;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.Query;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.compass.CompassOverlay;
-import org.osmdroid.views.overlay.gestures.RotationGestureOverlay;
+import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
-import org.osmdroid.util.BoundingBox;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.concurrent.atomic.AtomicInteger;
-import android.util.Log;
+import java.util.Collections;
+import java.util.List;
 
 public class MapActivity extends AppCompatActivity {
+    private static final String TAG = "MapActivity";
+    private static final double MAX_DISTANCE_KM = 5.0;
+
     private MapView mapView;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-    private static final int PERMISSION_REQUEST_CODE = 1;
     private MyLocationNewOverlay myLocationOverlay;
-    private RotationGestureOverlay rotationGestureOverlay;
     private ImageButton filterButton;
+    private BottomNavigationView bottomNavigationView;
+    private boolean showingMyMoods = true;
     private boolean filterLastWeek = false;
     private String selectedMoodFilter = "All";
     private String keywordFilter = "";
     private boolean filterFollowing = false;
-    private static final String TAG = "MapActivity";
+    private boolean filterLocalMoods = false;
+    private Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize OSMDroid configuration
         Context ctx = getApplicationContext();
-        Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
+        Configuration.getInstance().load(ctx, getSharedPreferences("osmdroid", MODE_PRIVATE));
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
         setContentView(R.layout.activity_mood_location_map);
 
-        // Initialize Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // Initialize and configure map
+        mapView = findViewById(R.id.mapView);
+        filterButton = findViewById(R.id.filterButton);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+
         initializeMap();
 
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_my_moods) {
+                showMyMoods();
+                return true;
+            } else if (itemId == R.id.nav_following_moods) {
+                showFollowingMoods();
+                return true;
+            } else if (itemId == R.id.nav_local_moods) {
+                showLocalMoods();
+                return true;
+            }
+            return false;
+        });
 
-        loadMoods();
-        filterButton = findViewById(R.id.filterButton);
         filterButton.setOnClickListener(v -> showFilterDialog());
+
+        bottomNavigationView.setSelectedItemId(R.id.nav_my_moods);
+        bottomNavigationView.setItemIconTintList(null);
+        bottomNavigationView.setItemTextColor(null);
+        showMyMoods();
     }
 
     private void initializeMap() {
-        mapView = findViewById(R.id.mapView);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
+        mapView.getController().setZoom(12.0);
+        mapView.getController().setCenter(new GeoPoint(53.5461, -113.4937));
 
-        // Set initial position to Edmonton, Alberta and zoom level
-        mapView.getController().setZoom(12.0); // City level zoom
-        mapView.getController().setCenter(new GeoPoint(53.5461, -113.4937)); // Edmonton coordinates
-
-        // Set bounds so it doesn't show multiple times (can't scroll infinitely)
-        BoundingBox boundingBox = new BoundingBox(85, 180, -85, -180); // max latitude, max longitude, min latitude, min longitude
-        mapView.setScrollableAreaLimitDouble(boundingBox);
-
-        // Disable wrap
-        mapView.setHorizontalMapRepetitionEnabled(false);
-        mapView.setVerticalMapRepetitionEnabled(false);
-
-        // Add location overlay
         myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(this), mapView);
         myLocationOverlay.enableMyLocation();
+        myLocationOverlay.runOnFirstFix(() -> runOnUiThread(() -> {
+            if (myLocationOverlay.getMyLocation() != null) {
+                currentLocation = new Location("");
+                currentLocation.setLatitude(myLocationOverlay.getMyLocation().getLatitude());
+                currentLocation.setLongitude(myLocationOverlay.getMyLocation().getLongitude());
+                mapView.getController().setCenter(myLocationOverlay.getMyLocation());
+                Log.d(TAG, "Location updated: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+            } else {
+                Log.w(TAG, "MyLocationNewOverlay returned null location");
+                currentLocation = getCurrentLocation();
+            }
+        }));
         mapView.getOverlays().add(myLocationOverlay);
 
-        // Add rotation gesture overlay
-        rotationGestureOverlay = new RotationGestureOverlay(mapView);
-        rotationGestureOverlay.setEnabled(true);
-        mapView.getOverlays().add(rotationGestureOverlay);
-
-        // Set min/max zoom levels
-        mapView.setMinZoomLevel(2.0);
-        mapView.setMaxZoomLevel(18.0);
+        if (currentLocation == null) {
+            currentLocation = getCurrentLocation();
+            Log.d(TAG, "Using default location: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+        }
     }
 
-    private void requestPermissions() {
-        String[] permissions = {
-            Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        };
+    private void showMyMoods() {
+        showingMyMoods = true;
+        filterFollowing = false;
+        filterLocalMoods = false;
+        refreshMapWithFilters();
+    }
 
-        List<String> permissionsToRequest = new ArrayList<>();
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(permission);
+    private void showFollowingMoods() {
+        showingMyMoods = false;
+        filterFollowing = true;
+        filterLocalMoods = false;
+        refreshMapWithFilters();
+    }
+
+    private void showLocalMoods() {
+        showingMyMoods = false;
+        filterFollowing = false;
+        filterLocalMoods = true;
+        refreshMapWithFilters();
+    }
+
+    private void loadMoods() {
+        if (auth.getCurrentUser() == null) {
+            Log.e(TAG, "User not authenticated");
+            Toast.makeText(this, "Please log in to view moods", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String currentUserId = auth.getCurrentUser().getUid();
+        Log.d(TAG, "Loading moods for user: " + currentUserId + ", filterFollowing: " + filterFollowing + ", filterLocalMoods: " + filterLocalMoods);
+
+        if (filterLocalMoods) {
+            loadLocalMoods();
+            return;
+        }
+
+        if (!filterFollowing) {
+            db.collection("moods")
+                    .whereEqualTo("userId", currentUserId)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            Toast.makeText(this, "No moods found for you", Toast.LENGTH_SHORT).show();
+                        }
+                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            Mood mood = document.toObject(Mood.class);
+                            if (shouldDisplayMood(mood)) {
+                                addMoodMarker(mood, true);
+                            }
+                        }
+                        mapView.invalidate();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error loading my moods: " + e.getMessage());
+                        Toast.makeText(this, "Error loading your moods", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            db.collection("following")
+                    .whereEqualTo("followerId", currentUserId)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        if (querySnapshot.isEmpty()) {
+                            Toast.makeText(this, "You are not following any users", Toast.LENGTH_SHORT).show();
+                            mapView.invalidate();
+                            return;
+                        }
+
+                        List<String> followingIds = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            String followingId = doc.getString("followingId");
+                            if (followingId != null) {
+                                followingIds.add(followingId);
+                            }
+                        }
+
+                        if (followingIds.isEmpty()) {
+                            Toast.makeText(this, "No followed users found", Toast.LENGTH_SHORT).show();
+                            mapView.invalidate();
+                            return;
+                        }
+
+                        int[] processedUsers = {0};
+                        for (String followedUserId : followingIds) {
+                            db.collection("moods")
+                                    .whereEqualTo("userId", followedUserId)
+                                    .get()
+                                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                                            Boolean privateMood = document.getBoolean("privateMood");
+                                            if (Boolean.TRUE.equals(privateMood)) continue;
+                                            Mood mood = document.toObject(Mood.class);
+                                            if (shouldDisplayMood(mood)) {
+                                                addMoodMarker(mood, false);
+                                            }
+                                        }
+                                        processedUsers[0]++;
+                                        if (processedUsers[0] == followingIds.size()) {
+                                            mapView.invalidate();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        processedUsers[0]++;
+                                        if (processedUsers[0] == followingIds.size()) {
+                                            mapView.invalidate();
+                                        }
+                                    });
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error loading followed users", Toast.LENGTH_SHORT).show();
+                        mapView.invalidate();
+                    });
+        }
+    }
+
+    private void loadLocalMoods() {
+        if (currentLocation == null) {
+            Toast.makeText(this, "Unable to determine current location", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Current location is null");
+            return;
+        }
+
+        if (auth.getCurrentUser() == null) {
+            Log.e(TAG, "User not authenticated in loadLocalMoods");
+            Toast.makeText(this, "Please log in to view local moods", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        GeoPoint center = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+        mapView.getController().setZoom(13.0);
+        mapView.getController().setCenter(center);
+        mapView.getOverlays().clear();
+        mapView.getOverlays().add(myLocationOverlay);
+        addRadiusOverlay(center, MAX_DISTANCE_KM);
+
+        db.collection("moods")
+                .whereNotEqualTo("latitude", null)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Local moods query successful. Found " + task.getResult().size() + " documents");
+                        if (task.getResult().isEmpty()) {
+                            Toast.makeText(this, "No local moods found", Toast.LENGTH_SHORT).show();
+                            mapView.invalidate();
+                            return;
+                        }
+
+                        int displayedMoods = 0;
+                        List<Mood> nearbyMoods = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Boolean privateMood = document.getBoolean("privateMood");
+                            if (Boolean.TRUE.equals(privateMood)) {
+                                Log.d(TAG, "Skipping private mood: " + document.getId());
+                                continue;
+                            }
+
+                            Double latitude = document.getDouble("latitude");
+                            Double longitude = document.getDouble("longitude");
+                            if (latitude == null || longitude == null) {
+                                Log.d(TAG, "Skipping mood with null coordinates: " + document.getId());
+                                continue;
+                            }
+
+                            Mood mood;
+                            try {
+                                mood = document.toObject(Mood.class);
+                                if (mood == null) {
+                                    Log.w(TAG, "Converted mood is null for document: " + document.getId());
+                                    continue;
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Failed to convert document to Mood: " + document.getId(), e);
+                                continue;
+                            }
+
+                            if (mood.getTimestamp() == null) {
+                                Log.w(TAG, "Mood has null timestamp: " + document.getId());
+                                continue;
+                            }
+
+                            if (mood.getUserId() == null) {
+                                Log.w(TAG, "Mood has null userId: " + document.getId());
+                                continue;
+                            }
+
+                            if (isWithinDistance(latitude, longitude) && shouldDisplayMood(mood)) {
+                                nearbyMoods.add(mood);
+                                displayedMoods++;
+                                Log.d(TAG, "Added mood within 5km: " + document.getId());
+                            }
+                        }
+
+                        Collections.sort(nearbyMoods, (m1, m2) -> {
+                            if (m1.getTimestamp() == null || m2.getTimestamp() == null) return 0;
+                            return m2.getTimestamp().compareTo(m1.getTimestamp());
+                        });
+
+                        for (Mood mood : nearbyMoods) {
+                            addMoodMarker(mood, mood.getUserId().equals(auth.getCurrentUser().getUid()));
+                        }
+
+                        Toast.makeText(this, "Displayed " + displayedMoods + " local moods within 5km", Toast.LENGTH_SHORT).show();
+                        mapView.invalidate();
+                    } else {
+                        Log.e(TAG, "Failed to load local moods", task.getException());
+                        Toast.makeText(this, "Error loading local moods: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"), Toast.LENGTH_LONG).show();
+                        mapView.invalidate();
+                    }
+                });
+    }
+
+    private boolean isWithinDistance(Double latitude, Double longitude) {
+        if (currentLocation == null || latitude == null || longitude == null) {
+            Log.d(TAG, "Cannot calculate distance: currentLocation or coordinates are null");
+            return false;
+        }
+
+        Location eventLoc = new Location("");
+        eventLoc.setLatitude(latitude);
+        eventLoc.setLongitude(longitude);
+
+        float distance;
+        try {
+            distance = currentLocation.distanceTo(eventLoc) / 1000; // Convert to km
+        } catch (Exception e) {
+            Log.e(TAG, "Error calculating distance: " + e.getMessage(), e);
+            return false;
+        }
+        Log.d(TAG, "Distance to mood: " + distance + " km");
+        return distance <= MAX_DISTANCE_KM;
+    }
+
+    private void addRadiusOverlay(GeoPoint center, double radiusKm) {
+        if (center == null) {
+            Log.e(TAG, "Cannot add radius overlay: center is null");
+            return;
+        }
+        Polygon circle = new Polygon();
+        List<GeoPoint> circlePoints = new ArrayList<>();
+
+        double earthRadius = 6371;
+        double angularDistance = radiusKm / earthRadius;
+        double centerLatRad = Math.toRadians(center.getLatitude());
+        double centerLonRad = Math.toRadians(center.getLongitude());
+
+        for (int i = 0; i <= 100; i++) {
+            double bearing = Math.toRadians(i * 3.6);
+            double lat = Math.asin(Math.sin(centerLatRad) * Math.cos(angularDistance) +
+                    Math.cos(centerLatRad) * Math.sin(angularDistance) * Math.cos(bearing));
+            double lon = centerLonRad + Math.atan2(
+                    Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(centerLatRad),
+                    Math.cos(angularDistance) - Math.sin(centerLatRad) * Math.sin(lat));
+            circlePoints.add(new GeoPoint(Math.toDegrees(lat), Math.toDegrees(lon)));
+        }
+
+        circle.setPoints(circlePoints);
+        circle.setFillColor(Color.argb(70, 0, 0, 255));
+        circle.setStrokeColor(Color.argb(100, 0, 0, 255));
+        circle.setStrokeWidth(2);
+        mapView.getOverlays().add(circle);
+    }
+
+    private boolean shouldDisplayMood(Mood mood) {
+        if (mood == null || mood.getLatitude() == null || mood.getLongitude() == null) {
+            Log.w(TAG, "Mood is null or has invalid location data");
+            return false;
+        }
+
+        if (filterLastWeek) {
+            Calendar lastWeek = Calendar.getInstance();
+            lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
+            if (mood.getTimestamp() == null || mood.getTimestamp().before(lastWeek.getTime())) {
+                return false;
             }
         }
 
-        if (!permissionsToRequest.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        if (!selectedMoodFilter.equals("All")) {
+            if (mood.getEmotionalState() == null || !mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
+                return false;
+            }
         }
+
+        if (!keywordFilter.isEmpty()) {
+            String lowerKeyword = keywordFilter.toLowerCase();
+            String lowerReason = mood.getReason() != null ? mood.getReason().toLowerCase() : "";
+            String lowerEmotionalState = mood.getEmotionalState() != null ? mood.getEmotionalState().toLowerCase() : "";
+            return lowerReason.contains(lowerKeyword) || lowerEmotionalState.contains(lowerKeyword);
+        }
+
+        return true;
+    }
+
+    private void addMoodMarker(Mood mood, boolean isOwnMood) {
+        if (mood == null || mood.getLatitude() == null || mood.getLongitude() == null) {
+            Log.w(TAG, "Cannot add marker for null mood or invalid location");
+            return;
+        }
+
+        Marker marker = new Marker(mapView);
+        marker.setPosition(new GeoPoint(mood.getLatitude(), mood.getLongitude()));
+        marker.setRelatedObject(mood);
+
+        try {
+            if (mood.getEmojiDrawableId() != 0) {
+                Drawable originalDrawable = getResources().getDrawable(mood.getEmojiDrawableId());
+                Bitmap bitmap = convertDrawableToBitmap(originalDrawable);
+                if (bitmap != null) {
+                    Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 20, 20, true);
+                    marker.setIcon(new BitmapDrawable(getResources(), resizedBitmap));
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting marker icon: " + e.getMessage());
+        }
+
+        marker.setTitle(mood.getEmotionalState() != null ? mood.getEmotionalState() + " - " : " - " +
+                (mood.getReason() != null ? mood.getReason() : ""));
+        marker.setSnippet(isOwnMood ? "Your mood" : "Mood by " + (mood.getUserId() != null ? mood.getUserId() : "Unknown"));
+
+        marker.setOnMarkerClickListener((marker1, mapView) -> {
+            Mood clickedMood = (Mood) marker1.getRelatedObject();
+            if (clickedMood != null) {
+                openMoodDetail(clickedMood);
+            }
+            return true;
+        });
+
+        mapView.getOverlays().add(marker);
+    }
+
+    private Bitmap convertDrawableToBitmap(Drawable drawable) {
+        if (drawable == null) return null;
+
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
+
+        int width = drawable.getIntrinsicWidth();
+        int height = drawable.getIntrinsicHeight();
+        if (width <= 0 || height <= 0) {
+            width = 20;
+            height = 20;
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
     private void showFilterDialog() {
@@ -142,43 +488,29 @@ public class MapActivity extends AppCompatActivity {
         View filterView = getLayoutInflater().inflate(R.layout.dialog_map_filter, null);
         builder.setView(filterView);
 
-        // Initialize filter controls
         CheckBox lastWeekCheckbox = filterView.findViewById(R.id.lastWeekCheckbox);
-        CheckBox followingCheckbox = filterView.findViewById(R.id.followingMoods);
         Spinner moodSpinner = filterView.findViewById(R.id.moodSpinner);
         EditText keywordSearch = filterView.findViewById(R.id.keywordSearch);
 
-        // Set up mood spinner
         ArrayList<String> moodOptions = new ArrayList<>();
         moodOptions.add("All");
-        moodOptions.addAll(Arrays.asList("emoji_happy", "emoji_sad", "emoji_angry", "emoji_fear", 
-            "emoji_confused", "emoji_shame", "emoji_surprised", "emoji_disgust"));
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, moodOptions);
+        moodOptions.addAll(Arrays.asList("Happy", "Sad", "Angry", "Fear",
+                "Confused", "Shame", "Surprised", "Disgust"));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, moodOptions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         moodSpinner.setAdapter(adapter);
 
-        // Set current filter values
         lastWeekCheckbox.setChecked(filterLastWeek);
-        followingCheckbox.setChecked(filterFollowing);
-        
-        // Find the correct index for the selected mood filter
         int selectedIndex = moodOptions.indexOf(selectedMoodFilter);
-        if (selectedIndex == -1) {
-            selectedIndex = 0; // Default to "All" if not found
-        }
+        if (selectedIndex == -1) selectedIndex = 0;
         moodSpinner.setSelection(selectedIndex);
-        
         keywordSearch.setText(keywordFilter);
 
         builder.setPositiveButton("Apply", (dialog, which) -> {
-            // Save filter values
             filterLastWeek = lastWeekCheckbox.isChecked();
-            filterFollowing = followingCheckbox.isChecked();
             selectedMoodFilter = moodSpinner.getSelectedItem().toString();
             keywordFilter = keywordSearch.getText().toString().trim();
-
-            // Refresh map with new filters
             refreshMapWithFilters();
         });
 
@@ -187,312 +519,19 @@ public class MapActivity extends AppCompatActivity {
         builder.setNeutralButton("Clear Filters", (dialog, which) -> {
             filterLastWeek = false;
             filterFollowing = false;
+            filterLocalMoods = false;
             selectedMoodFilter = "All";
             keywordFilter = "";
-            refreshMapWithFilters();
+            showMyMoods();
         });
 
         builder.show();
     }
 
     private void refreshMapWithFilters() {
-        // Clear existing markers
         mapView.getOverlays().clear();
-        
-        // Re-add non-marker overlays
         mapView.getOverlays().add(myLocationOverlay);
-        mapView.getOverlays().add(rotationGestureOverlay);
-        
-        // Reload moods
         loadMoods();
-    }
-
-    private boolean shouldDisplayMood(Mood mood) {
-        Log.d(TAG, "Checking if mood should be displayed: " + mood.getEmotionalState());
-        
-        if (mood.getLatitude() == null || mood.getLongitude() == null) {
-            Log.d(TAG, "Mood filtered out: Invalid location data");
-            return false;
-        }
-
-        // Filter by last week
-        if (filterLastWeek) {
-            Calendar lastWeek = Calendar.getInstance();
-            lastWeek.add(Calendar.WEEK_OF_YEAR, -1);
-            if (mood.getTimestamp().before(lastWeek.getTime())) {
-                Log.d(TAG, "Mood filtered out: Older than last week");
-                return false;
-            }
-        }
-
-        // Filter by mood (case-insensitive comparison)
-        if (!selectedMoodFilter.equals("All")) {
-            Log.d(TAG, "Checking mood filter: Selected=" + selectedMoodFilter + 
-                ", Mood=" + mood.getEmotionalState().toLowerCase());
-            if (!mood.getEmotionalState().toLowerCase().equals(selectedMoodFilter.toLowerCase())) {
-                Log.d(TAG, "Mood filtered out: Doesn't match selected mood filter");
-                return false;
-            }
-        }
-
-        // Filter by keyword
-        if (!keywordFilter.isEmpty()) {
-            String lowerKeyword = keywordFilter.toLowerCase();
-            String lowerReason = mood.getReason().toLowerCase();
-            String lowerEmotionalState = mood.getEmotionalState().toLowerCase();
-            
-            Log.d(TAG, "Checking keyword filter: Keyword=" + lowerKeyword + 
-                ", Reason=" + lowerReason + ", EmotionalState=" + lowerEmotionalState);
-            
-            boolean matchesKeyword = lowerReason.contains(lowerKeyword) || 
-                                   lowerEmotionalState.contains(lowerKeyword);
-            
-            if (!matchesKeyword) {
-                Log.d(TAG, "Mood filtered out: Doesn't match keyword filter");
-                return false;
-            }
-        }
-
-        Log.d(TAG, "Mood passed all filters and will be displayed");
-        return true;
-    }
-
-    private void loadMoods() {
-        String currentUserId = auth.getCurrentUser().getUid();
-
-        // Only load user's own moods if not filtering by following
-        if (!filterFollowing) {
-            // Load user's own moods
-            db.collection("moods")
-                .whereEqualTo("userId", currentUserId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Mood mood = document.toObject(Mood.class);
-                        if (shouldDisplayMood(mood)) {
-                            addMoodMarker(mood, true);
-                        }
-                    }
-
-                    // Load all public moods from other users
-                    db.collection("moods")
-                        .whereNotEqualTo("userId", currentUserId)
-                        .whereEqualTo("isPublic", true)
-                        .get()
-                        .addOnSuccessListener(otherMoods -> {
-                            for (QueryDocumentSnapshot document : otherMoods) {
-                                Mood mood = document.toObject(Mood.class);
-                                if (shouldDisplayMood(mood)) {
-                                    addMoodMarker(mood, false);
-                                }
-                            }
-                        });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading moods: " + e.getMessage());
-                });
-        } else {
-            // If filtering by following, only load moods from followed users
-            Log.d(TAG, "Starting following filter with current user ID: " + currentUserId);
-            
-            // Query the following collection with the correct structure
-            db.collection("following")
-                .whereEqualTo("followerId", currentUserId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    Log.d(TAG, "Following collection query completed. Found " + querySnapshot.size() + " documents");
-                    
-                    // Log all documents to see their structure
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-                        Log.d(TAG, "Following document ID: " + doc.getId());
-                        Log.d(TAG, "Following document data: " + doc.getData().toString());
-                    }
-                    
-                    if (querySnapshot.isEmpty()) {
-                        Log.d(TAG, "No following documents found for user: " + currentUserId);
-                        Toast.makeText(this, "You are not following any users", 
-                            Toast.LENGTH_SHORT).show();
-                    }
-                    
-                    List<String> followingIds = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-                        String followingId = doc.getString("followingId");
-                        if (followingId != null) {
-                            followingIds.add(followingId);
-                            Log.d(TAG, "Added following ID: " + followingId);
-                        } else {
-                            Log.d(TAG, "Document " + doc.getId() + " has no followingId field");
-                        }
-                    }
-
-                    Log.d(TAG, "Total following IDs found: " + followingIds.size());
-
-                    // Load moods for each followed user
-                    for (String followedUserId : followingIds) {
-                        Log.d(TAG, "Loading moods for followed user: " + followedUserId);
-                        loadUserMoods(followedUserId);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error querying following collection: " + e.getMessage());
-                });
-        }
-    }
-
-    private void loadUserMoods(String userId) {
-        Log.d(TAG, "Querying moods for user: " + userId);
-        
-        // Log the query details
-        Log.d(TAG, "Mood query parameters: userId=" + userId);
-        
-        // Query all moods for the user first
-        db.collection("moods")
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " moods for user " + userId);
-                
-                if (queryDocumentSnapshots.isEmpty()) {
-                    Log.d(TAG, "No moods found for user: " + userId);
-                    return;
-                }
-
-                // Log all document data
-                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    String moodInfo = "Mood Details:\n" +
-                        "ID: " + document.getId() + "\n" +
-                        "User ID: " + document.getString("userId") + "\n" +
-                        "Emotional State: " + document.getString("emotionalState") + "\n" +
-                        "Reason: " + document.getString("reason") + "\n" +
-                        "Latitude: " + document.getDouble("latitude") + "\n" +
-                        "Longitude: " + document.getDouble("longitude") + "\n" +
-                        "Timestamp: " + document.getTimestamp("timestamp") + "\n" +
-                        "Is Public: " + document.getBoolean("isPublic") + "\n" +
-                        "Private Mood: " + document.getBoolean("privateMood") + "\n" +
-                        "Group: " + document.getString("group") + "\n" +
-                        "Raw Data: " + document.getData().toString();
-                    
-                    Log.d(TAG, moodInfo);
-                }
-
-                AtomicInteger validMoods = new AtomicInteger(0);
-                AtomicInteger processedMoods = new AtomicInteger(0);
-                
-                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                    // Check if the mood is public (either isPublic is true or privateMood is false)
-                    Boolean isPublic = document.getBoolean("isPublic");
-                    Boolean privateMood = document.getBoolean("privateMood");
-                    
-                    // Skip if the mood is explicitly private
-                    if (Boolean.TRUE.equals(privateMood)) {
-                        Log.d(TAG, "Skipping private mood: " + document.getId());
-                        continue;
-                    }
-                    
-                    Mood mood = document.toObject(Mood.class);
-                    processedMoods.incrementAndGet();
-                    
-                    Log.d(TAG, "Processing mood " + processedMoods.get() + "/" + 
-                        queryDocumentSnapshots.size() + ": " + mood.getEmotionalState() + 
-                        " at " + mood.getLatitude() + ", " + mood.getLongitude());
-                    
-                    if (shouldDisplayMood(mood)) {
-                        // Run on UI thread to ensure marker is added properly
-                        runOnUiThread(() -> {
-                            addMoodMarker(mood, false);
-                            validMoods.incrementAndGet();
-                            Log.d(TAG, "Added marker for mood: " + mood.getEmotionalState() + 
-                                " at " + mood.getLatitude() + ", " + mood.getLongitude());
-                            
-                            // Check if we've processed all moods
-                            if (processedMoods.get() == queryDocumentSnapshots.size()) {
-                                String finalMessage = "Finished processing all moods for user " + userId + 
-                                    ". Added " + validMoods.get() + " markers.";
-                                Log.d(TAG, finalMessage);
-                            }
-                        });
-                    } else {
-                        Log.d(TAG, "Mood filtered out: " + mood.getEmotionalState());
-                    }
-                }
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error loading moods for user " + userId + ": " + e.getMessage());
-            });
-    }
-
-    private void addMoodMarker(Mood mood, boolean isOwnMood) {
-        try {
-            Log.d(TAG, "Starting to add marker for mood: " + mood.getEmotionalState() + 
-                " at " + mood.getLatitude() + ", " + mood.getLongitude());
-            
-            // Create marker
-            Marker marker = new Marker(mapView);
-            
-            // Set position with null check
-            if (mood.getLatitude() != null && mood.getLongitude() != null) {
-                GeoPoint position = new GeoPoint(mood.getLatitude(), mood.getLongitude());
-                marker.setPosition(position);
-                Log.d(TAG, "Marker position set to: " + position);
-            } else {
-                String errorMessage = "Invalid location data for mood: " + mood.getEmotionalState();
-                Log.e(TAG, errorMessage);
-                return;
-            }
-
-            // Store the mood object in the marker for later retrieval
-            marker.setRelatedObject(mood);
-
-            // Set marker icon based on mood emoji drawable ID and resize it
-            if (mood.getEmojiDrawableId() != 0) {
-                Drawable originalDrawable = getResources().getDrawable(mood.getEmojiDrawableId());
-                Log.d(TAG, "Original drawable loaded with ID: " + mood.getEmojiDrawableId());
-
-                // Convert drawable to bitmap and resize it
-                Bitmap originalBitmap = ((BitmapDrawable) originalDrawable).getBitmap();
-                int newWidth = 20;  // Width in pixels
-                int newHeight = 20; // Height in pixels
-                Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
-
-                // Convert back to drawable
-                Drawable resizedDrawable = new BitmapDrawable(getResources(), resizedBitmap);
-                marker.setIcon(resizedDrawable);
-                Log.d(TAG, "Marker icon set successfully");
-            } else {
-                Log.d(TAG, "No emoji drawable ID found for mood");
-            }
-
-            // Set marker title with emotional state and reason
-            String title = mood.getEmotionalState() + " - " + mood.getReason();
-            marker.setTitle(title);
-            Log.d(TAG, "Marker title set to: " + title);
-
-            // Set marker snippet with timestamp and group context
-            String snippet = isOwnMood ?
-                "Your mood" + " (" + mood.getGroup() + ")" :
-                "Mood by " + mood.getUserId() + " (" + mood.getGroup() + ")";
-            marker.setSnippet(snippet);
-            Log.d(TAG, "Marker snippet set to: " + snippet);
-
-            // Add click listener to the marker
-            marker.setOnMarkerClickListener((marker1, mapView) -> {
-                Mood clickedMood = (Mood) marker1.getRelatedObject();
-                if (clickedMood != null) {
-                    Log.d(TAG, "Marker clicked, opening mood detail for: " + clickedMood.getEmotionalState());
-                    openMoodDetail(clickedMood);
-                }
-                return true;
-            });
-
-            // Add the marker to the map and ensure it's visible
-            mapView.getOverlays().add(marker);
-            mapView.invalidate(); // Force map to redraw
-            String successMessage = "Marker added to map for mood: " + mood.getEmotionalState() + 
-                " at " + mood.getLatitude() + ", " + mood.getLongitude();
-            Log.d(TAG, successMessage);
-        } catch (Exception e) {
-            Log.e(TAG, "Error adding marker: " + e.getMessage());
-        }
     }
 
     private void openMoodDetail(Mood mood) {
@@ -500,5 +539,24 @@ public class MapActivity extends AppCompatActivity {
         intent.putExtra("MOOD_ID", mood.getId());
         intent.putExtra("USER_ID", mood.getUserId());
         startActivity(intent);
+    }
+
+    private Location getCurrentLocation() {
+        Location defaultLocation = new Location("");
+        defaultLocation.setLatitude(53.5461);
+        defaultLocation.setLongitude(-113.4937);
+        return defaultLocation;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mapView.onPause();
     }
 }

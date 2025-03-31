@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -89,7 +91,6 @@ public class MoodDetailActivity extends AppCompatActivity {
     private String currentUsername;
 
     private MoodCardAdapter cardAdapter;
-
     private ProfileDataManager profileDataManager;
 
     @Override
@@ -106,11 +107,19 @@ public class MoodDetailActivity extends AppCompatActivity {
 
         // Get current user info for comments
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        currentUserId = user.getUid();
-        currentUsername = user.getDisplayName();
-        if (currentUsername == null || currentUsername.isEmpty()) {
-            currentUsername = "Anonymous";
+        if (user != null) {
+            currentUserId = user.getUid();
+            currentUsername = user.getDisplayName();
+            if (currentUsername == null || currentUsername.isEmpty()) {
+                currentUsername = "Anonymous";
+            }
+        } else {
+            Log.e(TAG, "No authenticated user found.");
+            showMessage("Please log in to view this page.");
+            finish();
+            return;
         }
+
         profileDataManager = new ProfileDataManager();
         profileDataManager.fetchUserProfile(currentUserId, new ProfileDataManager.OnProfileFetchedListener() {
             @Override
@@ -132,26 +141,8 @@ public class MoodDetailActivity extends AppCompatActivity {
             finish();
             return;
         }
+
         retrieveIntentData();
-        // Retrieve mood extras (including moodId)
-        moodId = getIntent().getStringExtra("moodId");
-        if (moodId == null) {
-            moodId = "";
-            Log.e(TAG, "No moodId passed; comments may not function correctly.");
-        }
-        emoji = getIntent().getStringExtra("emoji");
-        timestamp = getIntent().getParcelableExtra("timestamp");
-        reason = getIntent().getStringExtra("reason");
-        group = getIntent().getStringExtra("group");
-        color = getIntent().getIntExtra("color", Color.WHITE);
-        emojiDescription = getIntent().getStringExtra("emojiDescription");
-        imageUrl = getIntent().getStringExtra("imageUrl");
-        accessToken = getIntent().getStringExtra("accessToken");
-        Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
-
-        spotifyManager = SpotifyManager.getInstance();
-        moodAudioMapper = new MoodAudioMapper();
-
         setupViewPager();
 
         if (recommendedTracks.isEmpty() && !isFetchingRecommendations) {
@@ -164,7 +155,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         sendCommentButton = findViewById(R.id.sendCommentButton);
         commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         commentsAdapter = new CommentsAdapter();
-        // Pass currentUserId to the adapter so it can hide the delete button for others' comments
         commentsAdapter.setCurrentUserId(currentUserId);
         commentsRecyclerView.setAdapter(commentsAdapter);
         commentDataManager = new CommentDataManager();
@@ -175,7 +165,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                 showMessage("You can only delete your own comments.");
                 return;
             }
-            new AlertDialog.Builder(MoodDetailActivity.this)
+            new AlertDialog.Builder(this)
                     .setTitle("Delete Comment")
                     .setMessage("Are you sure you want to delete this comment?")
                     .setPositiveButton("Delete", (dialog, which) -> {
@@ -184,10 +174,8 @@ public class MoodDetailActivity extends AppCompatActivity {
                             public void onCommentDeleted() {
                                 showMessage("Comment deleted");
                                 if (comment.getParentId() == null) {
-                                    // It's a top-level comment: just refresh all comments
                                     fetchComments();
                                 } else {
-                                    // It's a reply: find the parent comment in the adapter
                                     for (Comment c : commentsAdapter.getComments()) {
                                         if (c.getId().equals(comment.getParentId())) {
                                             updateRepliesForParent(c);
@@ -217,25 +205,22 @@ public class MoodDetailActivity extends AppCompatActivity {
         });
 
         fetchComments();
-
         setupBackButton();
 
         commentsAdapter.setOnReplyListener(parentComment -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(MoodDetailActivity.this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Reply to " + parentComment.getUsername());
-            final EditText input = new EditText(MoodDetailActivity.this);
+            final EditText input = new EditText(this);
             builder.setView(input);
             builder.setPositiveButton("Send", (dialog, which) -> {
                 String replyText = input.getText().toString().trim();
                 if (!replyText.isEmpty()) {
-                    // Create a reply using the constructor that includes a parentId
                     Comment replyComment = new Comment(parentComment.getMoodId(), currentUserId, currentUsername, replyText, new Date(), parentComment.getId());
                     commentDataManager.addComment(parentComment.getMoodId(), replyComment, new CommentDataManager.OnCommentAddedListener() {
                         @Override
                         public void onCommentAdded() {
                             showMessage("Reply added");
                             parentComment.setReplyCount(parentComment.getReplyCount() + 1);
-                            // Immediately update the UI for this comment's replies
                             updateRepliesForParent(parentComment);
                         }
                         @Override
@@ -254,7 +239,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         try {
             backButton = findViewById(R.id.backButton);
             viewPager = findViewById(R.id.viewPager);
-
             if (backButton == null || viewPager == null) {
                 Log.e(TAG, "One or more views not found in layout.");
                 return false;
@@ -273,6 +257,11 @@ public class MoodDetailActivity extends AppCompatActivity {
             return;
         }
 
+        moodId = intent.getStringExtra("moodId");
+        if (moodId == null || moodId.isEmpty()) {
+            Log.e(TAG, "No valid moodId passed; comments may not function correctly.");
+        }
+
         // Check if this is an update from EditMoodActivity
         Mood updatedMood = (Mood) intent.getSerializableExtra("updatedMood");
         if (updatedMood != null) {
@@ -286,10 +275,10 @@ public class MoodDetailActivity extends AppCompatActivity {
             imageUrl = updatedMood.getImageUrl();
             latitude = updatedMood.getLatitude();
             longitude = updatedMood.getLongitude();
-            Log.d(TAG, "Retrieved from updatedMood - Latitude: " + latitude + ", Longitude: " + longitude);
+            Log.d(TAG, "Retrieved from updatedMood - Timestamp: " + (timestamp != null ? timestamp.toString() : "null"));
         } else {
+            // Standard Intent extras from UserProfileActivity or MyMoodsActivity
             emoji = intent.getStringExtra("emoji");
-            timestamp = intent.getParcelableExtra("timestamp");
             reason = intent.getStringExtra("reason");
             group = intent.getStringExtra("group");
             color = intent.getIntExtra("color", Color.WHITE);
@@ -297,15 +286,45 @@ public class MoodDetailActivity extends AppCompatActivity {
             imageUrl = intent.getStringExtra("imageUrl");
             latitude = intent.hasExtra("latitude") ? intent.getDoubleExtra("latitude", 0.0) : null;
             longitude = intent.hasExtra("longitude") ? intent.getDoubleExtra("longitude", 0.0) : null;
-            Log.d(TAG, "Retrieved from Intent extras - Latitude: " + latitude + ", Longitude: " + longitude);
+
+            // Handle timestamp in multiple possible formats
+            if (intent.hasExtra("timestamp")) {
+                // Try as long (milliseconds) first - from UserProfileActivity
+                long timestampMillis = intent.getLongExtra("timestamp", -1);
+                if (timestampMillis != -1) {
+                    timestamp = new Timestamp(new Date(timestampMillis));
+                    Log.d(TAG, "Timestamp retrieved as long: " + timestampMillis);
+                } else {
+                    // Try as Parcelable Timestamp - potential MyMoodsActivity format
+                    Timestamp ts = intent.getParcelableExtra("timestamp");
+                    if (ts != null) {
+                        timestamp = ts;
+                        Log.d(TAG, "Timestamp retrieved as Parcelable: " + timestamp.toString());
+                    } else {
+                        Log.w(TAG, "Timestamp extra present but invalid format.");
+                    }
+                }
+            } else {
+                Log.w(TAG, "No timestamp extra found in Intent.");
+                timestamp = null;
+            }
         }
+
+        accessToken = intent.getStringExtra("accessToken");
+        Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
+
+        spotifyManager = SpotifyManager.getInstance();
+        moodAudioMapper = new MoodAudioMapper();
+
         logMoodData();
     }
 
-    // Updated addComment to append the new comment instead of re fetching all
     private void addComment(String text) {
+        if (moodId == null || moodId.isEmpty()) {
+            showMessage("Cannot add comment: Invalid mood ID");
+            return;
+        }
         Comment newComment = new Comment(moodId, currentUserId, currentUsername, text, new Date());
-        // Note: For a top-level comment, newComment.parentId will be null.
         commentDataManager.addComment(moodId, newComment, new CommentDataManager.OnCommentAddedListener() {
             @Override
             public void onCommentAdded() {
@@ -321,6 +340,11 @@ public class MoodDetailActivity extends AppCompatActivity {
     }
 
     private void fetchComments() {
+        if (moodId == null || moodId.isEmpty()) {
+            showMessage("Cannot load comments: Invalid mood ID");
+            Log.e(TAG, "fetchComments called with null or empty moodId");
+            return;
+        }
         commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
             @Override
             public void onCommentsFetched(List<Comment> comments) {
@@ -330,12 +354,10 @@ public class MoodDetailActivity extends AppCompatActivity {
             @Override
             public void onError(String errorMessage) {
                 showMessage("Error fetching comments: " + errorMessage);
-
             }
         });
     }
 
-    // Helper method to update replies for a given parent comment
     private void updateRepliesForParent(Comment parentComment) {
         commentDataManager.fetchReplies(parentComment.getMoodId(), parentComment.getId(),
                 new CommentDataManager.OnRepliesFetchedListener() {
@@ -349,7 +371,6 @@ public class MoodDetailActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     private void logMoodData() {
         Log.d(TAG, "Mood ID: " + moodId);
@@ -383,12 +404,14 @@ public class MoodDetailActivity extends AppCompatActivity {
                     try {
                         String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault()).format(timestamp.toDate());
                         holder.timeView.setText(formattedTime);
+                        Log.d(TAG, "Displaying timestamp: " + formattedTime);
                     } catch (Exception e) {
                         Log.e(TAG, "Error formatting timestamp: " + e.getMessage());
                         holder.timeView.setText("Invalid time");
                     }
                 } else {
-                    holder.timeView.setText("Unknown time");
+                    holder.timeView.setText("Time not recorded");
+                    Log.w(TAG, "Timestamp is null for moodId: " + moodId);
                 }
             }
 
@@ -409,9 +432,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                     holder.imageUrlView.setVisibility(View.VISIBLE);
                     Log.d(TAG, "Loading image from URL: " + imageUrl);
                     try {
-                        Glide.with(this)
-                                .load(imageUrl)
-                                .into(holder.imageUrlView);
+                        Glide.with(this).load(imageUrl).into(holder.imageUrlView);
                     } catch (Exception e) {
                         Log.e(TAG, "Glide failed to load image: " + e.getMessage());
                         holder.imageUrlView.setVisibility(View.GONE);
@@ -431,16 +452,14 @@ public class MoodDetailActivity extends AppCompatActivity {
                 holder.emojiRectangle.setBackground(gradientDrawable);
             }
 
-            // Location button logic
             if (holder.locationButton != null) {
-                holder.locationButton.setVisibility(View.VISIBLE); // Always show the button
+                holder.locationButton.setVisibility(View.VISIBLE);
                 holder.locationButton.setOnClickListener(v -> {
                     Log.d(TAG, "Location button clicked - Current lat: " + latitude + ", lon: " + longitude);
                     if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
-                        Log.d(TAG, "Valid location found, opening map with lat: " + latitude + ", lon: " + longitude);
                         openMap();
                     } else {
-                        Log.d(TAG, "No valid location: lat=" + latitude + ", lon=" + longitude);
+                        showMessage("No location was saved with this mood");
                     }
                 });
             } else {
@@ -471,9 +490,7 @@ public class MoodDetailActivity extends AppCompatActivity {
                 }
             });
 
-            holder.prevSongButton.setOnClickListener(v -> {
-                displayPreviousTrack(holder);
-            });
+            holder.prevSongButton.setOnClickListener(v -> displayPreviousTrack(holder));
 
             if (currentTrack != null) {
                 String trackUri = "spotify:track:" + currentTrack.id;
@@ -508,7 +525,13 @@ public class MoodDetailActivity extends AppCompatActivity {
         float energy = moodAudioMapper.getEnergy(emoji);
 
         isFetchingRecommendations = true;
-        cardAdapter.notifyItemChanged(1);
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                cardAdapter.notifyItemChanged(1);
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Failed to update adapter: " + e.getMessage());
+            }
+        });
 
         spotifyManager.fetchRecommendations(genre, valence, energy, new Callback<SpotifyRecommendationResponse>() {
             @Override
@@ -598,15 +621,9 @@ public class MoodDetailActivity extends AppCompatActivity {
 
             if (currentTrack.album != null && currentTrack.album.images != null && !currentTrack.album.images.isEmpty()) {
                 String albumCoverUrl = currentTrack.album.images.get(1).url;
-                Glide.with(this)
-                        .load(albumCoverUrl)
-                        .placeholder(R.drawable.ic_music_note)
-                        .error(R.drawable.ic_music_note)
-                        .into(holder.albumArtImageView);
+                Glide.with(this).load(albumCoverUrl).placeholder(R.drawable.ic_music_note).error(R.drawable.ic_music_note).into(holder.albumArtImageView);
             } else {
-                Glide.with(this)
-                        .load(R.drawable.ic_music_note)
-                        .into(holder.albumArtImageView);
+                Glide.with(this).load(R.drawable.ic_music_note).into(holder.albumArtImageView);
             }
 
             String trackUri = "spotify:track:" + currentTrack.id;
@@ -667,14 +684,12 @@ public class MoodDetailActivity extends AppCompatActivity {
             } catch (android.content.ActivityNotFoundException ex) {
                 Log.e(TAG, "No app available to handle web URL: " + ex.getMessage());
                 showMessage("Spotify is not installed. Redirecting to install...");
-
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.spotify.music")));
                 } catch (Exception ex2) {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.spotify.music")));
                 }
             }
-
         }
     }
 
@@ -683,13 +698,11 @@ public class MoodDetailActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MoodLocationMapActivity.class);
             intent.putExtra("latitude", latitude);
             intent.putExtra("longitude", longitude);
-            intent.putExtra("emoji", emoji); // Pass the emoji to display on the map
+            intent.putExtra("emoji", emoji);
             startActivity(intent);
             Log.d(TAG, "Navigating to MoodLocationMapActivity with lat: " + latitude + ", lon: " + longitude);
         } else {
-
             Log.e(TAG, "No valid location data: lat=" + latitude + ", lon=" + longitude);
-
         }
     }
 
@@ -724,11 +737,6 @@ public class MoodDetailActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
     private void showMessage(String message) {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null && !isFinishing()) {

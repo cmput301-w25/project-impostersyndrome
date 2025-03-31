@@ -3,6 +3,8 @@ package com.example.impostersyndrom.model;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -16,6 +18,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -32,6 +36,10 @@ public class ImageHandler {
     public interface OnImageLoadedListener {
         void onImageLoaded(); // Called when an image is successfully loaded
         void onImageCleared(); // Called when the image is cleared
+    }
+
+    public interface OnLocalImageSavedListener {
+        void onLocalImageSaved(String localUri);
     }
 
     private OnImageLoadedListener imageLoadedListener; // Listener for image loading events
@@ -210,5 +218,102 @@ public class ImageHandler {
     public interface OnImageUploadListener {
         void onImageUploadSuccess(String imageUrl); // Called when the image is successfully uploaded
         void onImageUploadFailure(Exception e); // Called when the image upload fails
+    }
+
+    public void uploadImageFromLocalUri(String localUri, OnImageUploadListener listener) {
+        Uri fileUri = Uri.parse(localUri);
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference imageRef = storageRef.child("mood_images/" + System.currentTimeMillis() + ".png");
+
+        imageRef.putFile(fileUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            if (listener != null) {
+                                listener.onImageUploadSuccess(uri.toString());
+                            }
+                        })
+                )
+                .addOnFailureListener(e -> {
+                    if (listener != null) {
+                        listener.onImageUploadFailure(e);
+                    }
+                });
+    }
+
+    public Bitmap getCurrentBitmap() {
+        if (imagePreview != null && imagePreview.getDrawable() instanceof BitmapDrawable) {
+            return ((BitmapDrawable) imagePreview.getDrawable()).getBitmap();
+        }
+        return null;
+    }
+
+    public String saveImageLocally() {
+        Bitmap bitmap = getCurrentBitmap();
+        if (bitmap == null) {
+            Log.e("ImageHandler", "saveImageLocally: getCurrentBitmap() returned null");
+            return null;
+        }
+        Log.d("ImageHandler", "saveImageLocally: Bitmap retrieved with width = " + bitmap.getWidth() + ", height = " + bitmap.getHeight());
+        try {
+            File file = new File(activity.getFilesDir(), "offline_image_" + System.currentTimeMillis() + ".png");
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.flush();
+            fos.close();
+            String localUri = "file://" + file.getAbsolutePath();
+            Log.d("ImageHandler", "saveImageLocally: Image saved locally at " + localUri);
+            return localUri;
+        } catch (IOException e) {
+            Log.e("ImageHandler", "saveImageLocally: Error saving image locally: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String saveImageLocallyFromRemote(String remoteUrl) {
+        try {
+            java.net.URL url = new java.net.URL(remoteUrl);
+            Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+            if (bitmap == null) {
+                return null;
+            }
+            // Save the bitmap to the internal storage of the activity.
+            File file = new File(activity.getFilesDir(), "offline_image_" + System.currentTimeMillis() + ".png");
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.flush();
+            fos.close();
+            return "file://" + file.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public void saveImageLocallyFromRemoteAsync(final String remoteUrl, final OnLocalImageSavedListener listener) {
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL(remoteUrl);
+                Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                if (bitmap == null) {
+                    activity.runOnUiThread(() -> listener.onLocalImageSaved(null));
+                    return;
+                }
+                // Save the bitmap to internal storage.
+                File file = new File(activity.getFilesDir(), "offline_image_" + System.currentTimeMillis() + ".png");
+                FileOutputStream fos = new FileOutputStream(file);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                fos.flush();
+                fos.close();
+                String localUri = "file://" + file.getAbsolutePath();
+                activity.runOnUiThread(() -> listener.onLocalImageSaved(localUri));
+            } catch (IOException e) {
+                e.printStackTrace();
+                activity.runOnUiThread(() -> listener.onLocalImageSaved(null));
+            }
+        }).start();
+    }
+
+    public String getLocalImageUri() {
+        return saveImageLocally();
     }
 }

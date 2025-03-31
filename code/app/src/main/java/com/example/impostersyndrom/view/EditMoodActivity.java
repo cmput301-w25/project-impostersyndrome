@@ -8,7 +8,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -28,9 +27,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import android.Manifest;
+import android.widget.Toast;
+
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
+import com.example.impostersyndrom.model.MoodDataManager;
 
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
@@ -310,10 +313,47 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("group", selectedGroup);
         }
 
+        // Check if device is offline before attempting any image upload.
+        if (NetworkUtils.isOffline(this)) {
+            if (imageUrl == null && imageHandler.hasImage()) {
+                // Get a local URI for the image using the helper method you'll add to ImageHandler.
+                String localUri = imageHandler.getLocalImageUri();
+                if (localUri != null) {
+                    updates.put("imageUrl", localUri);
+                } else {
+                    updates.put("imageUrl", null);
+                }
+            } else if (imageUrl == null && originalImageUrl != null) {
+                // If no new image was selected and the original image is remote, convert it locally.
+                if (!originalImageUrl.startsWith("file://")) {
+                    imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
+                        if (localUri != null) {
+                            updates.put("imageUrl", localUri);
+                            Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
+                        } else {
+                            updates.put("imageUrl", originalImageUrl);
+                        }
+                        Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+                        new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
+                        finish();
+                    });
+                    return;
+                } else {
+                    updates.put("imageUrl", originalImageUrl);
+                }
+            }
+            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+            finish();
+            return;
+        }
+
+        // If online, handle image upload if a new image is selected.
         if (imageUrl == null && imageHandler.hasImage()) {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
+                    // Delete the old image if it exists.
                     if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
                         StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
                         oldImageRef.delete()
@@ -334,7 +374,6 @@ public class EditMoodActivity extends AppCompatActivity {
         } else if (imageUrl != null) {
             updates.put("imageUrl", imageUrl);
         }
-
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
@@ -350,6 +389,8 @@ public class EditMoodActivity extends AppCompatActivity {
         } else {
             saveToFirestore(updates);
         }
+
+        saveToFirestore(updates);
     }
 
     /**

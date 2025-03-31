@@ -105,8 +105,6 @@ public class FollowingMoodsFragment extends Fragment {
                     }
 
                     if (followingIds.isEmpty()) {
-                        Log.d(TAG, "No users followed");
-                        showMessage("You're not following anyone!");
                         updateEmptyState("You're not following anyone.");
                         swipeRefreshLayout.setRefreshing(false);
                         return;

@@ -83,5 +83,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     testImplementation ("org.robolectric:robolectric:4.9")
     testImplementation ("org.mockito:mockito-inline:4.8.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
 }
