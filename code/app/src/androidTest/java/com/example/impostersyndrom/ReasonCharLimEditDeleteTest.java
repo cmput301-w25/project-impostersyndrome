@@ -62,7 +62,7 @@ public class ReasonCharLimEditDeleteTest {
         seedMood();
         onData(anything()).inAdapterView(withId(R.id.moodListView)).atPosition(0).perform(longClick());
 
-        waitForView(withText("Edit Mood"), 10000);
+        Thread.sleep(2000);
         onView(withId(R.id.editMoodOption)).perform(click());
 
         waitForView(withId(R.id.EditEmoji), 5000);
