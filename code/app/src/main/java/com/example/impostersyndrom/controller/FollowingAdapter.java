@@ -25,7 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 public class FollowingAdapter extends ArrayAdapter<UserData> {
-    private FirebaseFirestore db;
+    public FirebaseFirestore db;
     private String currentUserId;
     private List<UserData> followingUsers;
     private TextView emptyMessage;
@@ -144,7 +144,7 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
         return convertView;
     }
 
-    private void navigateToUserProfile(String username) {
+    public void navigateToUserProfile(String username) {
         Log.d(TAG, "Attempting to navigate to profile for: " + username);
 
         db.collection("users")
