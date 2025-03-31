@@ -62,7 +62,7 @@ public class ReasonCharLimEditDeleteTest {
         seedMood();
         onData(anything()).inAdapterView(withId(R.id.moodListView)).atPosition(0).perform(longClick());
 
-        waitForView(withText("Edit Mood"), 5000);
+        waitForView(withText("Edit Mood"), 10000);
         onView(withId(R.id.editMoodOption)).perform(click());
 
         waitForView(withId(R.id.EditEmoji), 5000);
@@ -107,7 +107,7 @@ public class ReasonCharLimEditDeleteTest {
     @Test
     public void testReasonCharacterLimit() throws Exception {
         onView(withId(R.id.addMoodButton)).perform(click());
-        waitForView(withId(R.id.emoji1), 10000);
+        waitForView(withId(R.id.emoji1), 5000);
         onView(withId(R.id.emoji1)).perform(click());
         waitForView(withId(R.id.addReasonEdit), 5000);
 
