@@ -13,17 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.MoodDataCache;
 import com.example.impostersyndrom.model.User;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -39,8 +31,6 @@ public class LoginActivity extends AppCompatActivity {
     private View loginProgressBar;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private GoogleSignInClient googleSignInClient;
-    private static final int RC_SIGN_IN = 9001; // Request code for Google Sign-In
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,13 +40,6 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize Firebase Authentication and Firestore
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        // Initialize Google Sign-In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // Web Client ID from Firebase
-                .requestEmail()
-                .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // Initialize views
         layoutEmail = findViewById(R.id.layoutEmail);
@@ -73,9 +56,6 @@ public class LoginActivity extends AppCompatActivity {
         findViewById(R.id.loginBtn).setOnClickListener(v -> loginUser());
         findViewById(R.id.forgotPassword).setOnClickListener(v -> startActivity(new Intent(this, ForgotPasswordActivity.class)));
         findViewById(R.id.newUserSignUp).setOnClickListener(v -> startActivity(new Intent(this, RegisterActivity.class)));
-
-        // Set click listener for Google Sign-In button
-        findViewById(R.id.googleSignInButton).setOnClickListener(v -> signInWithGoogle());
     }
 
     /**
@@ -118,7 +98,6 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
                 User.getInstance().setUserId(userId);
-                showToast("Login Successful!");
 
                 // Pre-fetch mood data before navigating to MainActivity
                 prefetchMoodData(userId);
@@ -131,62 +110,6 @@ public class LoginActivity extends AppCompatActivity {
                 layoutPassword.setErrorIconDrawable(null); // Prevent red "!" mark
             }
         });
-    }
-
-    /**
-     * Handles Google Sign-In flow.
-     */
-    private void signInWithGoogle() {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            handleGoogleSignInResult(task);
-        }
-    }
-
-    /**
-     * Handles the result of Google Sign-In.
-     */
-    private void handleGoogleSignInResult(Task<GoogleSignInAccount> task) {
-        try {
-            // Google Sign-In was successful, authenticate with Firebase
-            GoogleSignInAccount account = task.getResult(ApiException.class);
-            if (account != null) {
-                firebaseAuthWithGoogle(account.getIdToken());
-            }
-        } catch (ApiException e) {
-            // Google Sign-In failed
-            showToast("Google Sign-In failed: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Authenticates the user with Firebase using Google credentials.
-     */
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        auth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // Sign-in success
-                        String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
-                        User.getInstance().setUserId(userId);
-                        showToast("Google Sign-In Successful!");
-
-                        // Pre-fetch mood data before navigating to MainActivity
-                        prefetchMoodData(userId);
-                    } else {
-                        // Sign-in failed
-                        showToast("Google Sign-In failed: " + Objects.requireNonNull(task.getException()).getMessage());
-                    }
-                });
     }
 
     /**
@@ -226,12 +149,5 @@ public class LoginActivity extends AppCompatActivity {
                         finish();
                     }
                 });
-    }
-
-    /**
-     * Displays a toast message.
-     */
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

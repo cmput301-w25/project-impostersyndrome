@@ -1,6 +1,8 @@
 package com.example.impostersyndrom.model;
 
 import android.graphics.Color;
+import com.example.impostersyndrom.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +54,10 @@ public class EmojiUtils {
     }
 
     /**
-     * Gets all emoji keys.
+     * Gets the emoji key for a given description.
      *
-     * @return An array of all emoji keys.
+     * @param description The description of the emoji (e.g., "Happy").
+     * @return The key of the emoji (e.g., "emoji_happy").
      */
     public static String getEmojiKey(String description) {
         for (EmojiData emojiData : emojiList) {
@@ -63,6 +66,35 @@ public class EmojiUtils {
             }
         }
         return ""; // Return empty string if no match is found
+    }
+
+    /**
+     * Gets the drawable ID for a given emoji key.
+     *
+     * @param emojiKey The key of the emoji (e.g., "emoji_happy").
+     * @return The drawable resource ID for the emoji.
+     */
+    public static int getEmojiDrawableId(String emojiKey) {
+        switch (emojiKey) {
+            case "emoji_happy":
+                return R.drawable.emoji_happy;
+            case "emoji_confused":
+                return R.drawable.emoji_confused;
+            case "emoji_disgust":
+                return R.drawable.emoji_disgust;
+            case "emoji_angry":
+                return R.drawable.emoji_angry;
+            case "emoji_sad":
+                return R.drawable.emoji_sad;
+            case "emoji_fear":
+                return R.drawable.emoji_fear;
+            case "emoji_shame":
+                return R.drawable.emoji_shame;
+            case "emoji_surprised":
+                return R.drawable.emoji_surprised;
+            default:
+                return 0; // Return 0 if no matching drawable
+        }
     }
 
     /**

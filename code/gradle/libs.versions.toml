@@ -13,6 +13,12 @@ firebaseAuth = "23.2.0"
 playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.1.0"
 
+espressoIntents = "3.6.1"
+espressoContrib = "3.6.1"
+uiautomator = "2.3.0"
+playServicesMaps = "19.1.0"
+
+
 
 [libraries]
 firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorage" }
@@ -28,6 +34,11 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
+espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
+
 
 
 [plugins]

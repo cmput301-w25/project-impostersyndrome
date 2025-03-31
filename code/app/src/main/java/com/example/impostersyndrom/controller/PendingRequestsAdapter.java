@@ -1,5 +1,6 @@
 package com.example.impostersyndrom.controller;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -10,7 +11,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,6 +20,7 @@ import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.model.UserData;
 import com.example.impostersyndrom.view.UserProfileActivity;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -66,11 +67,11 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
         if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
             Glide.with(getContext())
                     .load(user.profileImageUrl)
-                    .placeholder(R.drawable.default_person)
-                    .error(R.drawable.default_person)
+                    .placeholder(R.drawable.img_default_person)
+                    .error(R.drawable.img_default_person)
                     .into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
         }
 
         // Make the TextView clickable and ensure it has proper focus state
@@ -116,16 +117,16 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            Toast.makeText(getContext(), "Error opening profile", Toast.LENGTH_SHORT).show();
+                            showMessage("Error opening profile");
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                        showMessage("User not found");
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
+                    showMessage("Error finding user");
                 });
     }
 
@@ -148,11 +149,11 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
                             db.collection("following").add(followData)
                                     .addOnSuccessListener(documentReference -> {
                                         removeRequest(senderUsername, acceptButton, declineButton);
-                                        Toast.makeText(getContext(), "Follow request accepted!", Toast.LENGTH_SHORT).show();
+                                        showMessage("Follow request accepted!");
                                     })
                                     .addOnFailureListener(e -> {
                                         Log.e(TAG, "Error adding to following: " + e.getMessage());
-                                        Toast.makeText(getContext(), "Error accepting request", Toast.LENGTH_SHORT).show();
+                                        showMessage("Error accepting request");
                                     });
                         }
                     } else {
@@ -161,13 +162,13 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching follow request: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to accept request", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to accept request");
                 });
     }
 
     private void declineFollowRequest(String senderUsername, Button acceptButton, ImageButton declineButton) {
         removeRequest(senderUsername, acceptButton, declineButton);
-        Toast.makeText(getContext(), "Follow request declined", Toast.LENGTH_SHORT).show();
+        showMessage("Follow request declined");
     }
 
     private void removeRequest(String senderUsername, Button acceptButton, ImageButton declineButton) {
@@ -197,7 +198,21 @@ public class PendingRequestsAdapter extends ArrayAdapter<UserData> {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching follow request to remove: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to remove request", Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to remove request");
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = ((Activity) getContext()).findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

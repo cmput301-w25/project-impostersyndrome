@@ -9,10 +9,10 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -114,7 +114,7 @@ public class ImageHandler {
                     Log.d("ImageHandler", "Image loaded from gallery");
                 } catch (IOException e) {
                     Log.e("ImageHandler", "Failed to load image: " + e.getMessage());
-                    showToast("Failed to load image");
+                    showMessage("Failed to load image");
                     clearImage();
                     return;
                 }
@@ -202,12 +202,14 @@ public class ImageHandler {
     }
 
     /**
-     * Displays a toast message.
+     * Displays a Snackbar message.
      *
      * @param message The message to display.
      */
-    private void showToast(String message) {
-        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+    private void showMessage(String message) {
+        Snackbar.make(activity.findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+                .setAction("OK", null)
+                .show();
     }
 
     /**

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_background"
+    android:background="@drawable/bg_dialog"
     android:padding="24dp">
 
     <!-- Tick Button -->
@@ -10,12 +10,12 @@
         android:id="@+id/tickButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/white_checkmark"
+        android:src="@drawable/ic_tick"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
-        android:contentDescription="Apply Filter" />
+        android:contentDescription="@string/apply_filter_description" />
 
     <!-- Title -->
     <TextView
@@ -25,7 +25,7 @@
         android:layout_below="@id/tickButton"
         android:layout_marginTop="-27dp"
         android:layout_marginBottom="16dp"
-        android:text="Filter Mood"
+        android:text="@string/filter_mood_title"
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -35,7 +35,7 @@
         android:id="@+id/checkboxRecentWeek"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Show Mood from most recent week"
+        android:text="@string/show_recent_week"
         android:textSize="16sp"
         android:textColor="@android:color/white"
         android:padding="8dp"
@@ -47,7 +47,7 @@
         android:id="@+id/emotionalStateLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Emotional State"
+        android:text="@string/emotional_state_label"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:layout_below="@id/checkboxRecentWeek"
@@ -62,4 +62,29 @@
         android:layout_below="@id/emotionalStateLabel"
         android:padding="8dp" />
 
+    <!-- Reason Label -->
+    <TextView
+        android:id="@+id/reasonLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/reason_label"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_below="@id/emotionalStateSpinner"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Reason Input -->
+    <EditText
+        android:id="@+id/reasonInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/reasonLabel"
+        android:padding="12dp"
+        android:background="@drawable/bg_filter_reason"
+        android:textColor="@android:color/white"
+        android:hint="@string/filter_reason_hint"
+        android:textColorHint="#808080"
+        android:inputType="text"
+        android:layout_marginTop="4dp" />
 </RelativeLayout>

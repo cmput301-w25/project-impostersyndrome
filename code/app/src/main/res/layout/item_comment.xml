@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <ImageButton
+        android:id="@+id/deleteCommentButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/remove"
+        android:scaleType="centerInside"
+        android:padding="8dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Delete Comment" />
+
+    <ImageButton
+        android:id="@+id/replyButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_toStartOf="@id/deleteCommentButton"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/reply"
+        android:scaleType="centerInside"
+        android:padding="8dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Reply" />
+
+    <TextView
+        android:id="@+id/commentTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/replyButton"
+        android:layout_alignParentStart="true"
+        android:text="Comment text"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:layout_marginEnd="8dp" />
+
+    <TextView
+        android:id="@+id/commentInfoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/commentTextView"
+        android:layout_alignParentStart="true"
+        android:text="Posted by User at Time"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray" />
+
+    <Button
+        android:id="@+id/viewRepliesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Replies"
+        android:layout_below="@id/commentInfoTextView"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="4dp"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/darker_gray"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/repliesContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/viewRepliesButton"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="4dp"
+        android:visibility="gone" />
+</RelativeLayout>
