@@ -242,10 +242,9 @@ public class MoodDetailActivity extends AppCompatActivity {
                 holder.locationButton.setOnClickListener(v -> {
                     Log.d(TAG, "Location button clicked - Current lat: " + latitude + ", lon: " + longitude);
                     if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
-                        Log.d(TAG, "Valid location found, opening map with lat: " + latitude + ", lon: " + longitude);
                         openMap();
                     } else {
-                        Log.d(TAG, "No valid location: lat=" + latitude + ", lon=" + longitude);
+                        showMessage("No location was saved with this mood");
                     }
                 });
             } else {
