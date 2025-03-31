@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_my_moods"
+        android:title="My Moods"
+        />
+    <item
+        android:id="@+id/nav_following_moods"
+        android:title="Following"
+        />
+    <item
+        android:id="@+id/nav_local_moods"
+        android:title="Local"
+        />
+
+</menu>

@@ -1,118 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true"
     android:background="@color/black">
 
     <LinearLayout
-        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="24dp">
+        android:orientation="vertical">
 
-        <!-- Header with navigation buttons -->
-        <RelativeLayout
-            android:layout_width="match_parent"
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp">
+            android:src="@drawable/left_arrow_black"
+            android:contentDescription="Back"
+            android:padding="16dp"
+            android:background="@android:color/transparent"
+            app:tint="@color/white" />
 
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_alignParentStart="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/left_arrow"
-                app:tint="@color/white"/>
-        </RelativeLayout>
-
-        <!-- Content rectangle -->
+        <!-- Top container for the mood details (ViewPager) + comment input -->
         <LinearLayout
-            android:id="@+id/emojiRectangle"
+            android:id="@+id/moodDetailsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/edit_text_background"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:elevation="8dp"
-            android:outlineProvider="background"
-            android:clipToOutline="true">
+            android:orientation="vertical">
 
-            <!-- Emoji -->
-            <ImageView
-                android:id="@+id/emojiView"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:contentDescription="Emoji" />
-
-            <!-- Emoji Description -->
-            <TextView
-                android:id="@+id/emojiDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:textColor="@color/white"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Time TextView -->
-            <TextView
-                android:id="@+id/timeView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/black"
-                android:textSize="14sp"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Reason TextView -->
-            <TextView
-                android:id="@+id/reasonView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Group/Context TextView -->
-            <TextView
-                android:id="@+id/groupView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif-condensed"/>
-
-            <!-- Image from URL -->
-            <ImageView
-                android:id="@+id/imageUrlView"
+            <!-- ViewPager2 for mood details & song recommendations -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="120dp"
-                android:maxHeight="250dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:layout_marginHorizontal="8dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="Mood Image"
-                android:scaleType="fitCenter"
-                android:visibility="visible" />
+                android:layout_margin="16dp" />
+
+            <!-- Input area for adding a comment -->
+            <LinearLayout
+                android:id="@+id/commentInputContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:background="@color/black">
+
+                <EditText
+                    android:id="@+id/commentEditText"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="Write a comment..."
+                    android:textColor="@android:color/darker_gray"
+                    android:textColorHint="@android:color/darker_gray"
+                    android:padding="8dp"
+                    android:background="@drawable/comment_field_bg" />
+
+                <ImageButton
+                    android:id="@+id/sendCommentButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"
+                    app:srcCompat="@drawable/send"
+                    android:scaleType="centerInside"
+                    android:adjustViewBounds="true" />
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- RecyclerView to display comments -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/commentsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="300dp"
+            android:padding="8dp"
+            android:nestedScrollingEnabled="false" />
+
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

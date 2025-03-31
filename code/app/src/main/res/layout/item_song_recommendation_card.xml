@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardElevation="0dp">
+
+    <!-- Center the card content horizontally -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- Song Recommendation Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="43dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="12dp"
+            app:cardBackgroundColor="#212121">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Album Art -->
+                <ImageView
+                    android:id="@+id/albumArtImageView"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="16dp"
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true"
+                    android:src="@drawable/ic_music_note"
+                    android:contentDescription="Album artwork" />
+
+                <!-- Song Name with more emphasis -->
+                <TextView
+                    android:id="@+id/songNameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+                <!-- Artist Name with subtle styling -->
+                <TextView
+                    android:id="@+id/artistNameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- Divider -->
+                <View
+                    android:layout_width="120dp"
+                    android:layout_height="1dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#E0E0E0" />
+
+                <!-- Navigation Button Container -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Previous Song Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/prevSongButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="16dp"
+                        android:textAllCaps="false"
+                        app:cornerRadius="24dp"
+                        app:icon="@android:drawable/ic_media_previous"
+                        app:iconSize="24dp"
+                        app:iconTint="#FFFFFF"
+                        android:backgroundTint="@android:color/transparent"
+                        android:padding="8dp"
+                        app:rippleColor="#B0B0B0" />
+
+                    <!-- Play Button -->
+                    <ImageButton
+                        android:id="@+id/playOnSpotifyButton"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_play_circle"
+                        android:scaleType="centerInside"
+                        android:src="@android:drawable/ic_media_play" />
+
+                    <!-- Next Song Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nextSongButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="16dp"
+                        android:textAllCaps="false"
+                        app:cornerRadius="24dp"
+                        app:icon="@android:drawable/ic_media_next"
+                        app:iconSize="24dp"
+                        app:iconTint="#FFFFFF"
+                        android:backgroundTint="@android:color/transparent"
+                        android:padding="8dp"
+                        app:rippleColor="#B0B0B0" />
+
+                </LinearLayout>
+
+                <!-- Spotify attribution text -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:text="Powered by Spotify"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

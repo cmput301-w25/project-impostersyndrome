@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ImposterSyndrom</string>
+    <string name="app_name">ImposterSyndrome</string>
     <string name="addReasonHint">Enter a reason...</string>
     <string name="addReasonText">Why are you feeling this way?</string>
     <string name="camera_menu_description" />
@@ -33,4 +33,46 @@
     <string name="submit_button_description">Submit entry</string>
     <string name="back_button_description">Go back</string>
     <string name="EditReasonHint">Enter new reason...</string>
+    <string name="default_web_client_id">1015909102211-h22q11lnlit5ncpg4tjqmqlm5k0msp9t.apps.googleusercontent.com</string>
+    <string name="attach_location">Attach Location</string>
+    <string name="choose_different_mood">Choose a different mood</string>
+    <string name="selected_emoji">Selected Emoji</string>
+    <string name="char_count_initial">0/200</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_button_description">Save</string>
+    <string name="profile_picture_description">Profile Picture</string>
+    <string name="bio_label">Bio</string>
+    <string name="bio_hint">Enter your bio</string>
+    <string name="menu_button_description">Menu</string>
+    <string name="app_short_name">IS</string>
+    <string name="pending_requests">Pending Requests</string>
+    <string name="following">Following</string>
+    <string name="home_button_description">Home</string>
+    <string name="search_button_description">Search</string>
+    <string name="favorites_button_description">Favorites</string>
+    <string name="profile_button_description">Profile</string>
+    <string name="app_logo_description">App Logo</string>
+    <string name="welcome_back">Welcome back!</string>
+    <string name="dont_have_account_sign_up">Dont have an account? Sign up</string>
+    <string name="filter_moods_description">Filter Moods</string>
+    <string name="search_hint">Search</string>
+    <string name="no_results_found">No results found.</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="remove_image">Remove Image</string>
+    <string name="apply_filter_description">Apply Filter</string>
+    <string name="filter_mood_title">Filter Mood</string>
+    <string name="show_recent_week">Show Mood from most recent week</string>
+    <string name="emotional_state_label">Emotional State</string>
+    <string name="reason_label">Reason</string>
+    <string name="filter_reason_hint">Enter reason to filter</string>
+    <string name="no_request">No requests.</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="username">Username</string>
+    <string name="profile">Profile</string>">
+    <string name="requested">Requested</string>
+    <string name="followers">Followers</string>
+    <string name="user_profile">User Profile</string>
+    <string name="recent_moods">Recent Moods</string>
+    <string name="no_recent_public_moods">No recent public moods</string>
+
 </resources>

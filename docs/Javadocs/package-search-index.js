@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.example.impostersyndrom"},{"l":"com.example.impostersyndrom.controller"},{"l":"com.example.impostersyndrom.model"},{"l":"com.example.impostersyndrom.network"},{"l":"com.example.impostersyndrom.spotify"},{"l":"com.example.impostersyndrom.view"}];updateSearchResults();

@@ -22,31 +22,9 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
-            android:src="@drawable/left_arrow"
+            android:src="@drawable/ic_back"
             android:layout_gravity="center_vertical"/>
 
-        <!-- This acts like a placeholder -->
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="53dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Choose a different mood"
-            android:textColor="@color/black"
-            android:textSize="25sp"
-            android:textStyle="bold" />
-
-        <!-- Checkmark Button -->
-        <ImageButton
-            android:id="@+id/submitButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="8dp"
-            android:src="@drawable/white_checkmark"/>
     </LinearLayout>
 
     <LinearLayout
@@ -63,7 +41,7 @@
             android:layout_height="53dp"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="Choose a different mood"
+            android:text="@string/choose_different_mood"
             android:textColor="@color/white"
             android:textSize="25sp"
             android:textStyle="bold" />
@@ -84,7 +62,7 @@
             android:layout_height="64dp"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
-            android:contentDescription="Happy"
+            android:contentDescription="@string/happy"
             android:src="@drawable/emoji_happy"/>
 
         <!-- Top right emoji -->
@@ -96,7 +74,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="47dp"
             android:layout_marginEnd="41dp"
-            android:contentDescription="Confused"
+            android:contentDescription="@string/confused"
             android:src="@drawable/emoji_confused"/>
 
         <!-- Right emoji -->
@@ -106,7 +84,7 @@
             android:layout_height="64dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:contentDescription="Disgust"
+            android:contentDescription="@string/disgust"
             android:src="@drawable/emoji_disgust"/>
 
         <!-- Bottom right emoji -->
@@ -118,7 +96,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="41dp"
             android:layout_marginBottom="47dp"
-            android:contentDescription="Angry"
+            android:contentDescription="@string/angry"
             android:src="@drawable/emoji_angry"/>
 
         <!-- Bottom emoji -->
@@ -128,7 +106,7 @@
             android:layout_height="64dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:contentDescription="Sad"
+            android:contentDescription="@string/sad"
             android:src="@drawable/emoji_sad"/>
 
         <!-- Bottom left emoji -->
@@ -140,7 +118,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="41dp"
             android:layout_marginBottom="47dp"
-            android:contentDescription="Fear"
+            android:contentDescription="@string/fear"
             android:src="@drawable/emoji_fear"/>
 
         <!-- Left emoji -->
@@ -150,7 +128,7 @@
             android:layout_height="64dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:contentDescription="Shame"
+            android:contentDescription="@string/shame"
             android:src="@drawable/emoji_shame"/>
 
         <!-- Top left emoji -->
@@ -162,7 +140,7 @@
             android:layout_alignParentTop="true"
             android:layout_marginStart="41dp"
             android:layout_marginTop="47dp"
-            android:contentDescription="Surprise"
+            android:contentDescription="@string/surprise"
             android:src="@drawable/emoji_surprised"/>
 
         <!-- Shows the user the current selected emoji -->
@@ -173,7 +151,7 @@
             android:adjustViewBounds="true"
             android:scaleType="fitCenter"
             android:layout_centerInParent="true"
-            android:contentDescription="Selected Emoji"/>
+            android:contentDescription="@string/selected_emoji"/>
     </RelativeLayout>
 
 </RelativeLayout>

@@ -10,55 +10,98 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.ImposterSyndrom"
         tools:targetApi="31">
+
         <activity
-            android:name=".ForgotPasswordActivity"
+            android:name=".view.MapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".view.MoodLocationMapActivity"
+            android:exported="false" />
+
+        <activity android:name=".view.EditProfileActivity" />
+        <activity
+            android:name=".view.UserProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".view.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.LoginActivity"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".RegisterActivity"
-            android:exported="false" /> <!-- MainActivity (Launcher Activity) -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:name=".view.RegisterActivity"
+            android:exported="false" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity> <!-- EmojiSelectionActivity -->
+        <!-- MainActivity with two intent filters -->
         <activity
-            android:name=".EmojiSelectionActivity"
-            android:exported="false" /> <!-- Not exported since it's only used internally -->
+            android:name=".view.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <!-- Intent-filter for launcher (app icon) -->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--            &lt;!&ndash; Intent-filter to handle Spotify Redirect URI &ndash;&gt;-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+<!--                <data-->
+<!--                    android:scheme="ImposterSyndrome"-->
+<!--                    android:host="callback" />-->
+<!--            </intent-filter>-->
+        </activity>
+
+        <!-- EmojiSelectionActivity -->
+        <activity
+            android:name=".view.EmojiSelectionActivity"
+            android:exported="false" />
+
         <!-- AddMoodActivity -->
         <activity
-            android:name=".AddMoodActivity"
+            android:name=".view.AddMoodActivity"
             android:exported="false" />
         <activity
-            android:name=".MoodDetailActivity"
-            android:exported="false"
-            />
+            android:name=".view.MapsFollowingActivity"
+            android:exported="false" />
 
-        <activity android:name=".EditMoodActivity"/>
-        <activity android:name=".EditEmojiActivity"/>
+        <!-- MoodDetailActivity -->
+        <activity
+            android:name=".view.MoodDetailActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+
+        <activity android:name=".view.EditMoodActivity" />
+        <activity android:name=".view.EditEmojiActivity" />
+        <activity
+            android:name=".view.SearchActivity"
+            android:exported="true" />
+        <activity android:name=".view.FollowingActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
