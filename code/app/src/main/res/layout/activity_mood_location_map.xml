@@ -18,11 +18,25 @@
         android:layout_height="65dp"
         android:layout_alignParentBottom="true"
         android:background="#80000000"
+        style="@style/CustomBottomNavigationView"
         app:itemIconSize="0dp"
-        app:itemTextColor="@android:color/white"
-        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Body1"
-        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Body1"
+        app:itemTextColor="@color/nav_item_text_color"
+        app:itemTextAppearanceActive="@style/BottomNavTextActive"
+        app:itemTextAppearanceInactive="@style/BottomNavTextInactive"
         app:menu="@menu/bottom_nav_menu" />
+
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/back_button_description"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_margin="16dp"
+        android:src="@drawable/backarrowblack"
+        android:layout_gravity="top|start" />
 
     <!-- Filter Button -->
     <ImageButton
@@ -30,6 +44,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
+        android:layout_alignParentEnd="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_filter_black" />
 
