@@ -94,17 +94,24 @@ public class MoodDataManager {
                         String imageUrl = documentSnapshot.getString("imageUrl");
 
                         if (imageUrl != null && !imageUrl.isEmpty()) {
-                            // Delete the image from Firebase Storage
-                            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
-                            imageRef.delete()
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("Firebase Storage", "Image deleted successfully");
-                                        deleteMoodDocument(moodId, listener);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("Firebase Storage", "Failed to delete image", e);
-                                        listener.onError("Failed to delete image: " + e.getMessage());
-                                    });
+                            try {
+                                // Delete the image from Firebase Storage
+                                StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                                imageRef.delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d("Firebase Storage", "Image deleted successfully");
+                                            deleteMoodDocument(moodId, listener);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e("Firebase Storage", "Failed to delete image", e);
+                                            // Even if image deletion fails, we should still try to delete the document
+                                            deleteMoodDocument(moodId, listener);
+                                        });
+                            } catch (IllegalArgumentException e) {
+                                Log.e("Firebase Storage", "Invalid storage URL: " + imageUrl, e);
+                                // If the URL is invalid, just delete the document
+                                deleteMoodDocument(moodId, listener);
+                            }
                         } else {
                             // Delete the mood document if there's no image
                             deleteMoodDocument(moodId, listener);

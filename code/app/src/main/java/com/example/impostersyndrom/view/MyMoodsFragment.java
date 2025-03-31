@@ -166,10 +166,9 @@ public class MyMoodsFragment extends Fragment {
                         }
                     })
                     .addOnFailureListener(e -> {
-
                         if (!isFragmentActive || currentOpId != operationId.get()) return;
                         Log.e(TAG, "User fetch failed: " + e.getMessage());
-                        showToast("User fetch failed: " + e.getMessage());
+                        showMessage("User fetch failed: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocsToDisplay.size()) {
                             if (currentOpId != operationId.get()) return;

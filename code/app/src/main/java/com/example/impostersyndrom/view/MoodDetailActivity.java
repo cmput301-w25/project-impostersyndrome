@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -508,7 +510,14 @@ public class MoodDetailActivity extends AppCompatActivity {
         float energy = moodAudioMapper.getEnergy(emoji);
 
         isFetchingRecommendations = true;
-        cardAdapter.notifyItemChanged(1);
+        // Use post to ensure layout is complete before updating adapter
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                cardAdapter.notifyItemChanged(1);
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Failed to update adapter: " + e.getMessage());
+            }
+        });
 
         spotifyManager.fetchRecommendations(genre, valence, energy, new Callback<SpotifyRecommendationResponse>() {
             @Override

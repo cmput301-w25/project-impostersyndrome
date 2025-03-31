@@ -27,6 +27,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import android.Manifest;
+import android.widget.Toast;
+
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.NetworkUtils;
