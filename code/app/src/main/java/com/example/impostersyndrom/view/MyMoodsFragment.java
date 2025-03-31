@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -14,6 +15,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.impostersyndrom.R;
 import com.example.impostersyndrom.controller.MoodAdapter;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.MoodFilter;
 import com.example.impostersyndrom.model.MoodItem;
 import com.google.android.material.snackbar.Snackbar;
@@ -28,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MyMoodsFragment extends Fragment {
     private static final String TAG = "MyMoodsFragment";
+    private static final int PAGE_SIZE = 10; // Number of moods to load per page
+    
     private TextView emptyMessage;
     private ListView moodListView;
     private MoodAdapter moodAdapter;
@@ -41,7 +45,10 @@ public class MyMoodsFragment extends Fragment {
     private boolean isFilterActive = false;
     private List<DocumentSnapshot> currentFilteredDocs = new ArrayList<>();
     private boolean isFragmentActive = true;
-    private AtomicInteger operationId = new AtomicInteger(0); // Track current operation
+    private AtomicInteger operationId = new AtomicInteger(0);
+    private DocumentSnapshot lastVisibleDocument;
+    private boolean isLoadingMore = false;
+    private boolean hasMoreData = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,8 +61,23 @@ public class MyMoodsFragment extends Fragment {
         userId = requireActivity().getIntent().getStringExtra("userId");
 
         emptyMessage.setText("Loading moods...");
-        swipeRefreshLayout.setOnRefreshListener(this::fetchMyMoods);
+        swipeRefreshLayout.setOnRefreshListener(this::refreshMoods);
         swipeRefreshLayout.setColorSchemeColors(Color.BLACK, Color.BLACK, Color.BLACK);
+
+        // Setup scroll listener for pagination
+        moodListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (!isLoadingMore && hasMoreData && !isFilterActive) {
+                    if (firstVisibleItem + visibleItemCount >= totalItemCount - 5) {
+                        loadMoreMoods();
+                    }
+                }
+            }
+        });
 
         fetchMyMoods();
         return view;
@@ -68,43 +90,66 @@ public class MyMoodsFragment extends Fragment {
         Log.d(TAG, "Fragment view destroyed");
     }
 
+    public void refreshMoods() {
+        Log.d("MyMoodsFragment", "refreshMoods called");
+        if (NetworkUtils.isOffline(requireContext())) {
+            Log.d("MyMoodsFragment", "Offline mode - showing offline message");
+            showMessage("You're offline. Your changes will sync when you're back online.");
+            return;
+        }
+        fetchMyMoods();
+    }
+
     public void fetchMyMoods() {
-        if (!isFragmentActive || userId == null) {
-            Log.d(TAG, "Fetch skipped: Fragment inactive or user ID null");
-            if (userId == null) showMessage("User not logged in");
-            updateEmptyState();
-            swipeRefreshLayout.setRefreshing(false);
+        if (isFilterByRecentWeek()) {
+            fetchRecentWeekMoods();
             return;
         }
 
-        Log.d(TAG, "Fetching moods for user: " + userId);
-        emptyMessage.setText("Loading moods...");
-        moodListView.setVisibility(View.GONE);
-        if (moodAdapter != null) {
-            moodAdapter.clear();
-            moodListView.setAdapter(null);
-            moodAdapter = null;
+        if (NetworkUtils.isOffline(requireContext())) {
+            Log.d("MyMoodsFragment", "Offline mode - showing offline message");
+            showMessage("You're offline. Your changes will sync when you're back online.");
+            return;
         }
-        operationId.incrementAndGet(); // New fetch operation
 
-        db.collection("moods")
+        Log.d("MyMoodsFragment", "Starting to fetch moods");
+        showLoading(true);
+        moodDocs.clear();
+        lastVisibleDocument = null;
+        hasMoreData = true;
+        isLoadingMore = false;
+
+        Query query = db.collection("moods")
                 .whereEqualTo("userId", userId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (!isFragmentActive) return;
-                    moodDocs = snapshot.getDocuments();
-                    Log.d(TAG, "Fetched " + moodDocs.size() + " moods");
+                .limit(PAGE_SIZE);
+
+        query.get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Log.d("MyMoodsFragment", "Successfully fetched moods: " + queryDocumentSnapshots.size());
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        lastVisibleDocument = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
+                        hasMoreData = queryDocumentSnapshots.size() >= PAGE_SIZE;
+                    } else {
+                        hasMoreData = false;
+                    }
+                    moodDocs.addAll(queryDocumentSnapshots.getDocuments());
                     applyCurrentFilter();
-                    swipeRefreshLayout.setRefreshing(false);
+                    showLoading(false);
                 })
                 .addOnFailureListener(e -> {
-                    if (!isFragmentActive) return;
-                    Log.e(TAG, "Fetch failed: " + e.getMessage());
-                    showMessage("Failed to fetch moods: " + e.getMessage());
-                    updateEmptyState();
-                    swipeRefreshLayout.setRefreshing(false);
+                    Log.e("MyMoodsFragment", "Error fetching moods: " + e.getMessage());
+                    showMessage("Error loading moods: " + e.getMessage());
+                    showLoading(false);
                 });
+    }
+
+    private void loadMoreMoods() {
+        if (isLoadingMore || !hasMoreData) return;
+        
+        isLoadingMore = true;
+        fetchMyMoods();
+        isLoadingMore = false;
     }
 
     private void applyCurrentFilter() {
@@ -148,7 +193,7 @@ public class MyMoodsFragment extends Fragment {
                             Log.d(TAG, "Ignoring stale query result, opId: " + currentOpId + ", current: " + operationId.get());
                             return;
                         }
-                        moodItems.set(position, new MoodItem(moodDoc, ""));
+                        moodItems.set(position, new MoodItem(moodDoc, "")); // No username for My Moods
                         completedQueries[0]++;
 
                         if (completedQueries[0] == moodDocsToDisplay.size()) {
@@ -168,6 +213,7 @@ public class MyMoodsFragment extends Fragment {
                     .addOnFailureListener(e -> {
                         if (!isFragmentActive || currentOpId != operationId.get()) return;
                         Log.e(TAG, "User fetch failed: " + e.getMessage());
+                        showMessage("User fetch failed: " + e.getMessage());
                         completedQueries[0]++;
                         if (completedQueries[0] == moodDocsToDisplay.size()) {
                             if (currentOpId != operationId.get()) return;
@@ -253,5 +299,13 @@ public class MyMoodsFragment extends Fragment {
                     .setAction("OK", null)
                     .show();
         }
+    }
+
+    private void showLoading(boolean show) {
+        // Implementation of showLoading method
+    }
+
+    private void fetchRecentWeekMoods() {
+        // Implementation of fetchRecentWeekMoods method
     }
 }

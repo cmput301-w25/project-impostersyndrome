@@ -81,5 +81,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
 }

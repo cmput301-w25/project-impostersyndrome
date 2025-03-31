@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
@@ -200,6 +201,7 @@ public class AddMoodActivity extends AppCompatActivity {
             mood.setUserId(User.getInstance().getUserId());
             mood.setPrivateMood(isPrivateMood);
 
+            // If location is attached, update the mood
             if (isLocationAttached && currentLocation != null) {
                 mood.setLatitude(currentLocation.getLatitude());
                 mood.setLongitude(currentLocation.getLongitude());
@@ -210,25 +212,49 @@ public class AddMoodActivity extends AppCompatActivity {
                 Log.d("AddMoodActivity", "No location attached");
             }
 
-            if (imageHandler.hasImage()) {
-                imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                    @Override
-                    public void onImageUploadSuccess(String url) {
-                        imageUrl = url;
-                        mood.setImageUrl(imageUrl);
-                        saveMood(mood);
-                    }
+            Log.d("AddMoodActivity", "Mood details: " + mood.toString());
 
-                    @Override
-                    public void onImageUploadFailure(Exception e) {
-                        showMessage("Failed to upload image: " + e.getMessage());
+            if (NetworkUtils.isOffline(AddMoodActivity.this)) {
+                // Offline branch: Save mood locally
+                if (imageHandler.hasImage()) {
+                    String localImageUri = imageHandler.saveImageLocally();
+                    if (localImageUri != null) {
+                        mood.setImageUrl(localImageUri);
+                        Log.d("OfflineImage", "Image saved locally: " + localImageUri);
+                    } else {
+                        Log.e("OfflineImage", "Failed to save image locally.");
+                        mood.setImageUrl(null);
                     }
-                });
+                } else {
+                    mood.setImageUrl(null);
+                }
+                Log.d("OfflineMood", "Saving offline mood: " + mood.toString());
+                moodDataManager.saveMoodOffline(AddMoodActivity.this, mood);
+                Log.d("MoodSubmit", "Mood saved offline: " + mood.getReason());
+                navigateToMainActivity();
             } else {
-                mood.setImageUrl(null);
-                saveMood(mood);
+                // Online branch: Sync directly with Firestore
+                if (imageHandler.hasImage()) {
+                    imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+                        @Override
+                        public void onImageUploadSuccess(String url) {
+                            imageUrl = url;
+                            mood.setImageUrl(imageUrl);
+                            saveMood(mood);
+                        }
+
+                        @Override
+                        public void onImageUploadFailure(Exception e) {
+                            showMessage("Failed to upload image: " + e.getMessage());
+                        }
+                    });
+                } else {
+                    mood.setImageUrl(null);
+                    saveMood(mood);
+                }
             }
         });
+
     }
 
     private void fetchLocation() {
