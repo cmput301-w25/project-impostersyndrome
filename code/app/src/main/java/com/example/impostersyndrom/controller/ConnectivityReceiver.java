@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * BroadcastReceiver that handles network connectivity changes to sync offline data.
  *
- * @author [Your Name]
+ * @author Rayan Zhi
  */
 public class ConnectivityReceiver extends BroadcastReceiver {
 
