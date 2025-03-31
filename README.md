@@ -52,7 +52,7 @@ An Android mood tracking application that enables users to:
 |-------------------|---------------------------------------------------------------------|
 | Project Wiki      | [View Wiki](https://github.com/cmput301-w25/project-impostersyndrome/wiki) |
 | Scrum Board       | [View Board](https://github.com/orgs/cmput301-w25/projects/45)      |
-| UI Mockups        | [View Designs](https://github.com/cmput301-w25/project-impostersyndrome/wiki/Ui-Mockups) |
+| UI Mockups        | [View Designs](https://github.com/cmput301-w25/project-impostersyndrome/wiki/Final-UI-Mockups) |
 | System UML        | [View Diagram](https://github.com/cmput301-w25/project-impostersyndrome/wiki/UML) |
 
 ## Development Resources
