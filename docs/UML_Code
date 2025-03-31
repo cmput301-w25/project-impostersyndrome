@@ -1,0 +1,142 @@
+@startuml
+
+' Main Classes
+class FollowingFragment {
+  - ListView listView
+  - TextView emptyMessage
+  - List<UserData> followingUsers
+  - FollowingAdapter followingAdapter
+  - FirebaseFirestore db
+  - String currentUserId
+  - ListenerRegistration followingListener
+  + View onCreateView()
+  - void loadFollowingUsers()
+  - void fetchUserDetails()
+  + void onDestroyView()
+  - void showMessage()
+}
+
+class Mood {
+  - String emotionalState
+  - String emojiDescription
+  - String id
+  - String reason
+  - Date timestamp
+  - int color
+  - String imageUrl
+  - String userId
+  - String group
+  - int emojiDrawableId
+  - boolean privateMood
+  - Double latitude
+  - Double longitude
+  + getters/setters...
+}
+
+class LoginActivity {
+  - TextInputLayout layoutEmail
+  - TextInputEditText loginEmail
+  - View loginProgressBar
+  - FirebaseAuth auth
+  - FirebaseFirestore db
+  - GoogleSignInClient googleSignInClient
+  # void onCreate()
+  - void loginUser()
+  - void signInWithGoogle()
+  # void onActivityResult()
+  - void handleGoogleSignInResult()
+  - void firebaseAuthWithGoogle()
+  - void prefetchMoodData()
+}
+
+class MainActivity {
+  - ImageButton addMoodButton
+  - TabLayout tabLayout
+  - ViewPager2 viewPager
+  - MainViewPagerAdapter viewPagerAdapter
+  - DrawerLayout drawerLayout
+  - NavigationView innerNavigationView
+  - LinearLayout logoutContainer
+  - MoodDataManager moodDataManager
+  - ProfileDataManager profileDataManager
+  - String userId
+  # void onCreate()
+  - void initializeViews()
+  - void setupNavigationDrawer()
+  - void setupViewPager()
+  - void setupButtonListeners()
+  - void navigateToProfile()
+  - void toggleNavigationDrawer()
+  - void navigateToEmojiSelection()
+  - void showFilterDialog()
+  + void showBottomSheetDialog()
+  + void navigateToMoodDetail()
+  - void logoutUser()
+}
+
+class MoodDetailActivity {
+  - ImageButton backButton
+  - ViewPager2 viewPager
+  - String emoji
+  - Timestamp timestamp
+  - String reason
+  - String group
+  - int color
+  - String emojiDescription
+  - String imageUrl
+  - Double latitude
+  - Double longitude
+  - SpotifyManager spotifyManager
+  - MoodAudioMapper moodAudioMapper
+  # void onCreate()
+  - boolean initializeViews()
+  - void retrieveIntentData()
+  - void setupViewPager()
+  - void fetchSongRecommendation()
+  - void displayNextTrack()
+  - void displayPreviousTrack()
+  - void playTrackOnSpotify()
+  - void openMap()
+}
+
+' Relationships
+androidx.fragment.app.Fragment <|-- FollowingFragment
+androidx.appcompat.app.AppCompatActivity <|-- LoginActivity
+androidx.appcompat.app.AppCompatActivity <|-- MainActivity
+androidx.appcompat.app.AppCompatActivity <|-- MoodDetailActivity
+
+' Additional notable classes
+class MoodDataManager {
+  + void addMood()
+  + void updateMood()
+  + void fetchMoods()
+  + void deleteMood()
+}
+
+class ProfileDataManager {
+  + void fetchUserProfile()
+  + void fetchFollowersCount()
+  + void fetchFollowingCount()
+}
+
+class SpotifyManager {
+  - String accessToken
+  + void fetchRecommendations()
+  + void searchTracks()
+}
+
+class ImageHandler {
+  + void openGallery()
+  + void openCamera()
+  + void handleActivityResult()
+  + void uploadImageToFirebase()
+}
+
+' More relationships
+MainActivity --> MoodDataManager
+MainActivity --> ProfileDataManager
+MoodDetailActivity --> SpotifyManager
+AddMoodActivity --> ImageHandler
+EditMoodActivity --> ImageHandler
+
+@enduml
