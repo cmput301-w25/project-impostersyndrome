@@ -26,7 +26,7 @@ import java.util.Locale;
  * Adapter for displaying a list of mood items with customizable username visibility.
  *
  * @author Roshan
- *
+ * @author Rayan 
  */
 public class MoodAdapter extends ArrayAdapter<MoodItem> {
     private final boolean showUsername; // Flag to show/hide username
