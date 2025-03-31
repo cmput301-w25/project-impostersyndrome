@@ -26,6 +26,14 @@
         android:theme="@style/Theme.ImposterSyndrom"
         tools:targetApi="31">
 
+        <activity
+            android:name=".view.MapActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".view.MoodLocationMapActivity"
+            android:exported="false" />
+
         <activity android:name=".view.EditProfileActivity" />
         <activity
             android:name=".view.UserProfileActivity"
@@ -54,19 +62,19 @@
             android:exported="true"
             android:launchMode="singleTask">
             <!-- Intent-filter for launcher (app icon) -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <!-- Intent-filter to handle Spotify Redirect URI -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="ImposterSyndrome"
-                    android:host="callback" />
-            </intent-filter>
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--            &lt;!&ndash; Intent-filter to handle Spotify Redirect URI &ndash;&gt;-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+<!--                <data-->
+<!--                    android:scheme="ImposterSyndrome"-->
+<!--                    android:host="callback" />-->
+<!--            </intent-filter>-->
         </activity>
 
         <!-- EmojiSelectionActivity -->
@@ -78,10 +86,14 @@
         <activity
             android:name=".view.AddMoodActivity"
             android:exported="false" />
+        <activity
+            android:name=".view.MapsFollowingActivity"
+            android:exported="false" />
 
         <!-- MoodDetailActivity -->
         <activity
             android:name=".view.MoodDetailActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <activity android:name=".view.EditMoodActivity" />

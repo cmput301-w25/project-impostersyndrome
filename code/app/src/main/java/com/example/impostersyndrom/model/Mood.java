@@ -59,6 +59,23 @@ public class Mood implements Serializable {
 
 
     /**
+     * No-argument constructor required by Firebase Firestore for deserialization.
+     */
+    public Mood() {
+        // Initialize with default values
+        this.id = UUID.randomUUID().toString();
+        this.emotionalState = "";
+        this.emojiDescription = "";
+        this.timestamp = new Date();
+        this.color = 0;
+        this.reason = "";
+        this.group = "alone";
+        this.imageUrl = null;
+        this.latitude = 0.0;
+        this.longitude = 0.0;
+    }
+
+    /**
      * Constructor for the Mood class.
      *
      * @param emotionalState   The emotional state (e.g., happy, sad).
@@ -275,4 +292,21 @@ public class Mood implements Serializable {
      * @param privateMood the mood status
      */
     public void setPrivateMood(boolean privateMood) {this.privateMood = privateMood;}
+
+    public void setLocation(double latitude, double longitude) {
+        if (latitude < -90 || latitude > 90) {
+            throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees");
+        }
+
+        // Validate longitude range (-180 to 180)
+        if (longitude < -180 || longitude > 180) {
+            throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees");
+        }
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public boolean hasLocation() {
+        return latitude != null && longitude != null;
+    }
 }

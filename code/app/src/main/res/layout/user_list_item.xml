@@ -17,7 +17,7 @@
         android:layout_height="48dp"
         android:layout_marginEnd="12dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/default_person"
+        android:src="@drawable/img_default_person"
         app:shapeAppearanceOverlay="@style/CircleImageView" />
 
     <!-- Username -->
@@ -26,7 +26,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="User Name"
+        android:text="@string/username"
         android:textSize="18sp"
         android:textColor="@android:color/white" />
 
@@ -38,17 +38,17 @@
         android:padding="6dp"
         android:background="@android:color/transparent"
         android:scaleType="fitCenter"
-        android:src="@drawable/follower"
+        android:src="@drawable/ic_follower"
         android:visibility="gone"/>
 
     <Button
         android:id="@+id/unfollowButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Unfollow"
+        android:text="@string/unfollow"
         android:textSize="14sp"
         android:textColor="@android:color/white"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/bg_search_bar"
         android:padding="6dp"
         android:visibility="gone"/>  <!-- Initially Hidden -->
 
@@ -57,10 +57,10 @@
         android:id="@+id/requestedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Requested"
+        android:text="@string/requested"
         android:textSize="14sp"
         android:textColor="@android:color/white"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/bg_search_bar"
         android:padding="6dp"
         android:visibility="gone"/>  <!-- Initially Hidden -->
 

@@ -4,15 +4,15 @@ import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.graphics.Color;
 import android.view.MenuInflater;
 import android.widget.PopupMenu;
@@ -27,22 +27,30 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import android.Manifest;
+import android.widget.Toast;
+
 import com.example.impostersyndrom.controller.EditEmojiResources;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.NetworkUtils;
 import com.example.impostersyndrom.model.ImageHandler;
+import com.example.impostersyndrom.model.MoodDataManager;
 
 import com.example.impostersyndrom.model.Mood;
 import com.example.impostersyndrom.model.MoodDataManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -51,8 +59,8 @@ import java.util.Map;
  * The updated mood data is saved to Firestore.
  *
  * @author Rayan
+ * @author Roshan
  */
-
 public class EditMoodActivity extends AppCompatActivity {
     private String moodId; // ID of the mood being edited
     private FirebaseFirestore db; // Firestore database instance
@@ -81,7 +89,10 @@ public class EditMoodActivity extends AppCompatActivity {
 
     private boolean imageRemoved = false;
     private boolean isPrivateMood = false;
+    private TextView reasonCharCounter; // Added for character counter
 
+
+    private static final int MAX_REASON_LENGTH = 200; // Define max length
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +109,7 @@ public class EditMoodActivity extends AppCompatActivity {
                         // Permission granted, fetch location
                         fetchLocation();
                     } else {
-                        Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Location permission required");
                     }
                 }
         );
@@ -113,6 +124,10 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
+
+        TextView editDateTimeView = findViewById(R.id.EditDateTimeView);
+        reasonCharCounter = findViewById(R.id.reasonCharCounter); // Initialize character counter
+
         SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
 
         // Retrieve passed mood data
@@ -124,6 +139,17 @@ public class EditMoodActivity extends AppCompatActivity {
         originalImageUrl = imageUrl;
         int color = intent.getIntExtra("color", 0);
         isPrivateMood = intent.getBooleanExtra("privateMood", false);
+
+        // Display timestamp
+        Timestamp timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
+        if (timestamp != null) {
+            String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault())
+                    .format(timestamp.toDate());
+            editDateTimeView.setText(formattedTime);
+            editDateTimeView.setTextColor(Color.BLACK);
+        } else {
+            editDateTimeView.setText("Unknown time");
+        }
 
         // Set initial privacy switch state
         privacySwitch.setChecked(isPrivateMood);
@@ -176,7 +202,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openCamera(cameraLauncher);
                     } else {
-                        Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Camera permission required");
                     }
                 });
 
@@ -186,7 +212,7 @@ public class EditMoodActivity extends AppCompatActivity {
                     if (isGranted) {
                         imageHandler.openGallery(galleryLauncher);
                     } else {
-                        Toast.makeText(this, "Storage permission required", Toast.LENGTH_SHORT).show();
+                        showMessage("Storage permission required");
                     }
                 });
 
@@ -229,18 +255,27 @@ public class EditMoodActivity extends AppCompatActivity {
 
         // Set UI elements with retrieved data
         editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
-        editReason.setText(reason);
+        editReason.setText(reason); // Set the full reason text
+        updateCharCounter(reason != null ? reason.length() : 0); // Initial counter update
 
-        // Apply the background color to the rectangle
-        setRoundedBackground(editEmojiRectangle, color);
+        // Add TextWatcher for character counter
+        editReason.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Ensure EditText clears only once when clicked
-        editReason.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                editReason.setText(""); // Clears text when clicked
-                editReason.setOnFocusChangeListener(null); // Removes listener so it doesn't clear repeatedly
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateCharCounter(s.length());
             }
         });
+
+        setRoundedBackground(editEmojiRectangle, color);
+
+        // Remove the focus listener that clears text, as it’s not needed anymore
+        // editReason.setOnFocusChangeListener((v, hasFocus) -> { ... });
 
         // Back button functionality
         backButton.setOnClickListener(v -> {
@@ -255,9 +290,11 @@ public class EditMoodActivity extends AppCompatActivity {
         submitButton.setOnClickListener(v -> updateMoodInFirestore());
     }
 
-    /**
-     * Updates the mood entry in Firestore with the new data.
-     */
+    // Update the character counter
+    private void updateCharCounter(int currentLength) {
+        reasonCharCounter.setText(currentLength + "/" + MAX_REASON_LENGTH);
+    }
+
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
         Map<String, Object> updates = new HashMap<>();
@@ -276,22 +313,53 @@ public class EditMoodActivity extends AppCompatActivity {
             updates.put("group", selectedGroup);
         }
 
+        // Check if device is offline before attempting any image upload.
+        if (NetworkUtils.isOffline(this)) {
+            if (imageUrl == null && imageHandler.hasImage()) {
+                // Get a local URI for the image using the helper method you'll add to ImageHandler.
+                String localUri = imageHandler.getLocalImageUri();
+                if (localUri != null) {
+                    updates.put("imageUrl", localUri);
+                } else {
+                    updates.put("imageUrl", null);
+                }
+            } else if (imageUrl == null && originalImageUrl != null) {
+                // If no new image was selected and the original image is remote, convert it locally.
+                if (!originalImageUrl.startsWith("file://")) {
+                    imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
+                        if (localUri != null) {
+                            updates.put("imageUrl", localUri);
+                            Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
+                        } else {
+                            updates.put("imageUrl", originalImageUrl);
+                        }
+                        Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+                        new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
+                        finish();
+                    });
+                    return;
+                } else {
+                    updates.put("imageUrl", originalImageUrl);
+                }
+            }
+            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+            finish();
+            return;
+        }
+
+        // If online, handle image upload if a new image is selected.
         if (imageUrl == null && imageHandler.hasImage()) {
             imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                 @Override
                 public void onImageUploadSuccess(String url) {
-                    // If there's an existing image, delete it from Firebase Storage
+                    // Delete the old image if it exists.
                     if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
                         StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
                         oldImageRef.delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("Firebase Storage", "Old image permanently deleted after new upload");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e("Firebase Storage", "Failed to delete old image", e);
-                                });
+                                .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Old image permanently deleted after new upload"))
+                                .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete old image", e));
                     }
-                    // Set the new image URL and update Firestore
                     EditMoodActivity.this.imageUrl = url;
                     updates.put("imageUrl", url);
                     saveToFirestore(updates);
@@ -299,15 +367,13 @@ public class EditMoodActivity extends AppCompatActivity {
 
                 @Override
                 public void onImageUploadFailure(Exception e) {
-                    Toast.makeText(EditMoodActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    showMessage("Failed to upload image: " + e.getMessage());
                 }
             });
             return;
         } else if (imageUrl != null) {
             updates.put("imageUrl", imageUrl);
         }
-
-        // If no image is selected and there was an original image, delete it from Firebase Storage
         if (imageUrl == null && originalImageUrl != null) {
             StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
             imageRef.delete()
@@ -318,11 +384,13 @@ public class EditMoodActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Log.e("Firebase Storage", "Failed to delete image", e);
-                        Toast.makeText(EditMoodActivity.this, "Failed to delete image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to delete image: " + e.getMessage());
                     });
         } else {
             saveToFirestore(updates);
         }
+
+        saveToFirestore(updates);
     }
 
     /**
@@ -339,7 +407,6 @@ public class EditMoodActivity extends AppCompatActivity {
                         if (documentSnapshot.exists() && documentSnapshot.contains("imageUrl")) {
                             updates.put("imageUrl", documentSnapshot.getString("imageUrl"));
                         }
-
                         updateFirestore(updates);
                     })
                     .addOnFailureListener(e -> Log.e("Firestore", "Failed to get current mood data", e));
@@ -357,10 +424,10 @@ public class EditMoodActivity extends AppCompatActivity {
         db.collection("moods").document(moodId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(EditMoodActivity.this, "Mood updated!", Toast.LENGTH_SHORT).show();
+                    showMessage("Mood updated!");
                     finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(EditMoodActivity.this, "Failed to update mood", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> showMessage("Failed to update mood"));
     }
 
     @Override
@@ -416,15 +483,14 @@ public class EditMoodActivity extends AppCompatActivity {
         menuMap.put(R.id.with_crowd, "With a crowd");
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
-                selectedGroup = menuMap.get(item.getItemId()); // Store selection
-                Toast.makeText(EditMoodActivity.this, "Group Selection: " + selectedGroup, Toast.LENGTH_SHORT).show();
+                selectedGroup = menuMap.get(item.getItemId());
+
                 return true;
             }
             return false;
         });
         popup.show();
     }
-
 
     /**
      * Displays a popup menu for image options (camera, gallery, remove photo).
@@ -452,15 +518,14 @@ public class EditMoodActivity extends AppCompatActivity {
                 }
                 return true;
             } else if (item.getTitle().equals("Remove Photo")) {
-                // Do not attempt deletion here; simply update the UI and mark the image as removed.
                 imageHandler.clearImage();
                 imageUrl = null;
-                imageRemoved = true; // Mark that the user removed the image
+                imageRemoved = true;
                 db.collection("moods").document(moodId)
                         .update("imageUrl", null)
                         .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
                         .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
-                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show();
+                showMessage("Image removed");
                 return true;
             }
             return false;
@@ -489,7 +554,7 @@ public class EditMoodActivity extends AppCompatActivity {
             // User chose not to attach location
             isLocationAttached = false;
             currentLocation = null;
-            Toast.makeText(this, "Location not attached", Toast.LENGTH_SHORT).show();
+            showMessage("Location not attached");
         });
         builder.show();
     }
@@ -504,28 +569,25 @@ public class EditMoodActivity extends AppCompatActivity {
                         if (location != null) {
                             currentLocation = location;
                             isLocationAttached = true;
-                            Toast.makeText(this, "Location attached: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                            showMessage("Location attached: " + location.getLatitude() + ", " + location.getLongitude());
                         } else {
-                            Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                            showMessage("Unable to fetch location");
                         }
                     })
                     .addOnFailureListener(this, e -> {
-                        Toast.makeText(this, "Failed to fetch location: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showMessage("Failed to fetch location: " + e.getMessage());
                     });
         } else {
-            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show();
+            showMessage("Location permission not granted");
         }
     }
 
     /**
      * Updates the mood in Firestore with the attached location (if any).
      */
-    /**
-     * Updates the mood in Firestore with the attached location (if any).
-     */
     private void updateMoodWithLocation() {
         if (moodId == null) {
-            Toast.makeText(EditMoodActivity.this, "Invalid mood ID", Toast.LENGTH_SHORT).show();
+            showMessage("Invalid mood ID");
             return;
         }
 
@@ -544,13 +606,27 @@ public class EditMoodActivity extends AppCompatActivity {
         moodDataManager.updateMood(moodId, updates, new MoodDataManager.OnMoodUpdatedListener() {
             @Override
             public void onMoodUpdated() {
-                Toast.makeText(EditMoodActivity.this, "Mood updated with location!", Toast.LENGTH_SHORT).show();
+                showMessage("Mood updated with location!");
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(EditMoodActivity.this, "Failed to update mood: " + errorMessage, Toast.LENGTH_SHORT).show();
+                showMessage("Failed to update mood: " + errorMessage);
             }
         });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }

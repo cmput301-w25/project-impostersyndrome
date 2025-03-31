@@ -10,22 +10,22 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
-import com.example.impostersyndrom.model.UserData; // Import UserData
+import com.example.impostersyndrom.model.UserData;
 import com.example.impostersyndrom.view.UserProfileActivity;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
 public class FollowingAdapter extends ArrayAdapter<UserData> {
-    private FirebaseFirestore db;
+    public FirebaseFirestore db;
     private String currentUserId;
     private List<UserData> followingUsers;
     private TextView emptyMessage;
@@ -61,11 +61,11 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
         if (user.profileImageUrl != null && !user.profileImageUrl.isEmpty()) {
             Glide.with(getContext())
                     .load(user.profileImageUrl)
-                    .placeholder(R.drawable.default_person)
-                    .error(R.drawable.default_person)
+                    .placeholder(R.drawable.img_default_person)
+                    .error(R.drawable.img_default_person)
                     .into(profileImage);
         } else {
-            profileImage.setImageResource(R.drawable.default_person);
+            profileImage.setImageResource(R.drawable.img_default_person);
         }
 
         // Make the TextView clickable
@@ -125,17 +125,17 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
                                                     })
                                                     .addOnFailureListener(e -> {
                                                         Log.e(TAG, "Error deleting follow document", e);
-                                                        Toast.makeText(getContext(), "Error unfollowing", Toast.LENGTH_SHORT).show();
+                                                        showMessage("Error unfollowing");
                                                     });
                                         } else {
                                             Log.e(TAG, "No matching follow document found");
-                                            Toast.makeText(getContext(), "Error: No match found", Toast.LENGTH_SHORT).show();
+                                            showMessage("Error: No match found");
                                         }
                                     })
                                     .addOnFailureListener(e -> Log.e(TAG, "Error searching follow collection", e));
                         } else {
                             Log.e(TAG, "No user found with username: " + user.username);
-                            Toast.makeText(getContext(), "Error: User not found", Toast.LENGTH_SHORT).show();
+                            showMessage("Error: User not found");
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error fetching user document", e));
@@ -144,7 +144,7 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
         return convertView;
     }
 
-    private void navigateToUserProfile(String username) {
+    public void navigateToUserProfile(String username) {
         Log.d(TAG, "Attempting to navigate to profile for: " + username);
 
         db.collection("users")
@@ -163,16 +163,30 @@ public class FollowingAdapter extends ArrayAdapter<UserData> {
                             getContext().startActivity(intent);
                         } catch (Exception e) {
                             Log.e(TAG, "Error starting UserProfileActivity", e);
-                            Toast.makeText(getContext(), "Error opening profile: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            showMessage("Error opening profile: " + e.getMessage());
                         }
                     } else {
                         Log.d(TAG, "User not found with username: " + username);
-                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                        showMessage("User not found");
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error finding user: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error finding user", Toast.LENGTH_SHORT).show();
+                    showMessage("Error finding user");
                 });
+    }
+
+    /**
+     * Displays a Snackbar message.
+     *
+     * @param message The message to display.
+     */
+    private void showMessage(String message) {
+        View rootView = ((Activity) getContext()).findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
+                    .setAction("OK", null)
+                    .show();
+        }
     }
 }
