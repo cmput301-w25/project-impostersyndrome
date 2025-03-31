@@ -7,20 +7,31 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.impostersyndrom.R;
+import com.example.impostersyndrom.controller.CommentsAdapter;
 import com.example.impostersyndrom.model.Mood;
+import com.example.impostersyndrom.model.Comment;
+import com.example.impostersyndrom.model.CommentDataManager;
+import com.example.impostersyndrom.model.ProfileDataManager;
 import com.example.impostersyndrom.network.SpotifyApiService;
 import com.example.impostersyndrom.network.SpotifyRecommendationResponse;
 import com.example.impostersyndrom.spotify.MoodAudioMapper;
 import com.example.impostersyndrom.spotify.SpotifyManager;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +55,7 @@ public class MoodDetailActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
 
     // Mood Data
+    private String moodId;
     private String emoji;
     private Timestamp timestamp;
     private String reason;
@@ -67,8 +79,18 @@ public class MoodDetailActivity extends AppCompatActivity {
     private SpotifyRecommendationResponse.Track currentTrack;
     private boolean isFetchingRecommendations = false;
 
-    // Adapter for ViewPager2
+    // Comments
+    private RecyclerView commentsRecyclerView;
+    private EditText commentEditText;
+    private ImageButton sendCommentButton;
+    private CommentsAdapter commentsAdapter;
+    private CommentDataManager commentDataManager;
+    private String currentUserId;
+    private String currentUsername;
+
     private MoodCardAdapter cardAdapter;
+
+    private ProfileDataManager profileDataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,13 +104,48 @@ public class MoodDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Get current user info for comments
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        currentUserId = user.getUid();
+        currentUsername = user.getDisplayName();
+        if (currentUsername == null || currentUsername.isEmpty()) {
+            currentUsername = "Anonymous";
+        }
+        profileDataManager = new ProfileDataManager();
+        profileDataManager.fetchUserProfile(currentUserId, new ProfileDataManager.OnProfileFetchedListener() {
+            @Override
+            public void onProfileFetched(DocumentSnapshot profileDoc) {
+                String fetchedName = profileDoc.getString("username");
+                if (fetchedName != null && !fetchedName.isEmpty()) {
+                    currentUsername = fetchedName;
+                    Log.d(TAG, "Username updated from profile: " + currentUsername);
+                }
+            }
+            @Override
+            public void onError(String errorMessage) {
+                Log.e(TAG, "Failed to fetch profile: " + errorMessage);
+            }
+        });
+
         if (!initializeViews()) {
             showMessage("Error initializing views.");
             finish();
             return;
         }
-
         retrieveIntentData();
+        // Retrieve mood extras (including moodId)
+        moodId = getIntent().getStringExtra("moodId");
+        if (moodId == null) {
+            moodId = "";
+            Log.e(TAG, "No moodId passed; comments may not function correctly.");
+        }
+        emoji = getIntent().getStringExtra("emoji");
+        timestamp = getIntent().getParcelableExtra("timestamp");
+        reason = getIntent().getStringExtra("reason");
+        group = getIntent().getStringExtra("group");
+        color = getIntent().getIntExtra("color", Color.WHITE);
+        emojiDescription = getIntent().getStringExtra("emojiDescription");
+        imageUrl = getIntent().getStringExtra("imageUrl");
         accessToken = getIntent().getStringExtra("accessToken");
         Log.d(TAG, "Access token received: " + (accessToken != null ? accessToken : "null"));
 
@@ -101,7 +158,96 @@ public class MoodDetailActivity extends AppCompatActivity {
             fetchSongRecommendation();
         }
 
+        // Setup Comments UI components
+        commentsRecyclerView = findViewById(R.id.commentsRecyclerView);
+        commentEditText = findViewById(R.id.commentEditText);
+        sendCommentButton = findViewById(R.id.sendCommentButton);
+        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        commentsAdapter = new CommentsAdapter();
+        // Pass currentUserId to the adapter so it can hide the delete button for others' comments
+        commentsAdapter.setCurrentUserId(currentUserId);
+        commentsRecyclerView.setAdapter(commentsAdapter);
+        commentDataManager = new CommentDataManager();
+
+        // Setup delete listener for comments
+        commentsAdapter.setOnCommentDeleteListener(comment -> {
+            if (!currentUserId.equals(comment.getUserId())) {
+                showMessage("You can only delete your own comments.");
+                return;
+            }
+            new AlertDialog.Builder(MoodDetailActivity.this)
+                    .setTitle("Delete Comment")
+                    .setMessage("Are you sure you want to delete this comment?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        commentDataManager.deleteCommentAndReplies(comment.getMoodId(), comment.getId(), new CommentDataManager.OnCommentDeletedListener() {
+                            @Override
+                            public void onCommentDeleted() {
+                                showMessage("Comment deleted");
+                                if (comment.getParentId() == null) {
+                                    // It's a top-level comment: just refresh all comments
+                                    fetchComments();
+                                } else {
+                                    // It's a reply: find the parent comment in the adapter
+                                    for (Comment c : commentsAdapter.getComments()) {
+                                        if (c.getId().equals(comment.getParentId())) {
+                                            updateRepliesForParent(c);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            @Override
+                            public void onError(String errorMessage) {
+                                showMessage("Error deleting comment: " + errorMessage);
+                            }
+                        });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+        // Setup send comment button
+        sendCommentButton.setOnClickListener(v -> {
+            String text = commentEditText.getText().toString().trim();
+            if (text.isEmpty()) {
+                showMessage("Please enter a comment");
+                return;
+            }
+            addComment(text);
+        });
+
+        fetchComments();
+
         setupBackButton();
+
+        commentsAdapter.setOnReplyListener(parentComment -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MoodDetailActivity.this);
+            builder.setTitle("Reply to " + parentComment.getUsername());
+            final EditText input = new EditText(MoodDetailActivity.this);
+            builder.setView(input);
+            builder.setPositiveButton("Send", (dialog, which) -> {
+                String replyText = input.getText().toString().trim();
+                if (!replyText.isEmpty()) {
+                    // Create a reply using the constructor that includes a parentId
+                    Comment replyComment = new Comment(parentComment.getMoodId(), currentUserId, currentUsername, replyText, new Date(), parentComment.getId());
+                    commentDataManager.addComment(parentComment.getMoodId(), replyComment, new CommentDataManager.OnCommentAddedListener() {
+                        @Override
+                        public void onCommentAdded() {
+                            showMessage("Reply added");
+                            parentComment.setReplyCount(parentComment.getReplyCount() + 1);
+                            // Immediately update the UI for this comment's replies
+                            updateRepliesForParent(parentComment);
+                        }
+                        @Override
+                        public void onError(String errorMessage) {
+                            showMessage("Error adding reply: " + errorMessage);
+                        }
+                    });
+                }
+            });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+            builder.show();
+        });
     }
 
     private boolean initializeViews() {
@@ -153,11 +299,60 @@ public class MoodDetailActivity extends AppCompatActivity {
             longitude = intent.hasExtra("longitude") ? intent.getDoubleExtra("longitude", 0.0) : null;
             Log.d(TAG, "Retrieved from Intent extras - Latitude: " + latitude + ", Longitude: " + longitude);
         }
-
         logMoodData();
     }
 
+    // Updated addComment to append the new comment instead of re fetching all
+    private void addComment(String text) {
+        Comment newComment = new Comment(moodId, currentUserId, currentUsername, text, new Date());
+        // Note: For a top-level comment, newComment.parentId will be null.
+        commentDataManager.addComment(moodId, newComment, new CommentDataManager.OnCommentAddedListener() {
+            @Override
+            public void onCommentAdded() {
+                showMessage("Comment added");
+                commentEditText.setText("");
+                commentsAdapter.addComment(newComment);
+            }
+            @Override
+            public void onError(String errorMessage) {
+                showMessage("Error adding comment: " + errorMessage);
+            }
+        });
+    }
+
+    private void fetchComments() {
+        commentDataManager.fetchComments(moodId, new CommentDataManager.OnCommentsFetchedListener() {
+            @Override
+            public void onCommentsFetched(List<Comment> comments) {
+                Log.d(TAG, "Fetched " + comments.size() + " comments for moodId: " + moodId);
+                commentsAdapter.setComments(comments);
+            }
+            @Override
+            public void onError(String errorMessage) {
+                showMessage("Error fetching comments: " + errorMessage);
+
+            }
+        });
+    }
+
+    // Helper method to update replies for a given parent comment
+    private void updateRepliesForParent(Comment parentComment) {
+        commentDataManager.fetchReplies(parentComment.getMoodId(), parentComment.getId(),
+                new CommentDataManager.OnRepliesFetchedListener() {
+                    @Override
+                    public void onRepliesFetched(List<Comment> replies) {
+                        commentsAdapter.updateRepliesForComment(parentComment, replies);
+                    }
+                    @Override
+                    public void onError(String errorMessage) {
+                        showMessage("Error refreshing replies: " + errorMessage);
+                    }
+                });
+    }
+
+
     private void logMoodData() {
+        Log.d(TAG, "Mood ID: " + moodId);
         Log.d(TAG, "Emoji: " + emoji);
         Log.d(TAG, "Timestamp: " + (timestamp != null ? timestamp.toString() : "null"));
         Log.d(TAG, "Reason: " + reason);
@@ -491,7 +686,7 @@ public class MoodDetailActivity extends AppCompatActivity {
             startActivity(intent);
             Log.d(TAG, "Navigating to MoodLocationMapActivity with lat: " + latitude + ", lon: " + longitude);
         } else {
-     
+
             Log.e(TAG, "No valid location data: lat=" + latitude + ", lon=" + longitude);
 
         }

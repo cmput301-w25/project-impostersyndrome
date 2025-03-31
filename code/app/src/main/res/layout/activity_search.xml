@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="IS"
+            android:text="@string/app_short_name"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/bg_search_bar"
         android:padding="10dp"
         android:gravity="center_vertical">
 
@@ -35,7 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Search"
+            android:hint="@string/search_hint"
             android:textColor="@android:color/white"
             android:textColorHint="#B0B0B0"
             android:background="@android:color/transparent"
@@ -47,19 +47,18 @@
             android:id="@+id/clearSearch"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/clear"
+            android:src="@drawable/img_clear"
             android:layout_marginEnd="5dp"
             android:scaleType="centerCrop"
             android:background="@android:color/transparent"
             android:visibility="gone"/>
-
     </LinearLayout>
 
     <TextView
         android:id="@+id/noResultsText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No results found."
+        android:text="@string/no_results_found"
         android:textColor="@android:color/darker_gray"
         android:textSize="18sp"
         android:gravity="center"
@@ -98,7 +97,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_home"
-            android:contentDescription="Home" />
+            android:contentDescription="@string/home_button_description" />
 
         <!-- Search Button -->
         <ImageButton
@@ -108,8 +107,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/search"
+
+            android:src="@drawable/ic_search"
             android:contentDescription="Search" />
+
 
         <!-- Add Mood Button -->
         <ImageButton
@@ -119,8 +120,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/add"
+
+            android:src="@drawable/ic_add"
             android:contentDescription="Add Mood" />
+
 
         <!-- Heart Button -->
         <ImageButton
@@ -131,7 +134,7 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/ic_heart"
-            android:contentDescription="Favorites" />
+            android:contentDescription="@string/favorites_button_description" />
 
         <!-- Profile Button -->
         <ImageButton
@@ -142,6 +145,6 @@
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             android:src="@drawable/white_profile"
-            android:contentDescription="Profile" />
+            android:contentDescription="@string/profile_button_description" />
     </LinearLayout>
 </LinearLayout>
