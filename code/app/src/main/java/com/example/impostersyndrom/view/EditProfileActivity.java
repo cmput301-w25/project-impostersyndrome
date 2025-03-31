@@ -28,8 +28,10 @@ import com.google.firebase.storage.StorageReference;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Activity for editing user profile information including username, bio and profile picture.
+ */
 public class EditProfileActivity extends AppCompatActivity {
-
     private EditText usernameEditText;
     private EditText bioEditText;
     private ImageButton saveButton;
@@ -50,10 +52,12 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
+        // Initialize Firebase services
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        // Initialize views
         usernameEditText = findViewById(R.id.usernameEditText);
         bioEditText = findViewById(R.id.bioEditText);
         saveButton = findViewById(R.id.saveButton);
@@ -62,13 +66,16 @@ public class EditProfileActivity extends AppCompatActivity {
 
         imageHandler = new ImageHandler(this, profileImage);
 
+        // Set click listeners
         backButton.setOnClickListener(v -> finish());
         profileImage.setOnClickListener(v -> showBottomSheetDialog());
         saveButton.setOnClickListener(v -> saveProfile());
 
+        // Load existing user data
         loadUserData();
     }
 
+    // Shows bottom sheet dialog for image selection options
     private void showBottomSheetDialog() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_picker, null);
@@ -96,11 +103,13 @@ public class EditProfileActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
+    // Handles gallery selection result
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> imageHandler.handleActivityResult(result.getResultCode(), result.getData())
     );
 
+    // Loads user data from Firestore
     private void loadUserData() {
         db.collection("users").document(userId)
                 .get()
@@ -130,6 +139,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 });
     }
 
+    // Removes current profile image
     private void removeProfileImage() {
         if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
             StorageReference imageRef = storage.getReferenceFromUrl(currentProfileImageUrl);
@@ -150,6 +160,7 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    // Validates and saves profile changes
     private void saveProfile() {
         String newUsername = usernameEditText.getText().toString().trim();
         String newBio = bioEditText.getText().toString().trim();
@@ -166,6 +177,7 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    // Checks if username is available before saving
     private void checkUsernameAvailability(String newUsername, String newBio) {
         db.collection("users")
                 .whereEqualTo("username", newUsername)
@@ -183,6 +195,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 });
     }
 
+    // Handles the profile saving process
     private void proceedWithSave(String newUsername, String newBio) {
         if (imageHandler.hasImage()) {
             if (currentProfileImageUrl != null && !currentProfileImageUrl.isEmpty()) {
@@ -210,6 +223,7 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    // Updates profile data in Firestore
     private void updateProfile(String newUsername, String newBio, String imageUrl) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("username", newUsername);
@@ -233,6 +247,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 });
     }
 
+    // Shows a snackbar message
     private void showMessage(String message) {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {

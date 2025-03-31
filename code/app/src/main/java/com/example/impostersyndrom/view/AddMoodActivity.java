@@ -52,6 +52,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Activity for creating new mood entries with emoji, description, images, and location.
+ */
 public class AddMoodActivity extends AppCompatActivity {
     private static final int REQUEST_CHECK_SETTINGS = 2001;
     private MoodDataManager moodDataManager;
@@ -201,7 +204,6 @@ public class AddMoodActivity extends AppCompatActivity {
             mood.setUserId(User.getInstance().getUserId());
             mood.setPrivateMood(isPrivateMood);
 
-            // If location is attached, update the mood
             if (isLocationAttached && currentLocation != null) {
                 mood.setLatitude(currentLocation.getLatitude());
                 mood.setLongitude(currentLocation.getLongitude());
@@ -215,7 +217,6 @@ public class AddMoodActivity extends AppCompatActivity {
             Log.d("AddMoodActivity", "Mood details: " + mood.toString());
 
             if (NetworkUtils.isOffline(AddMoodActivity.this)) {
-                // Offline branch: Save mood locally
                 if (imageHandler.hasImage()) {
                     String localImageUri = imageHandler.saveImageLocally();
                     if (localImageUri != null) {
@@ -233,7 +234,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 Log.d("MoodSubmit", "Mood saved offline: " + mood.getReason());
                 navigateToMainActivity();
             } else {
-                // Online branch: Sync directly with Firestore
                 if (imageHandler.hasImage()) {
                     imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
                         @Override
@@ -254,7 +254,6 @@ public class AddMoodActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     private void fetchLocation() {
@@ -312,11 +311,7 @@ public class AddMoodActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
-     */
+    // Shows a snackbar message to the user
     private void showMessage(String message) {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
@@ -326,11 +321,7 @@ public class AddMoodActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Saves the mood to Firestore.
-     *
-     * @param mood The Mood object to be saved.
-     */
+    // Saves the mood to Firestore
     private void saveMood(Mood mood) {
         moodDataManager.addMood(mood, new MoodDataManager.OnMoodAddedListener() {
             @Override
@@ -357,7 +348,7 @@ public class AddMoodActivity extends AppCompatActivity {
 
     private void navigateToMoodDetailActivity(Mood mood) {
         Intent intent = new Intent(this, MoodDetailActivity.class);
-        intent.putExtra("updatedMood", mood); // Pass the full Mood object
+        intent.putExtra("updatedMood", mood);
         intent.putExtra("emoji", mood.getEmotionalState());
         intent.putExtra("timestamp", new com.google.firebase.Timestamp(mood.getTimestamp()));
         intent.putExtra("reason", mood.getReason());
@@ -367,11 +358,12 @@ public class AddMoodActivity extends AppCompatActivity {
         intent.putExtra("imageUrl", mood.getImageUrl());
         intent.putExtra("latitude", mood.getLatitude());
         intent.putExtra("longitude", mood.getLongitude());
-        intent.putExtra("isMyMoods", true); // Assuming this is needed
+        intent.putExtra("isMyMoods", true);
         startActivity(intent);
         finish();
     }
 
+    // Applies rounded background styling to a layout
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
@@ -381,6 +373,7 @@ public class AddMoodActivity extends AppCompatActivity {
         layout.setBackground(gradientDrawable);
     }
 
+    // Shows group selection popup menu
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
@@ -402,6 +395,7 @@ public class AddMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
+    // Shows image selection popup menu
     private void showImageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
@@ -432,6 +426,7 @@ public class AddMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
+    // Shows location attachment prompt dialog
     private void showLocationPrompt() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Attach Location");

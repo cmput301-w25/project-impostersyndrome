@@ -44,7 +44,14 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-
+/**
+ * An Activity that displays mood markers on an interactive map using OpenStreetMap (osmdroid).
+ * Supports three viewing modes: personal moods, moods from followed users, and local moods within 5km.
+ * Provides filtering by time period, mood type, and keyword search. Includes location tracking
+ * and visualization of the 5km radius for local moods.
+ *
+ * @author Roshan
+ */
 public class MapActivity extends AppCompatActivity {
     private static final String TAG = "MapActivity";
     private static final double MAX_DISTANCE_KM = 5.0;

@@ -86,9 +86,6 @@
         <activity
             android:name=".view.AddMoodActivity"
             android:exported="false" />
-        <activity
-            android:name=".view.MapsFollowingActivity"
-            android:exported="false" />
 
         <!-- MoodDetailActivity -->
         <activity

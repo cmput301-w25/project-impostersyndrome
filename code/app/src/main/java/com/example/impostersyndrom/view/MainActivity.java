@@ -25,7 +25,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -227,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         // Restrict profileButton when offline.
         profileButton.setOnClickListener(v -> {
             if (NetworkUtils.isOffline(this)) {
-                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                showMessage("Youre offline");
                 return;
             }
             navigateToProfile();
@@ -236,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
         // Restrict filterButton when offline.
         filterButton.setOnClickListener(v -> {
             if (NetworkUtils.isOffline(this)) {
-                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                showMessage("Youre offline");
                 return;
             }
             showFilterDialog();
@@ -245,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         // Restrict searchButton when offline.
         searchButton.setOnClickListener(v -> {
             if (NetworkUtils.isOffline(this)) {
-                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                showMessage("Youre offline");
                 return;
             }
             startActivity(new Intent(MainActivity.this, SearchActivity.class));
@@ -254,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
         // Restrict heartButton (for following moods) when offline.
         heartButton.setOnClickListener(v -> {
             if (NetworkUtils.isOffline(this)) {
-                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                showMessage("Youre offline");
                 return;
             }
             startActivity(new Intent(MainActivity.this, FollowingActivity.class));
@@ -263,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
         // Restrict menuButton if needed (if its functions are not add/edit/delete).
         menuButton.setOnClickListener(v -> {
             if (NetworkUtils.isOffline(this)) {
-                Toast.makeText(MainActivity.this, "You're offline", Toast.LENGTH_SHORT).show();
+                showMessage("Youre offline");
                 return;
             }
             toggleNavigationDrawer();

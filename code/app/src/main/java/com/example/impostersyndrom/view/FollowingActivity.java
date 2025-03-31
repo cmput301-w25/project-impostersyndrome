@@ -13,7 +13,13 @@ import com.example.impostersyndrom.controller.ViewPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
-
+/**
+ * An Activity that hosts the Following and Pending Requests fragments in a tabbed interface.
+ * Manages the ViewPager2 and TabLayout for navigation between fragments.
+ * Provides bottom navigation to other main app screens.
+ *
+ * @author [Your Name]
+ */
 public class FollowingActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;

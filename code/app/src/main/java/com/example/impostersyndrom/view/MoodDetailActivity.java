@@ -48,6 +48,21 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
+/**
+ * Activity that displays detailed view of a mood entry with:
+ * - Mood details (emoji, reason, timestamp, etc.)
+ * - Spotify song recommendations based on mood
+ * - Comment section for user discussions
+ *
+ * Handles:
+ * - Viewing mood details
+ * - Fetching and displaying song recommendations
+ * - Adding/deleting comments and replies
+ * - Location viewing if mood has geotag
+ * - Spotify integration for music playback
+ * @author Roshan
+ */
 public class MoodDetailActivity extends AppCompatActivity {
 
     private static final String TAG = "MoodDetailActivity";

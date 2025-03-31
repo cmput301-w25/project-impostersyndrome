@@ -36,7 +36,6 @@ import com.example.impostersyndrom.model.ImageHandler;
 import com.example.impostersyndrom.model.MoodDataManager;
 
 import com.example.impostersyndrom.model.Mood;
-import com.example.impostersyndrom.model.MoodDataManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -54,46 +53,93 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * EditMoodActivity allows users to edit an existing mood entry.
- * Users can update the emoji, reason, group, and image associated with the mood.
- * The updated mood data is saved to Firestore.
- *
- * @author Rayan
- * @author Roshan
+ * Activity for editing an existing mood entry. Provides functionality to:
+ * locally and synced when connectivity is restored. Manages all Firestore updates and
+ * Firebase Storage operations for images.
  */
 public class EditMoodActivity extends AppCompatActivity {
-    private String moodId; // ID of the mood being edited
-    private FirebaseFirestore db; // Firestore database instance
-    private TextView editEmojiDescription; // TextView for emoji description
-    private EditText editReason; // EditText for mood reason
-    private ImageView editImagePreview; // ImageView for mood image preview
-    private ImageButton backButton, submitButton; // Back and submit buttons
-    private String selectedGroup; // Selected group for the mood
-    private ImageHandler imageHandler; // Handles image selection and uploading
-    private ActivityResultLauncher<Intent> galleryLauncher; // Launcher for gallery intent
-    private ActivityResultLauncher<Intent> cameraLauncher; // Launcher for camera intent
-    private String imageUrl = null; // URL of the uploaded image
-    private ActivityResultLauncher<String> cameraPermissionLauncher; // Launcher for camera permission request
-    private ActivityResultLauncher<String> galleryPermissionLauncher; // Launcher for gallery permission request
-    private String emoji; // Current emoji for the mood
-    private ImageView editEmoji; // ImageView for emoji display
-    private LinearLayout editEmojiRectangle; // Layout for emoji background
-    private String imageURL; // URL of the mood image
-    private boolean hasSubmittedChanges = false; // Tracks if changes have been submitted
-    private String originalImageUrl; // Original image URL before editing
+    /** Maximum allowed characters for mood reason text */
+    private static final int MAX_REASON_LENGTH = 200;
 
-    private FusedLocationProviderClient fusedLocationClient; // For fetching location
-    private ActivityResultLauncher<String[]> locationPermissionLauncher; // For location permission request
-    private Location currentLocation; // Stores the current location
+    /** ID of the mood document being edited */
+    private String moodId;
+
+    /** Firestore database instance */
+    private FirebaseFirestore db;
+
+    /** Displays the current emoji description */
+    private TextView editEmojiDescription;
+
+    /** EditText for modifying the mood reason */
+    private EditText editReason;
+
+    /** Preview of the attached image */
+    private ImageView editImagePreview;
+
+    /** Navigation buttons */
+    private ImageButton backButton, submitButton;
+
+    /** Current group selection */
+    private String selectedGroup;
+
+    /** Handles image selection and upload operations */
+    private ImageHandler imageHandler;
+
+    /** Activity launcher for gallery access */
+    private ActivityResultLauncher<Intent> galleryLauncher;
+
+    /** Activity launcher for camera access */
+    private ActivityResultLauncher<Intent> cameraLauncher;
+
+    /** URL of the current image (null if no image) */
+    private String imageUrl = null;
+
+    /** Permission launcher for camera access */
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
+
+    /** Permission launcher for gallery access */
+    private ActivityResultLauncher<String> galleryPermissionLauncher;
+
+    /** Current emoji identifier */
+    private String emoji;
+
+    /** View displaying the current emoji */
+    private ImageView editEmoji;
+
+    /** Background container for the emoji */
+    private LinearLayout editEmojiRectangle;
+
+    /** Original image URL before any edits */
+    private String originalImageUrl;
+
+    /** Flag indicating if changes have been submitted */
+    private boolean hasSubmittedChanges = false;
+
+    /** Client for location services */
+    private FusedLocationProviderClient fusedLocationClient;
+
+    /** Permission launcher for location access */
+    private ActivityResultLauncher<String[]> locationPermissionLauncher;
+
+    /** Current device location if attached */
+    private Location currentLocation;
+
+    /** Flag indicating if location is attached */
     private boolean isLocationAttached = false;
 
+    /** Flag indicating if image was removed */
     private boolean imageRemoved = false;
+
+    /** Current privacy status of the mood */
     private boolean isPrivateMood = false;
-    private TextView reasonCharCounter; // Added for character counter
 
+    /** Displays character count for reason text */
+    private TextView reasonCharCounter;
 
-    private static final int MAX_REASON_LENGTH = 200; // Define max length
-
+    /**
+     * Initializes the activity, sets up UI components, and loads existing mood data.
+     * @param savedInstanceState Saved instance state bundle
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,17 +152,17 @@ public class EditMoodActivity extends AppCompatActivity {
                 result -> {
                     if (result.get(Manifest.permission.ACCESS_FINE_LOCATION) != null &&
                             result.get(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                        // Permission granted, fetch location
                         fetchLocation();
                     } else {
                         showMessage("Location permission required");
                     }
                 }
         );
+
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Get UI elements
+        // Get references to UI components
         editEmoji = findViewById(R.id.EditEmoji);
         editEmojiDescription = findViewById(R.id.EditEmojiDescription);
         editReason = findViewById(R.id.EditReason);
@@ -124,13 +170,29 @@ public class EditMoodActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         submitButton = findViewById(R.id.submitButton);
         editEmojiRectangle = findViewById(R.id.EditEmojiRectangle);
-
         TextView editDateTimeView = findViewById(R.id.EditDateTimeView);
-        reasonCharCounter = findViewById(R.id.reasonCharCounter); // Initialize character counter
+        reasonCharCounter = findViewById(R.id.reasonCharCounter);
 
-        SwitchMaterial privacySwitch = findViewById(R.id.privacySwitch);
+        // Retrieve and display existing mood data
+        initializeMoodData();
 
-        // Retrieve passed mood data
+        // Set up character counter
+        editReason.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable s) {
+                updateCharCounter(s.length());
+            }
+        });
+
+        // Initialize image handling
+        initializeImageHandling();
+    }
+
+    /**
+     * Loads and displays the existing mood data from the intent extras
+     */
+    private void initializeMoodData() {
         Intent intent = getIntent();
         moodId = intent.getStringExtra("moodId");
         emoji = intent.getStringExtra("emoji");
@@ -140,266 +202,204 @@ public class EditMoodActivity extends AppCompatActivity {
         int color = intent.getIntExtra("color", 0);
         isPrivateMood = intent.getBooleanExtra("privateMood", false);
 
-        // Display timestamp
+        // Display timestamp if available
         Timestamp timestamp = (Timestamp) intent.getParcelableExtra("timestamp");
         if (timestamp != null) {
             String formattedTime = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault())
                     .format(timestamp.toDate());
-            editDateTimeView.setText(formattedTime);
-            editDateTimeView.setTextColor(Color.BLACK);
-        } else {
-            editDateTimeView.setText("Unknown time");
+            ((TextView) findViewById(R.id.EditDateTimeView)).setText(formattedTime);
         }
 
-        // Set initial privacy switch state
-        privacySwitch.setChecked(isPrivateMood);
-        privacySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            isPrivateMood = isChecked;
-            String status = isPrivateMood ? "Private" : "Public";
-        });
-
-        // Set the correct emoji image
+        // Set initial UI state
         editEmoji.setImageResource(EditEmojiResources.getEmojiResource(emoji));
-        editEmoji.setOnClickListener(v -> {
-            Log.d("EditMoodActivity", "Emoji clicked, opening EditEmojiActivity");
-            Intent editEmojiIntent = new Intent(EditMoodActivity.this, EditEmojiActivity.class);
-            editEmojiIntent.putExtra("moodId", moodId);
-            editEmojiIntent.putExtra("emoji", emoji);
-            startActivityForResult(editEmojiIntent, 1);
-        });
+        editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
+        editReason.setText(reason);
+        updateCharCounter(reason != null ? reason.length() : 0);
+        setRoundedBackground(editEmojiRectangle, color);
 
-        // Initialize buttons
-        ImageButton editGroupButton = findViewById(R.id.EditGroupButton);
-        ImageButton editCameraMenuButton = findViewById(R.id.EditCameraMenuButton);
-        editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-        ImageButton attachLocationButton = findViewById(R.id.attachLocationButton); // Ensure this ID matches your layout
-        attachLocationButton.setOnClickListener(v -> {
-            Log.d("EditMoodActivity", "Attach Location button clicked");
-            showLocationPrompt();
-        });
+        // Load image if exists
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            editImagePreview.setVisibility(View.VISIBLE);
+            Glide.with(this).load(imageUrl).into(editImagePreview);
+        }
+    }
 
-        // Initialize ImageHandler AFTER editImagePreview is set
+    /**
+     * Initializes all image handling components including:
+     * - ImageHandler instance
+     * - Permission launchers
+     * - Activity launchers for camera/gallery
+     */
+    private void initializeImageHandling() {
         imageHandler = new ImageHandler(this, editImagePreview);
         editImagePreview.setVisibility(View.GONE);
 
-        // Set up listener to show/hide image preview
+        // Set up image loaded listener
         imageHandler.setOnImageLoadedListener(new ImageHandler.OnImageLoadedListener() {
-            @Override
-            public void onImageLoaded() {
-                editImagePreview.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onImageCleared() {
-                editImagePreview.setVisibility(View.GONE);
-            }
+            @Override public void onImageLoaded() { editImagePreview.setVisibility(View.VISIBLE); }
+            @Override public void onImageCleared() { editImagePreview.setVisibility(View.GONE); }
         });
 
         // Initialize permission launchers
         cameraPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
-                    if (isGranted) {
-                        imageHandler.openCamera(cameraLauncher);
-                    } else {
-                        showMessage("Camera permission required");
-                    }
+                    if (isGranted) imageHandler.openCamera(cameraLauncher);
+                    else showMessage("Camera permission required");
                 });
 
         galleryPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
-                    if (isGranted) {
-                        imageHandler.openGallery(galleryLauncher);
-                    } else {
-                        showMessage("Storage permission required");
-                    }
+                    if (isGranted) imageHandler.openGallery(galleryLauncher);
+                    else showMessage("Storage permission required");
                 });
 
-        // Start ActivityResultLaunchers for gallery and camera
+        // Initialize activity launchers
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
-
-                        EditMoodActivity.this.imageUrl = null;
-                        Log.d("EditMoodActivity", "Image selected but not uploaded yet.");
+                        imageUrl = null;
                     }
-                }
-        );
+                });
 
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         imageHandler.handleActivityResult(result.getResultCode(), result.getData());
-
-                        EditMoodActivity.this.imageUrl = null;
-                        Log.d("EditMoodActivity", "Image captured but not uploaded yet.");
+                        imageUrl = null;
                     }
-                }
-        );
-
-        // Attach event listeners
-        editGroupButton.setOnClickListener(v -> showGroupsMenu(v));
-        editCameraMenuButton.setOnClickListener(v -> showImageMenu(v));
-
-        // Load Image into ImageView if it exists
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            editImagePreview.setVisibility(View.VISIBLE); // Show ImageView
-            Glide.with(this).load(imageUrl).into(editImagePreview);
-        } else {
-            editImagePreview.setVisibility(View.GONE); // Hide ImageView if no image
-        }
-
-        // Set UI elements with retrieved data
-        editEmojiDescription.setText(EditEmojiResources.getReadableMood(emoji));
-        editReason.setText(reason); // Set the full reason text
-        updateCharCounter(reason != null ? reason.length() : 0); // Initial counter update
-
-        // Add TextWatcher for character counter
-        editReason.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                updateCharCounter(s.length());
-            }
-        });
-
-        setRoundedBackground(editEmojiRectangle, color);
-
-        // Remove the focus listener that clears text, as it’s not needed anymore
-        // editReason.setOnFocusChangeListener((v, hasFocus) -> { ... });
-
-        // Back button functionality
-        backButton.setOnClickListener(v -> {
-            if (!hasSubmittedChanges) {
-                Log.d("EditMoodActivity", "User backed out. Restoring original image.");
-                imageUrl = originalImageUrl;
-            }
-            finish();
-        });
-
-        // Save updated mood when checkmark button is clicked
-        submitButton.setOnClickListener(v -> updateMoodInFirestore());
+                });
     }
 
-    // Update the character counter
+    /**
+     * Updates the character counter display
+     * @param currentLength Current number of characters in reason field
+     */
     private void updateCharCounter(int currentLength) {
         reasonCharCounter.setText(currentLength + "/" + MAX_REASON_LENGTH);
     }
 
+    /**
+     * Handles updating the mood in Firestore, including:
+     * - Online/offline state detection
+     * - Image uploads/deletions
+     * - Location updates
+     * - All other field updates
+     */
     private void updateMoodInFirestore() {
         String newReason = editReason.getText().toString().trim();
         Map<String, Object> updates = new HashMap<>();
-
         updates.put("reason", newReason);
         updates.put("emotionalState", emoji);
         updates.put("emojiDescription", EditEmojiResources.getReadableMood(emoji));
         updates.put("color", EditEmojiResources.getMoodColor(emoji));
         updates.put("privateMood", isPrivateMood);
 
+        // Handle location if attached
         if (isLocationAttached && currentLocation != null) {
             updates.put("latitude", currentLocation.getLatitude());
             updates.put("longitude", currentLocation.getLongitude());
         }
+
+        // Handle group if changed
         if (selectedGroup != null) {
             updates.put("group", selectedGroup);
         }
 
-        // Check if device is offline before attempting any image upload.
+        // Handle offline case
         if (NetworkUtils.isOffline(this)) {
-            if (imageUrl == null && imageHandler.hasImage()) {
-                // Get a local URI for the image using the helper method you'll add to ImageHandler.
-                String localUri = imageHandler.getLocalImageUri();
-                if (localUri != null) {
-                    updates.put("imageUrl", localUri);
-                } else {
-                    updates.put("imageUrl", null);
-                }
-            } else if (imageUrl == null && originalImageUrl != null) {
-                // If no new image was selected and the original image is remote, convert it locally.
-                if (!originalImageUrl.startsWith("file://")) {
-                    imageHandler.saveImageLocallyFromRemoteAsync(originalImageUrl, localUri -> {
-                        if (localUri != null) {
-                            updates.put("imageUrl", localUri);
-                            Log.d("OfflineEdit", "Converted remote image to local URI: " + localUri);
-                        } else {
-                            updates.put("imageUrl", originalImageUrl);
-                        }
-                        Toast.makeText(EditMoodActivity.this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-                        new MoodDataManager().saveOfflineEdit(EditMoodActivity.this, moodId, updates);
-                        finish();
-                    });
-                    return;
-                } else {
-                    updates.put("imageUrl", originalImageUrl);
-                }
-            }
-            Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
-            new MoodDataManager().saveOfflineEdit(this, moodId, updates);
-            finish();
+            handleOfflineUpdate(updates);
             return;
         }
 
-        // If online, handle image upload if a new image is selected.
-        if (imageUrl == null && imageHandler.hasImage()) {
-            imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
-                @Override
-                public void onImageUploadSuccess(String url) {
-                    // Delete the old image if it exists.
-                    if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
-                        StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
-                        oldImageRef.delete()
-                                .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Old image permanently deleted after new upload"))
-                                .addOnFailureListener(e -> Log.e("Firebase Storage", "Failed to delete old image", e));
-                    }
-                    EditMoodActivity.this.imageUrl = url;
-                    updates.put("imageUrl", url);
-                    saveToFirestore(updates);
-                }
-
-                @Override
-                public void onImageUploadFailure(Exception e) {
-                    showMessage("Failed to upload image: " + e.getMessage());
-                }
-            });
-            return;
-        } else if (imageUrl != null) {
-            updates.put("imageUrl", imageUrl);
-        }
-        if (imageUrl == null && originalImageUrl != null) {
-            StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
-            imageRef.delete()
-                    .addOnSuccessListener(aVoid -> {
-                        Log.d("Firebase Storage", "Image permanently deleted");
-                        updates.put("imageUrl", null);
-                        saveToFirestore(updates);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("Firebase Storage", "Failed to delete image", e);
-                        showMessage("Failed to delete image: " + e.getMessage());
-                    });
-        } else {
-            saveToFirestore(updates);
-        }
-
-        saveToFirestore(updates);
+        // Handle online case with image operations
+        handleOnlineUpdate(updates);
     }
 
     /**
-     * Saves the updated mood data to Firestore.
-     *
-     * @param updates A map containing the updated mood data.
+     * Handles offline updates by saving changes locally
+     * @param updates Map of fields to update
+     */
+    private void handleOfflineUpdate(Map<String, Object> updates) {
+        if (imageUrl == null && imageHandler.hasImage()) {
+            String localUri = imageHandler.getLocalImageUri();
+            updates.put("imageUrl", localUri != null ? localUri : originalImageUrl);
+        }
+        Toast.makeText(this, "You're offline. Edits will sync when you're back online.", Toast.LENGTH_LONG).show();
+        new MoodDataManager().saveOfflineEdit(this, moodId, updates);
+        finish();
+    }
+
+    /**
+     * Handles online updates including image uploads/deletions
+     * @param updates Map of fields to update
+     */
+    private void handleOnlineUpdate(Map<String, Object> updates) {
+        if (imageUrl == null && imageHandler.hasImage()) {
+            uploadNewImage(updates);
+        } else if (imageUrl == null && originalImageUrl != null) {
+            deleteExistingImage(updates);
+        } else {
+            saveToFirestore(updates);
+        }
+    }
+
+    /**
+     * Uploads a new image and updates Firestore with the new URL
+     * @param updates Map of fields to update
+     */
+    private void uploadNewImage(Map<String, Object> updates) {
+        imageHandler.uploadImageToFirebase(new ImageHandler.OnImageUploadListener() {
+            @Override
+            public void onImageUploadSuccess(String url) {
+                if (originalImageUrl != null && !originalImageUrl.isEmpty()) {
+                    deleteImageFromStorage(originalImageUrl);
+                }
+                updates.put("imageUrl", url);
+                saveToFirestore(updates);
+            }
+
+            @Override
+            public void onImageUploadFailure(Exception e) {
+                showMessage("Failed to upload image: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Deletes an existing image from storage and updates Firestore
+     * @param updates Map of fields to update
+     */
+    private void deleteExistingImage(Map<String, Object> updates) {
+        StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(originalImageUrl);
+        imageRef.delete().addOnSuccessListener(aVoid -> {
+            updates.put("imageUrl", null);
+            saveToFirestore(updates);
+        }).addOnFailureListener(e -> {
+            showMessage("Failed to delete image: " + e.getMessage());
+        });
+    }
+
+    /**
+     * Deletes an image from Firebase Storage
+     * @param imageUrl URL of the image to delete
+     */
+    private void deleteImageFromStorage(String imageUrl) {
+        StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+        oldImageRef.delete()
+                .addOnSuccessListener(aVoid -> Log.d("Firebase Storage", "Old image deleted"))
+                .addOnFailureListener(e -> Log.e("Firebase Storage", "Delete failed", e));
+    }
+
+    /**
+     * Saves updates to Firestore after ensuring proper image URL handling
+     * @param updates Map of fields to update
      */
     private void saveToFirestore(Map<String, Object> updates) {
-        // Prevent unintentional overwrites
         if (!updates.containsKey("imageUrl")) {
             db.collection("moods").document(moodId)
                     .get()
@@ -408,17 +408,15 @@ public class EditMoodActivity extends AppCompatActivity {
                             updates.put("imageUrl", documentSnapshot.getString("imageUrl"));
                         }
                         updateFirestore(updates);
-                    })
-                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to get current mood data", e));
+                    });
         } else {
             updateFirestore(updates);
         }
     }
 
     /**
-     * Updates the mood document in Firestore with the provided data.
-     *
-     * @param updates A map containing the updated mood data.
+     * Performs the actual Firestore document update
+     * @param updates Map of fields to update
      */
     private void updateFirestore(Map<String, Object> updates) {
         db.collection("moods").document(moodId)
@@ -430,61 +428,65 @@ public class EditMoodActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> showMessage("Failed to update mood"));
     }
 
+    /**
+     * Handles activity results including:
+     * - Emoji selection changes
+     * - Location settings changes
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        // Handle emoji selection result
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            String selectedEmoji = data.getStringExtra("selectedEmoji");
-            emoji = selectedEmoji;
-            editEmoji.setImageResource(EditEmojiResources.getEmojiResource(selectedEmoji));
-            editEmojiDescription.setText(EditEmojiResources.getReadableMood(selectedEmoji));
-            setRoundedBackground(editEmojiRectangle, EditEmojiResources.getMoodColor(selectedEmoji));
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("emotionalState", selectedEmoji);
-            updates.put("emojiDescription", EditEmojiResources.getReadableMood(selectedEmoji));
-            updates.put("color", EditEmojiResources.getMoodColor(selectedEmoji));
-            db.collection("moods").document(moodId)
-                    .update(updates)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "Emoji updated successfully"))
-                    .addOnFailureListener(e -> Log.e("Firestore", "Failed to update emoji", e));
+            handleEmojiSelectionResult(data);
         }
     }
 
     /**
-     * Sets a rounded background with dynamic color for a LinearLayout.
-     *
-     * @param layout The LinearLayout to apply the background to.
-     * @param color  The color to set as the background.
+     * Processes emoji selection result and updates UI
+     * @param data Intent containing selected emoji
+     */
+    private void handleEmojiSelectionResult(Intent data) {
+        String selectedEmoji = data.getStringExtra("selectedEmoji");
+        emoji = selectedEmoji;
+        editEmoji.setImageResource(EditEmojiResources.getEmojiResource(selectedEmoji));
+        editEmojiDescription.setText(EditEmojiResources.getReadableMood(selectedEmoji));
+        setRoundedBackground(editEmojiRectangle, EditEmojiResources.getMoodColor(selectedEmoji));
+    }
+
+    /**
+     * Applies rounded corner styling to a layout
+     * @param layout Layout to style
+     * @param color Background color to apply
      */
     private void setRoundedBackground(LinearLayout layout, int color) {
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setCornerRadius(50); // Rounded corners
-        gradientDrawable.setColor(color); // Apply mood color
-        gradientDrawable.setStroke(2, Color.BLACK); // Add border
-
-        // Apply the background to the layout
+        gradientDrawable.setCornerRadius(50);
+        gradientDrawable.setColor(color);
+        gradientDrawable.setStroke(2, Color.BLACK);
         layout.setBackground(gradientDrawable);
     }
 
     /**
-     * Displays a popup menu for selecting a group.
-     *
-     * @param v The view to anchor the popup menu.
+     * Shows group selection popup menu
+     * @param v Anchor view for the popup
      */
     private void showGroupsMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.group_menu, popup.getMenu());
+
         Map<Integer, String> menuMap = new HashMap<>();
         menuMap.put(R.id.alone, "Alone");
         menuMap.put(R.id.with_another, "With another person");
         menuMap.put(R.id.with_several, "With several people");
         menuMap.put(R.id.with_crowd, "With a crowd");
+
         popup.setOnMenuItemClickListener(item -> {
             if (menuMap.containsKey(item.getItemId())) {
                 selectedGroup = menuMap.get(item.getItemId());
-
                 return true;
             }
             return false;
@@ -493,39 +495,25 @@ public class EditMoodActivity extends AppCompatActivity {
     }
 
     /**
-     * Displays a popup menu for image options (camera, gallery, remove photo).
-     *
-     * @param v The view to anchor the popup menu.
+     * Shows image selection popup menu
+     * @param v Anchor view for the popup
      */
     private void showImageMenu(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         popup.getMenu().add("Take a Photo");
         popup.getMenu().add("Choose from Gallery");
         popup.getMenu().add("Remove Photo");
+
         popup.setOnMenuItemClickListener(item -> {
-            if (item.getTitle().equals("Take a Photo")) {
-                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                    imageHandler.openCamera(cameraLauncher);
-                } else {
-                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
-                }
+            String title = item.getTitle().toString();
+            if (title.equals("Take a Photo")) {
+                handleCameraSelection();
                 return true;
-            } else if (item.getTitle().equals("Choose from Gallery")) {
-                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
-                    imageHandler.openGallery(galleryLauncher);
-                } else {
-                    galleryPermissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES);
-                }
+            } else if (title.equals("Choose from Gallery")) {
+                handleGallerySelection();
                 return true;
-            } else if (item.getTitle().equals("Remove Photo")) {
-                imageHandler.clearImage();
-                imageUrl = null;
-                imageRemoved = true;
-                db.collection("moods").document(moodId)
-                        .update("imageUrl", null)
-                        .addOnSuccessListener(aVoid -> Log.d("Firestore", "Image reference removed from Firestore"))
-                        .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image reference", e));
-                showMessage("Image removed");
+            } else if (title.equals("Remove Photo")) {
+                handleImageRemoval();
                 return true;
             }
             return false;
@@ -533,34 +521,73 @@ public class EditMoodActivity extends AppCompatActivity {
         popup.show();
     }
 
-    private void showLocationPrompt() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Attach Location");
-        builder.setMessage("Would you like to attach your current location to this mood event?");
-        builder.setPositiveButton("Yes", (dialog, which) -> {
-            // Check location permissions
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                // Permission already granted, fetch location
-                fetchLocation();
-            } else {
-                // Request location permissions
-                locationPermissionLauncher.launch(new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                });
-            }
-        });
-        builder.setNegativeButton("No", (dialog, which) -> {
-            // User chose not to attach location
-            isLocationAttached = false;
-            currentLocation = null;
-            showMessage("Location not attached");
-        });
-        builder.show();
+    /**
+     * Handles camera selection with permission check
+     */
+    private void handleCameraSelection() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            imageHandler.openCamera(cameraLauncher);
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
     }
 
     /**
-     * Fetches the device's current location.
+     * Handles gallery selection with permission check
+     */
+    private void handleGallerySelection() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+            imageHandler.openGallery(galleryLauncher);
+        } else {
+            galleryPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+        }
+    }
+
+    /**
+     * Handles image removal including Firestore update
+     */
+    private void handleImageRemoval() {
+        imageHandler.clearImage();
+        imageUrl = null;
+        imageRemoved = true;
+        db.collection("moods").document(moodId)
+                .update("imageUrl", null)
+                .addOnSuccessListener(aVoid -> showMessage("Image removed"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Failed to remove image", e));
+    }
+
+    /**
+     * Shows location attachment prompt dialog
+     */
+    private void showLocationPrompt() {
+        new AlertDialog.Builder(this)
+                .setTitle("Attach Location")
+                .setMessage("Attach your current location to this mood?")
+                .setPositiveButton("Yes", (dialog, which) -> checkLocationPermissions())
+                .setNegativeButton("No", (dialog, which) -> {
+                    isLocationAttached = false;
+                    currentLocation = null;
+                    showMessage("Location not attached");
+                })
+                .show();
+    }
+
+    /**
+     * Checks location permissions before fetching location
+     */
+    private void checkLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fetchLocation();
+        } else {
+            locationPermissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
+        }
+    }
+
+    /**
+     * Fetches current device location if permissions are granted
      */
     private void fetchLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -569,7 +596,7 @@ public class EditMoodActivity extends AppCompatActivity {
                         if (location != null) {
                             currentLocation = location;
                             isLocationAttached = true;
-                            showMessage("Location attached: " + location.getLatitude() + ", " + location.getLongitude());
+                            showMessage("Location attached");
                         } else {
                             showMessage("Unable to fetch location");
                         }
@@ -577,49 +604,12 @@ public class EditMoodActivity extends AppCompatActivity {
                     .addOnFailureListener(this, e -> {
                         showMessage("Failed to fetch location: " + e.getMessage());
                     });
-        } else {
-            showMessage("Location permission not granted");
         }
     }
 
     /**
-     * Updates the mood in Firestore with the attached location (if any).
-     */
-    private void updateMoodWithLocation() {
-        if (moodId == null) {
-            showMessage("Invalid mood ID");
-            return;
-        }
-
-        Map<String, Object> updates = new HashMap<>();
-
-        if (isLocationAttached && currentLocation != null) {
-            updates.put("latitude", currentLocation.getLatitude());
-            updates.put("longitude", currentLocation.getLongitude());
-        } else {
-            updates.put("latitude", null);
-            updates.put("longitude", null);
-        }
-
-        // Call the correctly formatted updateMood method
-        MoodDataManager moodDataManager = new MoodDataManager();
-        moodDataManager.updateMood(moodId, updates, new MoodDataManager.OnMoodUpdatedListener() {
-            @Override
-            public void onMoodUpdated() {
-                showMessage("Mood updated with location!");
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                showMessage("Failed to update mood: " + errorMessage);
-            }
-        });
-    }
-
-    /**
-     * Displays a Snackbar message.
-     *
-     * @param message The message to display.
+     * Displays a snackbar message
+     * @param message The message to display
      */
     private void showMessage(String message) {
         View rootView = findViewById(android.R.id.content);

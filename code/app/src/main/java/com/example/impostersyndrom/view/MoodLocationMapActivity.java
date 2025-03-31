@@ -22,7 +22,13 @@ import org.osmdroid.views.overlay.OverlayItem;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * An Activity that displays a map with a marker showing the location where a mood was recorded.
+ * Uses OpenStreetMap (osmdroid) to render the map and places a custom emoji marker at the specified coordinates.
+ * Handles map initialization, zoom controls, and marker placement with emoji icons.
+ *
+ * @author Roshan
+ */
 public class MoodLocationMapActivity extends AppCompatActivity {
 
     private static final String TAG = "MoodLocationMapActivity";

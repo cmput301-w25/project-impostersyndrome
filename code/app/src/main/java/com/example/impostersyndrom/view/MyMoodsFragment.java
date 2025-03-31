@@ -27,7 +27,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
+/**
+ * A Fragment that displays a user's mood history in a paginated ListView.
+ * Supports filtering by emotional state, reason, and time period (recent week).
+ * Implements pull-to-refresh functionality and handles both online and offline states.
+ * Manages mood item click and long-click interactions for detailed views and actions.
+ *
+ * @author Roshan
+ */
 public class MyMoodsFragment extends Fragment {
     private static final String TAG = "MyMoodsFragment";
     private static final int PAGE_SIZE = 10; // Number of moods to load per page

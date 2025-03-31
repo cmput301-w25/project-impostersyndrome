@@ -14,8 +14,19 @@ import com.example.impostersyndrom.view.MainActivity;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * BroadcastReceiver that handles network connectivity changes to sync offline data.
+ *
+ * @author [Your Name]
+ */
 public class ConnectivityReceiver extends BroadcastReceiver {
 
+    /**
+     * Called when a connectivity change is detected, syncing offline data when connection is restored.
+     *
+     * @param context The context in which the receiver is running
+     * @param intent The Intent being received
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
@@ -24,9 +35,8 @@ public class ConnectivityReceiver extends BroadcastReceiver {
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
 
             if (isConnected) {
-                // We're back online, sync any offline changes
                 MoodDataManager moodDataManager = new MoodDataManager();
-                
+
                 // Sync offline added moods
                 List<Mood> offlineMoods = moodDataManager.getOfflineMoodsList(context);
                 if (!offlineMoods.isEmpty()) {
@@ -87,4 +97,3 @@ public class ConnectivityReceiver extends BroadcastReceiver {
         }
     }
 }
-

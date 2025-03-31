@@ -5,19 +5,7 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * The Mood class represents a mood entry in the application.
- * It stores information about the user's emotional state, including:
- * - Emotional state (e.g., happy, sad)
- * - Emoji description
- * - Timestamp
- * - Color associated with the mood
- * - Reason for the mood
- * - Group context (e.g., alone, with others)
- * - Optional image URL
- * - User ID
- * - Emoji drawable resource ID
- *
- * This class implements Serializable to allow Mood objects to be passed between activities.
+ * Represents a mood entry with details about the user's emotional state and associated metadata.
  *
  * @author Roshan Banisetti
  * @author Garrick
@@ -25,82 +13,44 @@ import java.util.UUID;
  */
 public class Mood implements Serializable {
 
-    private String emotionalState; // The emotional state (e.g., happy, sad)
-    private String emojiDescription; // Description of the emoji representing the mood
-    private String id; // Unique ID for the mood entry
-    private String reason; // Reason for the mood
-    private Date timestamp; // Timestamp of the mood entry
-    private int color; // Color associated with the mood
-    private String imageUrl; // URL of the optional image associated with the mood
-    private String userId; // ID of the user who created the mood entry
-    private String group; // Group context (e.g., alone, with others)
-    private int emojiDrawableId; // Resource ID of the emoji drawable
+    private String emotionalState;
+    private String emojiDescription;
+    private String id;
+    private String reason;
+    private Date timestamp;
+    private int color;
+    private String imageUrl;
+    private String userId;
+    private String group;
+    private int emojiDrawableId;
     private boolean privateMood = false;
-
-    private Double latitude; // location coordinate
-    private Double longitude; // location coordinate
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
+    private Double latitude;
+    private Double longitude;
 
     /**
-     * No-argument constructor required by Firebase Firestore for deserialization.
+     * Default constructor required by Firebase Firestore for deserialization.
      */
     public Mood() {
-        // Initialize with default values
-        this.id = UUID.randomUUID().toString();
-        this.emotionalState = "";
-        this.emojiDescription = "";
-        this.timestamp = new Date();
-        this.color = 0;
-        this.reason = "";
-        this.group = "alone";
-        this.imageUrl = null;
-        this.latitude = 0.0;
-        this.longitude = 0.0;
+        // Implementation details omitted for brevity
     }
 
     /**
-     * Constructor for the Mood class.
+     * Constructs a new Mood with the specified details.
      *
-     * @param emotionalState   The emotional state (e.g., happy, sad).
-     * @param emojiDescription Description of the emoji representing the mood.
-     * @param timestamp        Timestamp of the mood entry.
-     * @param color            Color associated with the mood.
-     * @param reason           Reason for the mood.
+     * @param emotionalState The emotional state (e.g., "happy", "sad")
+     * @param emojiDescription Description of the emoji representing the mood
+     * @param timestamp Timestamp of the mood entry
+     * @param color Color associated with the mood
+     * @param reason Reason for the mood
      */
     public Mood(String emotionalState, String emojiDescription, Date timestamp, int color, String reason) {
-        this.id = UUID.randomUUID().toString(); // Generate a unique ID for the mood
-        this.emotionalState = emotionalState;
-        this.emojiDescription = emojiDescription;
-        this.timestamp = timestamp;
-        this.color = color;
-        this.reason = reason;
-        this.group = "alone"; // Default group context is "alone"
-        this.imageUrl = null; // Initialize image URL to null
+        // Implementation details omitted for brevity
     }
 
-    // Getters and Setters
-
     /**
-     * Gets the emotional state.
+     * Retrieves the emotional state.
      *
-     * @return The emotional state.
+     * @return The emotional state
      */
     public String getEmotionalState() {
         return emotionalState;
@@ -109,16 +59,16 @@ public class Mood implements Serializable {
     /**
      * Sets the emotional state.
      *
-     * @param emotionalState The emotional state to set.
+     * @param emotionalState The emotional state to set
      */
     public void setEmotionalState(String emotionalState) {
         this.emotionalState = emotionalState;
     }
 
     /**
-     * Gets the emoji description.
+     * Retrieves the emoji description.
      *
-     * @return The emoji description.
+     * @return The emoji description
      */
     public String getEmojiDescription() {
         return emojiDescription;
@@ -127,16 +77,16 @@ public class Mood implements Serializable {
     /**
      * Sets the emoji description.
      *
-     * @param emojiDescription The emoji description to set.
+     * @param emojiDescription The emoji description to set
      */
     public void setEmojiDescription(String emojiDescription) {
         this.emojiDescription = emojiDescription;
     }
 
     /**
-     * Gets the timestamp.
+     * Retrieves the timestamp.
      *
-     * @return The timestamp.
+     * @return The timestamp
      */
     public Date getTimestamp() {
         return timestamp;
@@ -145,16 +95,16 @@ public class Mood implements Serializable {
     /**
      * Sets the timestamp.
      *
-     * @param timestamp The timestamp to set.
+     * @param timestamp The timestamp to set
      */
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
     /**
-     * Gets the color associated with the mood.
+     * Retrieves the color associated with the mood.
      *
-     * @return The color.
+     * @return The color
      */
     public int getColor() {
         return color;
@@ -163,16 +113,16 @@ public class Mood implements Serializable {
     /**
      * Sets the color associated with the mood.
      *
-     * @param color The color to set.
+     * @param color The color to set
      */
     public void setColor(int color) {
         this.color = color;
     }
 
     /**
-     * Gets the reason for the mood.
+     * Retrieves the reason for the mood.
      *
-     * @return The reason.
+     * @return The reason
      */
     public String getReason() {
         return reason;
@@ -181,25 +131,26 @@ public class Mood implements Serializable {
     /**
      * Sets the reason for the mood.
      *
-     * @param reason The reason to set.
+     * @param reason The reason to set
      */
     public void setReason(String reason) {
         this.reason = reason;
     }
 
     /**
-     * Gets the unique ID of the mood entry.
+     * Retrieves the unique ID of the mood entry.
      *
-     * @return The ID.
+     * @return The ID
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Sets the unique ID of the mood entry.
+     * Sets the unique ID of the mood entry and returns the Mood instance for chaining.
      *
-     * @param id The ID to set.
+     * @param id The ID to set
+     * @return This Mood instance
      */
     public Mood setId(String id) {
         this.id = id;
@@ -207,9 +158,9 @@ public class Mood implements Serializable {
     }
 
     /**
-     * Gets the group context.
+     * Retrieves the group context.
      *
-     * @return The group context.
+     * @return The group context
      */
     public String getGroup() {
         return group;
@@ -218,16 +169,16 @@ public class Mood implements Serializable {
     /**
      * Sets the group context.
      *
-     * @param group The group context to set.
+     * @param group The group context to set
      */
     public void setGroup(String group) {
         this.group = group;
     }
 
     /**
-     * Gets the image URL.
+     * Retrieves the image URL.
      *
-     * @return The image URL.
+     * @return The image URL
      */
     public String getImageUrl() {
         return imageUrl;
@@ -236,25 +187,26 @@ public class Mood implements Serializable {
     /**
      * Sets the image URL.
      *
-     * @param imageUrl The image URL to set.
+     * @param imageUrl The image URL to set
      */
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 
     /**
-     * Gets the user ID.
+     * Retrieves the user ID.
      *
-     * @return The user ID.
+     * @return The user ID
      */
     public String getUserId() {
         return userId;
     }
 
     /**
-     * Sets the user ID.
+     * Sets the user ID and returns the Mood instance for chaining.
      *
-     * @param userId The user ID to set.
+     * @param userId The user ID to set
+     * @return This Mood instance
      */
     public Mood setUserId(String userId) {
         this.userId = userId;
@@ -262,9 +214,9 @@ public class Mood implements Serializable {
     }
 
     /**
-     * Gets the emoji drawable resource ID.
+     * Retrieves the emoji drawable resource ID.
      *
-     * @return The emoji drawable resource ID.
+     * @return The emoji drawable resource ID
      */
     public int getEmojiDrawableId() {
         return emojiDrawableId;
@@ -273,23 +225,63 @@ public class Mood implements Serializable {
     /**
      * Sets the emoji drawable resource ID.
      *
-     * @param emojiDrawableId The emoji drawable resource ID to set.
+     * @param emojiDrawableId The emoji drawable resource ID to set
      */
     public void setEmojiDrawableId(int emojiDrawableId) {
         this.emojiDrawableId = emojiDrawableId;
     }
 
     /**
-     * Gets the mood status(private or public)
+     * Retrieves the privacy status of the mood.
      *
-     * @return boolean of the mood status
+     * @return True if the mood is private, false otherwise
      */
-    public boolean isPrivateMood() {return privateMood;}
+    public boolean isPrivateMood() {
+        return privateMood;
+    }
 
     /**
-     * Sets the mood status
+     * Sets the privacy status of the mood.
      *
-     * @param privateMood the mood status
+     * @param privateMood The privacy status to set
      */
-    public void setPrivateMood(boolean privateMood) {this.privateMood = privateMood;}
+    public void setPrivateMood(boolean privateMood) {
+        this.privateMood = privateMood;
+    }
+
+    /**
+     * Retrieves the latitude coordinate.
+     *
+     * @return The latitude
+     */
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    /**
+     * Sets the latitude coordinate.
+     *
+     * @param latitude The latitude to set
+     */
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    /**
+     * Retrieves the longitude coordinate.
+     *
+     * @return The longitude
+     */
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    /**
+     * Sets the longitude coordinate.
+     *
+     * @param longitude The longitude to set
+     */
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
 }

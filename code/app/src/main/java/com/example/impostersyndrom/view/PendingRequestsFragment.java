@@ -22,7 +22,14 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * A Fragment that displays pending follow requests for the current user.
+ * Shows a list of users who have sent follow requests, including their usernames and profile pictures.
+ * Handles real-time updates to the pending requests list from Firestore.
+ * Manages request display and user data fetching for each request sender.
+ *
+ * @author
+ */
 public class PendingRequestsFragment extends Fragment {
     private ListView listView;
     private TextView emptyMessage;

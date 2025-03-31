@@ -16,6 +16,12 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
+/**
+ * Manages Spotify API interactions including authentication and music recommendations.
+ * Implements singleton pattern to maintain a single instance throughout the app.
+ *
+ * @author Roshan
+ */
 public class SpotifyManager {
 
     private static final String TAG = "SpotifyManager";
@@ -31,7 +37,9 @@ public class SpotifyManager {
     private Retrofit apiRetrofit;
     private SpotifyApiService spotifyApiService;
 
-    // Inner interface for auth
+    /**
+     * Interface for Spotify authentication service.
+     */
     interface SpotifyAuthService {
         @FormUrlEncoded
         @POST("api/token")
@@ -41,10 +49,17 @@ public class SpotifyManager {
         );
     }
 
+    /**
+     * Private constructor for singleton pattern.
+     */
     private SpotifyManager() {
         // Private constructor for singleton
     }
 
+    /**
+     * Gets the singleton instance of SpotifyManager.
+     * @return The singleton instance
+     */
     public static SpotifyManager getInstance() {
         if (instance == null) {
             instance = new SpotifyManager();
@@ -52,6 +67,11 @@ public class SpotifyManager {
         return instance;
     }
 
+    /**
+     * Initializes the SpotifyManager with client credentials.
+     * @param clientId The Spotify API client ID
+     * @param clientSecret The Spotify API client secret
+     */
     public void initialize(String clientId, String clientSecret) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -74,6 +94,9 @@ public class SpotifyManager {
         fetchAccessToken();
     }
 
+    /**
+     * Fetches an access token from Spotify's authentication service.
+     */
     private void fetchAccessToken() {
         SpotifyAuthService authService = authRetrofit.create(SpotifyAuthService.class);
         String credentials = Credentials.basic(clientId, clientSecret);
@@ -97,10 +120,21 @@ public class SpotifyManager {
         });
     }
 
+    /**
+     * Gets the current access token.
+     * @return The access token, or null if not yet fetched
+     */
     public String getAccessToken() {
         return accessToken;
     }
 
+    /**
+     * Fetches music recommendations from Spotify based on audio features.
+     * @param genre The seed genre for recommendations
+     * @param valence The target valence (0-1)
+     * @param energy The target energy (0-1)
+     * @param callback The callback to handle the response or failure
+     */
     public void fetchRecommendations(String genre, float valence, float energy, Callback<SpotifyRecommendationResponse> callback) {
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e(TAG, "Access token is null or empty");
@@ -132,6 +166,11 @@ public class SpotifyManager {
         });
     }
 
+    /**
+     * Searches for tracks matching a specific genre.
+     * @param genre The genre to search for
+     * @param callback The callback to handle the response or failure
+     */
     public void searchTracks(String genre, Callback<SpotifyApiService.SearchResponse> callback) {
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e(TAG, "Access token is null or empty");

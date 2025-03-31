@@ -22,7 +22,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * A Fragment that displays the list of users the current user is following.
+ * Handles real-time updates to the following list and user details from Firestore.
+ * Shows an empty state message when not following anyone.
+ *
+ * @author [Your Name]
+ */
 public class FollowingFragment extends Fragment {
     private ListView listView;
     private TextView emptyMessage;

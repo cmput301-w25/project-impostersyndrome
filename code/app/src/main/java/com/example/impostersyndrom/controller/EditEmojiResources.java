@@ -5,19 +5,19 @@ import android.graphics.Color;
 import com.example.impostersyndrom.R;
 
 /**
- * EditEmojiResources is a utility class that provides methods to retrieve
- * mood-related resources such as colors, descriptions, and drawable resources
- * based on the emoji name.
+ * A utility class that provides methods to retrieve mood-related resources such as colors,
+ * descriptions, and drawable resource IDs based on emoji names.
  *
  * @author Rayan
+ * @author Roshan
  */
 public class EditEmojiResources {
 
     /**
-     * Returns the color associated with a specific emoji name.
+     * Retrieves the color associated with a specific emoji name.
      *
-     * @param emojiName The name of the emoji (e.g., "emoji_happy").
-     * @return The color associated with the emoji, or gray if the emoji is unknown.
+     * @param emojiName The name of the emoji (e.g., "emoji_happy"), case-insensitive
+     * @return The color integer associated with the emoji, or {@link Color#GRAY} if the emoji is unknown or null
      */
     public static int getMoodColor(String emojiName) {
         if (emojiName == null) return Color.GRAY; // Default color if unknown
@@ -38,8 +38,8 @@ public class EditEmojiResources {
     /**
      * Converts an emoji name into a human-readable mood description.
      *
-     * @param emoji The name of the emoji (e.g., "emoji_happy").
-     * @return A human-readable mood description, or "Unknown Mood" if the emoji is unknown.
+     * @param emoji The name of the emoji (e.g., "emoji_happy"), case-insensitive
+     * @return A human-readable mood description, or "Unknown Mood" if the emoji is unknown or null
      */
     public static String getReadableMood(String emoji) {
         if (emoji == null) return "Unknown Mood";
@@ -58,13 +58,13 @@ public class EditEmojiResources {
     }
 
     /**
-     * Returns the drawable resource ID associated with a specific emoji name.
+     * Retrieves the drawable resource ID associated with a specific emoji name.
      *
-     * @param emojiName The name of the emoji (e.g., "emoji_happy").
-     * @return The drawable resource ID for the emoji, or a default emoji if the emoji is unknown.
+     * @param emojiName The name of the emoji (e.g., "emoji_happy"), case-insensitive
+     * @return The drawable resource ID for the emoji, or {@link R.drawable#emoji_confused} if the emoji is unknown or null
      */
     public static int getEmojiResource(String emojiName) {
-        if (emojiName == null) return R.drawable.emoji_confused; // Default emoji if unknown
+        if (emojiName == null) return R.drawable.emoji_happy; // Default emoji if unknown
 
         switch (emojiName.toLowerCase()) {
             case "emoji_happy": return R.drawable.emoji_happy;
