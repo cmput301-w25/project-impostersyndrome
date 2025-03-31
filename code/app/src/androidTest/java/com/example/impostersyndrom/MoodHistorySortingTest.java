@@ -15,11 +15,13 @@ import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.not;
 
 import android.view.View;
 
+import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
@@ -41,7 +43,7 @@ import java.util.concurrent.TimeoutException;
 
 @RunWith(AndroidJUnit4.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ReasonCharLimEditDeleteTest {
+public class MoodHistorySortingTest {
 
     @Rule
     public IntentsTestRule<LoginActivity> intentsRule =
@@ -49,78 +51,46 @@ public class ReasonCharLimEditDeleteTest {
 
     private static final String USER_EMAIL = "emo2@ualberta.ca";
     private static final String USER_PASSWORD = "123456";
-    // This unique reason is used for seeding a mood to later delete.
-    private static final String UNIQUE_MOOD_REASON = "DeleteThisMoodUnique";
 
     @Before
     public void setUp() throws Exception {
+        // Log in once.
         login(USER_EMAIL, USER_PASSWORD);
+        // (Assume the app persists login state and MainActivity is displayed.)
     }
 
     @Test
-    public void testEditMoodEventDetails() throws Exception {
-        seedMood();
-        onData(anything()).inAdapterView(withId(R.id.moodListView)).atPosition(0).perform(longClick());
+    public void testMoodHistorySorting() throws Exception {
+        addMoodUnique("Mood1");
+        Thread.sleep(1000);
+        addMoodUnique("Mood2");
+        Thread.sleep(1000);
+        addMoodUnique("Mood3");
 
-        waitForView(withText("Edit Mood"), 5000);
-        onView(withId(R.id.editMoodOption)).perform(click());
-
-        waitForView(withId(R.id.EditEmoji), 5000);
-        onView(withId(R.id.EditEmoji)).perform(click());
-
-        waitForView(withId(R.id.emojiII), 5000);
-        onView(withId(R.id.emojiII)).perform(click());
-
-        waitForView(withId(R.id.EditReason), 5000);
-        onView(withId(R.id.EditReason))
-                .perform(clearText(), typeText("Feeling confused instead of happy"), ViewActions.closeSoftKeyboard());
-
-        onView(withId(R.id.submitButton)).perform(click());
-
-        waitForView(withId(R.id.moodListView), 10000);
-        onView(withId(R.id.moodListView))
-                .check(matches(hasDescendant(withText("Feeling confused instead of happy"))));
-    }
-
-    @Test
-    public void testDeleteMood() throws Exception {
-        seedMoodUnique(UNIQUE_MOOD_REASON);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        onView(withText(UNIQUE_MOOD_REASON)).perform(longClick());
-
-        waitForView(withText("Delete Mood"), 5000);
-        onView(withId(R.id.deleteMoodOption)).perform(click());
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        onView(withText("DeleteThisMoodUnique")).check(doesNotExist());
-    }
-
-    @Test
-    public void testReasonCharacterLimit() throws Exception {
-        onView(withId(R.id.addMoodButton)).perform(click());
-        waitForView(withId(R.id.emoji1), 10000);
-        onView(withId(R.id.emoji1)).perform(click());
-        waitForView(withId(R.id.addReasonEdit), 5000);
-
-        // Create a long string (e.g., 250 characters).
-        String longText = new String(new char[250]).replace("\0", "a");
-        onView(withId(R.id.addReasonEdit))
-                .perform(clearText(), typeText(longText), ViewActions.closeSoftKeyboard());
         Thread.sleep(2000);
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(0)
+                .onChildView(withId(R.id.reasonView))
+                .check(matches(withText("Mood3")));
 
-        // Check that the character counter displays "200/200".
-        onView(withId(R.id.reasonCharCount)).check(matches(withText("200/200")));
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(1)
+                .onChildView(withId(R.id.reasonView))
+                .check(matches(withText("Mood2")));
+
+        onData(anything())
+                .inAdapterView(withId(R.id.moodListView))
+                .atPosition(2)
+                .onChildView(withId(R.id.reasonView))
+                .check(matches(withText("Mood1")));
+
+        onView(withId(R.id.moodListView)).check(matches(isDisplayed()));
+        tearDown();
     }
 
+    // Helper method to perform login.
     private void login(String email, String password) throws TimeoutException {
         onView(withId(R.id.login_email)).perform(typeText(email));
         closeSoftKeyboard();
@@ -131,6 +101,17 @@ public class ReasonCharLimEditDeleteTest {
         intended(hasComponent(MainActivity.class.getName()));
     }
 
+    private void addMoodUnique(String reason) throws Exception {
+        onView(withId(R.id.addMoodButton)).perform(click());
+        waitForView(withId(R.id.emoji1), 5000);
+        onView(withId(R.id.emoji1)).perform(click());
+        waitForView(withId(R.id.addReasonEdit), 5000);
+        onView(withId(R.id.addReasonEdit))
+                .perform(clearText(), typeText(reason), ViewActions.closeSoftKeyboard());
+        onView(withId(R.id.submitButton)).perform(click());
+        waitForView(withId(R.id.moodListView), 10000);
+    }
+
     private void seedMood() throws Exception {
         onView(withId(R.id.addMoodButton)).perform(click());
         waitForView(withId(R.id.emoji1), 5000);
@@ -138,18 +119,6 @@ public class ReasonCharLimEditDeleteTest {
         waitForView(withId(R.id.addReasonEdit), 5000);
         onView(withId(R.id.addReasonEdit))
                 .perform(typeText("I feel happy"), ViewActions.closeSoftKeyboard());
-        onView(withId(R.id.submitButton)).perform(click());
-        waitForView(withId(R.id.moodListView), 10000);
-    }
-
-    // Seed a mood event with a unique reason (useful for deletion tests).
-    private void seedMoodUnique(String reason) throws Exception {
-        onView(withId(R.id.addMoodButton)).perform(click());
-        waitForView(withId(R.id.emoji1), 5000);
-        onView(withId(R.id.emoji1)).perform(click());
-        waitForView(withId(R.id.addReasonEdit), 5000);
-        onView(withId(R.id.addReasonEdit))
-                .perform(clearText(), typeText(reason), ViewActions.closeSoftKeyboard());
         onView(withId(R.id.submitButton)).perform(click());
         waitForView(withId(R.id.moodListView), 10000);
     }
@@ -172,31 +141,48 @@ public class ReasonCharLimEditDeleteTest {
         throw new TimeoutException("Timed out waiting for view: " + viewMatcher.toString());
     }
 
-    @After
-    public void tearDown() throws Exception {
-        // Clean up all moods by dynamically iterating through the mood list.
-        while (true) {
+    public void tearDown() {
+        // The moods we added have reasons "Mood1", "Mood2", "Mood3".
+        String[] moodReasons = {"Mood1", "Mood2", "Mood3"};
+        for (String reason : moodReasons) {
             try {
-                // Try long-clicking the first item in the mood list (position 0).
-                onData(anything())
-                        .inAdapterView(withId(R.id.moodListView))
-                        .atPosition(0)
-                        .perform(longClick());
-
-                // Wait for the "Delete Mood" option to appear and perform the delete action.
+                // If the mood is displayed, delete it.
+                onView(withText(reason)).perform(longClick());
                 waitForView(withText("Delete Mood"), 5000);
                 onView(withId(R.id.deleteMoodOption)).perform(click());
-
-                // Pause briefly to allow deletion to complete.
-                Thread.sleep(2000);
+                Thread.sleep(2000); // Allow deletion to process.
             } catch (Exception e) {
-                // If no more moods exist (adapter is empty), exit the loop.
-                break;
+                // Ignore if not found.
             }
         }
-
-        // Release Espresso intents after cleanup.
-        Intents.release();
     }
 
+    private ViewAssertion isBelowOf(final Matcher<View> upperViewMatcher) {
+        return (lowerView, noViewException) -> {
+            if (noViewException != null) throw noViewException;
+
+            final int[] upperLocation = new int[2];
+            final int[] lowerLocation = new int[2];
+
+            View upperView = getViewFromMatcher(upperViewMatcher);
+            if (upperView == null) throw new AssertionError("Upper view not found.");
+
+            upperView.getLocationOnScreen(upperLocation);
+            lowerView.getLocationOnScreen(lowerLocation);
+
+            if (lowerLocation[1] <= upperLocation[1]) {
+                throw new AssertionError("Expected lower view to be below upper view, but it wasn't.");
+            }
+        };
+    }
+
+    private View getViewFromMatcher(final Matcher<View> matcher) {
+        final View[] foundView = new View[1];
+        try {
+            onView(matcher).check((view, e) -> foundView[0] = view);
+        } catch (Exception e) {
+            return null;
+        }
+        return foundView[0];
+    }
 }
