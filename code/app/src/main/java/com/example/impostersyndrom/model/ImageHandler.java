@@ -26,7 +26,7 @@ import java.util.UUID;
 /**
  * Handles image-related operations such as selection, capture, upload, and local storage.
  *
- * @author [Your Name]
+ * @author Rayan
  */
 public class ImageHandler {
     private static final int MAX_IMAGE_SIZE = 65536; // Maximum allowed image size in bytes
