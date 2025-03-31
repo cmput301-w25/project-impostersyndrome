@@ -54,6 +54,7 @@ public class MapActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private MyLocationNewOverlay myLocationOverlay;
     private ImageButton filterButton;
+    private ImageButton backButton;
     private BottomNavigationView bottomNavigationView;
     private boolean showingMyMoods = true;
     private boolean filterLastWeek = false;
@@ -75,7 +76,7 @@ public class MapActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-
+        backButton = findViewById(R.id.backButton);
         mapView = findViewById(R.id.mapView);
         filterButton = findViewById(R.id.filterButton);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -98,7 +99,7 @@ public class MapActivity extends AppCompatActivity {
         });
 
         filterButton.setOnClickListener(v -> showFilterDialog());
-
+        backButton.setOnClickListener(v -> finish());
         bottomNavigationView.setSelectedItemId(R.id.nav_my_moods);
         bottomNavigationView.setItemIconTintList(null);
         bottomNavigationView.setItemTextColor(null);
