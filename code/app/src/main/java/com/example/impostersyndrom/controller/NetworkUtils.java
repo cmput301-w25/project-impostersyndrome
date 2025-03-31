@@ -7,7 +7,7 @@ import android.net.NetworkInfo;
 /**
  * Utility class for checking network connectivity status.
  *
- * @author [Your Name]
+ * @author Rayan
  */
 public class NetworkUtils {
 
